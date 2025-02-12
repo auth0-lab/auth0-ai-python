@@ -6,7 +6,7 @@ This package integrates [LlamaIndex](https://docs.llamaindex.ai/en/stable/) with
 
 ```bash
 # pip install llama-index-auth0-ai
-pip install git+https://github.com/atko-cic-lab/auth0-ai-python.git@main#subdirectory=packages/llama-index-auth0-ai
+pip install git+https://github.com/auth0-lab/auth0-ai-python.git@main#subdirectory=packages/llama-index-auth0-ai
 ```
 
 ## Running Tests
