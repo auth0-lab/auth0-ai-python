@@ -6,7 +6,7 @@ This package integrates [LangChain](https://python.langchain.com/docs/tutorials/
 
 ```bash
 # pip install langchain-auth0-ai
-pip install git+https://github.com/atko-cic-lab/auth0-ai-python.git@main#subdirectory=packages/langchain-auth0-ai
+pip install "git+https://github.com/auth0-lab/auth0-ai-python.git@main#subdirectory=packages/langchain-auth0-ai"
 ```
 
 ## Running Tests
