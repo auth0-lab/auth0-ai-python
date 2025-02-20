@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "auth0-ai"
+version = "0.1.0"
+description = "This package provides base auth capability for Auth0 AI."
+license = "apache-2.0"
+homepage = "https://auth0.com"
+authors = [
+    "Adeel Mustafa <adeel.mustafa@okta.com>",
+]
+readme = "README.md"
+packages = [{ include = "auth0_ai" }] 
+
+[tool.poetry.dependencies]
+python = "^3.6"
+auth0_python = "^4.8.0"
+fastapi = {version = "^0.115.0", extras = ["standard"]}
+
+[tool.poetry.group.test.dependencies]
+pytest-randomly = "^3.15.0"
+pytest-asyncio = "^0.25.0"
+pytest = "^8.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
