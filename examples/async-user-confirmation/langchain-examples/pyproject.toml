@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "langchain-examples"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+packages = [{ include = "src" }]
+
+[tool.poetry.scripts]
+start = "src.cli:start"
+dev = "src.cli:dev"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.0"
+apscheduler = "^3.10.1"
+httpx = "^0.28.1"
+python-dotenv = "^1.0.1"
+langchain = "^0.3.19"
+langgraph = "^0.3.2"
+pydantic = "^2.10.6"
+nanoid = "^2.0.0"
+langchain-openai = "^0.3.7"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

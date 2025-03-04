@@ -1,0 +1,114 @@
+# Step Up Auth for Tools with LangChain
+
+## Getting Started
+
+### Prerequisites
+
+- An OpenAI account and API key create one [here](https://platform.openai.com).
+- [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/)
+
+### Setup
+
+Create a `.env` file using the format below:
+
+```sh
+# Auth0
+AUTH0_DOMAIN="<auth0-domain>"
+AUTH0_CLIENT_ID="<auth0-client-id>"
+AUTH0_CLIENT_SECRET="<auth0-client-secret>"
+
+# API
+API_URL=http://localhost:8081/
+AUDIENCE=http://localhost:8081
+
+# OpenAI
+OPENAI_API_KEY="<openai-api-key>"
+
+# Langchain
+LANGGRAPH_API_URL="http://localhost:54367"
+```
+
+#### Obtain OpenAI API Key
+
+[Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key). Once you have your key, update the `.env` file accordingly.
+
+### How to run it
+
+1.  **Install Dependencies**
+
+    Use [Poetry](https://python-poetry.org/) to install the required dependencies:
+
+    ```sh
+    $ poetry install
+    ```
+
+2.  **Run the Example**
+
+    Running the API:
+
+    ```sh
+    $ export $(grep -v '^#' ../langchain-examples/.env | xargs) && poetry install --project ../sample-api && poetry run --project ../sample-api python ../sample-api/app.py
+    ```
+
+    Running the scheduler:
+
+    ```sh
+    $ poetry run python ./src/services/scheduler.py
+    ```
+
+    Running the example:
+
+    ```sh
+    $ poetry run dev
+    ```
+
+### How this works
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent
+    participant Conditional Trade Agent
+    participant CIBA Agent
+    participant Auth0
+    participant Stocks API
+    participant User's Phone
+
+    User->>Agent: "Buy 10 NVDA when P/E above 15"
+    Agent->>+Conditional Trade Agent: Monitor Conditional Trade
+    Agent->>User: "I've started a conditional trade"
+    loop Every 10 mins
+        Conditional Trade Agent->>Stocks API: Check P/E ratio
+        Stocks API-->>Conditional Trade Agent:
+        alt P/E > 15
+            Conditional Trade Agent->>Auth0: Initiate CIBA request
+            Auth0->>User's Phone: Send push notification
+            Conditional Trade Agent->>+CIBA Agent: Monitor user response
+            loop Every minute
+                CIBA Agent->>Auth0: Check user approval status
+                Auth0-->>CIBA Agent:
+                alt User approves
+                    User's Phone-->>Auth0: User approves
+                    Auth0-->>CIBA Agent: User approves
+                end
+            end
+            CIBA Agent-->>Conditional Trade Agent: User approves
+        end
+    end
+    Conditional Trade Agent->>Stocks API: Execute trade for 10 NVDA
+    Stocks API-->>Conditional Trade Agent:
+    Conditional Trade Agent->>User's Phone: Inform user
+```
+
+---
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="https://cdn.auth0.com/website/sdks/logos/auth0_light_mode.png"   width="150">
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.auth0.com/website/sdks/logos/auth0_dark_mode.png" width="150">
+    <img alt="Auth0 Logo" src="https://cdn.auth0.com/website/sdks/logos/auth0_light_mode.png" width="150">
+  </picture>
+</p>
+<p align="center">Auth0 is an easy to implement, adaptable authentication and authorization platform. To learn more checkout <a href="https://auth0.com/why-auth0">Why Auth0?</a></p>
+<p align="center">
+This project is licensed under the Apache 2.0 license. See the <a href="/LICENSE"> LICENSE</a> file for more info.</p>
