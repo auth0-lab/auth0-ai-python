@@ -4,9 +4,9 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import ToolNode
 from langchain_core.messages import BaseMessage, AIMessage
 from typing import TypedDict, Annotated, Sequence
-from langchain_openai import ChatOpenAI
 from tools.trade import trade_tool
 from tools.conditional_trade import conditional_trade_tool
+from langchain_openai import ChatOpenAI
 
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]

@@ -16,11 +16,11 @@ flask = "^3.0.0"
 apscheduler = "^3.10.1"
 httpx = "^0.28.1"
 python-dotenv = "^1.0.1"
-langchain = "^0.3.19"
-langgraph = "^0.3.2"
 pydantic = "^2.10.6"
 nanoid = "^2.0.0"
 langchain-openai = "^0.3.7"
+langchain = "^0.3.20"
+langgraph = "^0.3.5"
 
 [build-system]
 requires = ["poetry-core"]
