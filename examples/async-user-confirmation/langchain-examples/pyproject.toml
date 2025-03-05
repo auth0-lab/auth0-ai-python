@@ -21,6 +21,8 @@ nanoid = "^2.0.0"
 langchain-openai = "^0.3.7"
 langchain = "^0.3.20"
 langgraph = "^0.3.5"
+langgraph-cli = "^0.1.74"
+langgraph-api = "^0.0.27"
 
 [build-system]
 requires = ["poetry-core"]
