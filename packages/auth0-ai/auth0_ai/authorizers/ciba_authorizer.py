@@ -3,8 +3,8 @@ import time
 import jwt
 from enum import Enum
 from typing import Awaitable, Callable, Optional, TypedDict, Union
-from langchain_auth0_ai.auth0_ai.errors import AccessDeniedError, AuthorizationRequestExpiredError, UserDoesNotHavePushNotificationsError
-from langchain_auth0_ai.auth0_ai.types import AuthParams, AuthorizerParams, Credentials, TokenResponse
+from auth0_ai.errors import AccessDeniedError, AuthorizationRequestExpiredError, UserDoesNotHavePushNotificationsError
+from auth0_ai.types import AuthParams, AuthorizerParams, Credentials, TokenResponse
 from auth0.authentication.back_channel_login import BackChannelLogin
 from auth0.authentication.get_token import GetToken
 
