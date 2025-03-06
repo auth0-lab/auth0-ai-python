@@ -2,7 +2,8 @@
   "python_version": "3.11",
   "graphs": {
     "agent": "./src/agents/agent.py:graph",
-    "auth0_ciba_poller": "./src/agents/ciba.py:graph"
+    "AUTH0_CIBA_POLLER": "./src/agents/ciba.py:graph",
+    "conditional-trade": "./src/agents/conditional_trade.py:graph"
   },
   "env": ".env",
   "dependencies": ["./src/agents"]

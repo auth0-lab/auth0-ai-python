@@ -2,12 +2,12 @@ import os
 from langgraph.graph import StateGraph, END, START
 from typing import Awaitable, Callable, Union, Optional, TypedDict
 from langgraph_sdk import get_client
-from auth0_ai.authorizers.ciba_authorizer import CIBAAuthorizer, CibaAuthorizerCheckResponse, CibaResponse
+from auth0_ai.authorizers.ciba_authorizer import CIBAAuthorizer, CibaAuthorizerCheckResponse, AuthorizeResponse
 from auth0_ai.types import Credentials, TokenResponse
 from langchain_auth0_ai.ciba.types import Auth0Graphs
 
 class CibaState(TypedDict):
-    ciba_response: CibaResponse
+    ciba_response: AuthorizeResponse
     on_resume_invoke: str
     thread_id: str
     user_id: str

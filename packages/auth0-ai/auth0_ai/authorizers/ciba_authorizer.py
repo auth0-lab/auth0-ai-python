@@ -14,7 +14,7 @@ class CibaAuthorizerCheckResponse(Enum):
     REJECTED = "rejected"
     EXPIRED = "expired"
 
-class CibaResponse(TypedDict):
+class AuthorizeResponse(TypedDict):
     auth_req_id: str
     expires_in: int
     interval: int
@@ -53,7 +53,7 @@ class CIBAAuthorizer:
             scopes.insert(0, "openid")
         return " ".join(scopes)
 
-    async def _start[T](self, params: CibaAuthorizerOptions, tool_context: Optional[T]) -> Awaitable[CibaResponse]:
+    async def _start[T](self, params: CibaAuthorizerOptions, tool_context: Optional[T]) -> Awaitable[AuthorizeResponse]:
         authorize_params = {
             "scope": self._ensure_openid_scope(params.get("scope")),
             "audience": params.get("audience"),
@@ -107,7 +107,7 @@ class CIBAAuthorizer:
     async def _authorize[T](self, params: CibaAuthorizerOptions, tool_context: Optional[T]) -> Awaitable[Credentials]:
         return await self._poll(await self._start[T](**{**params, tool_context: tool_context}))
 
-    async def _poll(self, params: CibaResponse) -> Awaitable[Credentials]:
+    async def _poll(self, params: AuthorizeResponse) -> Awaitable[Credentials]:
         start_time = time.time()
         
         while time.time() - start_time < params.get("expires_in"):
@@ -140,7 +140,7 @@ class CIBAAuthorizer:
         return {"accessToken": credentials["access_token"]["value"], "claims": claims}
 
     @staticmethod
-    async def start(options: CibaAuthorizerOptions, params: AuthorizerParams = None) -> Awaitable[CibaResponse]:
+    async def start(options: CibaAuthorizerOptions, params: AuthorizerParams = None) -> Awaitable[AuthorizeResponse]:
         authorizer = CIBAAuthorizer(params)
         return await authorizer._start(options)
 
