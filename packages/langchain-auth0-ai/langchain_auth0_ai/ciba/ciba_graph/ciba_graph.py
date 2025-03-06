@@ -69,7 +69,7 @@ class CIBAGraph(Generic[N]):
     def with_auth(self, fn: Callable[..., Any]) -> Callable[..., Any]:
         def wrapper(*args: Any) -> Any:
             state: State = args[0]
-            messages = state.messages
+            messages = state["messages"]
             last_message = messages[-1] if messages else None
 
             if not callable(fn):

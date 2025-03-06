@@ -1,7 +1,7 @@
-from typing import Dict, Any
 from pydantic import BaseModel
 from enum import Enum
 from langchain_core.tools import StructuredTool
+from langchain_core.runnables.config import RunnableConfig
 from clients.scheduler import SchedulerClient
 
 class MetricEnum(str, Enum):
@@ -28,11 +28,15 @@ class ConditionalTradeSchema(BaseModel):
     threshold: float
 
 async def schedule_conditional_trade(
-    ticker: str, qty: int, metric: MetricEnum, operator: OperatorEnum, threshold: float, config: Dict[str, Any] = {}
+    ticker: str, qty: int, metric: MetricEnum, operator: OperatorEnum, threshold: float, config: RunnableConfig = None
 ) -> str:
     await SchedulerClient().schedule({
         "graph_id": "conditional-trade",
-        "config": config,
+        "config": {
+            "configurable": {
+                "user_id": config.get("configurable", {}).get("user_id"),
+            },
+        },
         "input": {
             "data": {
                 "ticker": ticker,

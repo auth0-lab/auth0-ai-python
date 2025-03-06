@@ -1,17 +1,17 @@
 import os
 import httpx
 from langchain_core.tools import StructuredTool
+from langchain_core.runnables.config import RunnableConfig
 from pydantic import BaseModel
-from typing import Dict, Any
 
 class TradeSchema(BaseModel):
     ticker: str
     qty: int
 
-def get_access_token(config: Dict[str, Any]) -> str:
+def get_access_token(config: RunnableConfig) -> str:
     return ""  # TODO: Implement access token retrieval
 
-def trade_tool_function(ticker: str, qty: int, config: Dict[str, Any] = {}) -> str:
+def trade_tool_function(ticker: str, qty: int, config: RunnableConfig = None) -> str:
     access_token = get_access_token(config)
     
     if not access_token:

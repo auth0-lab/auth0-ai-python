@@ -79,10 +79,8 @@ def initialize_ciba(ciba_graph: ICIBAGraph):
                 await langgraph.crons.create_for_thread(
                     thread_id,
                     scheduler_params["ciba_graph_id"],
-                    {
-                        "schedule": {"unit": "minutes", "interval": 1},  # Default to every minute
-                        "input": scheduler_params,
-                    },
+                    schedule="*/1 * * * *", # Default to every minute
+                    input=scheduler_params,
                 )
 
             print("CIBA Task Scheduled")

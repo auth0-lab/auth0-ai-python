@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 from langgraph_sdk import get_client
 from nanoid import generate
@@ -11,7 +11,7 @@ import shelve
 load_dotenv()
 
 app = Flask(__name__)
-scheduler = AsyncIOScheduler()
+scheduler = BackgroundScheduler()
 
 DB_FILE = "./.scheduler"
 PORT = int(os.getenv("PORT", 5555))
@@ -28,14 +28,17 @@ class TaskData(TypedDict):
 
 async def execute_task(graph_id: str, task_id: str, data: dict):
     print(f"Executing task {task_id} | {graph_id}")
-    client = get_client(base_url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
-    threads = await client.threads.create()
+    client = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
+    thread = await client.threads.create()
     await client.runs.create(
+        thread_id=thread["thread_id"],
         assistant_id=graph_id,
-        thread_id=threads.thread_id,
         input={**data.get('input', {}), 'task_id': task_id},
         config=data.get('config')
     )
+
+def run_async_task(graph_id, task_id, data):
+    asyncio.run(execute_task(graph_id, task_id, data))
 
 def load_tasks():
     with shelve.open(DB_FILE) as db:
@@ -46,7 +49,7 @@ def add_task(task_id, data):
     interval = data.get("schedule", {}).get("interval", 5)
     trigger_args = {unit: interval}
     graph_id = data["graph_id"]
-    scheduler.add_job(execute_task, "interval", id=task_id, args=[graph_id, task_id, data], **trigger_args)
+    scheduler.add_job(run_async_task, "interval", id=task_id, args=[graph_id, task_id, data], **trigger_args)
     with shelve.open(DB_FILE, writeback=True) as db:
         db[task_id] = data
 
@@ -61,7 +64,7 @@ def restore_tasks():
     for task_id, data in tasks.items():
         add_task(task_id, data)
 
-async def initialize():
+def initialize():
     scheduler.start()
     restore_tasks()
 
@@ -76,11 +79,11 @@ def create():
     add_task(task_id, task_data)
     return jsonify({"task_id": task_id}), 201
 
-@app.route('/schedule/<string:task_id>', methods=['DELETE'])
+@app.route('/schedule/<task_id>', methods=['DELETE'])
 def delete(task_id):
     delete_task(task_id)
     return jsonify({"task_id": task_id}), 200
 
 if __name__ == '__main__':
-    asyncio.run(initialize())
+    initialize()
     app.run(port=PORT)
