@@ -11,7 +11,7 @@ class TradeSchema(BaseModel):
 def get_access_token(config: RunnableConfig) -> str:
     return ""  # TODO: Implement access token retrieval
 
-def trade_tool_function(ticker: str, qty: int, config: RunnableConfig = None) -> str:
+def trade_tool_function(ticker: str, qty: int, config: RunnableConfig) -> str:
     access_token = get_access_token(config)
     
     if not access_token:

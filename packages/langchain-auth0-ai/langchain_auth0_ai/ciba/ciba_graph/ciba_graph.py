@@ -78,8 +78,8 @@ class CIBAGraph(Generic[N]):
             # Call default function if no tool calls
             if not last_message or not hasattr(last_message, "tool_calls") or not last_message.tool_calls:
                 return fn(*args)
-
-            tool_name = last_message.tool_calls[0].name
+            
+            tool_name = last_message.tool_calls[0]["name"]
             tool = next((t for t in self.tools if t.tool_name == tool_name), None)
 
             if tool:

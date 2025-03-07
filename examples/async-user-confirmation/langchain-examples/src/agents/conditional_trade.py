@@ -3,7 +3,7 @@ from typing import Annotated, Sequence, TypedDict
 from langgraph.graph import StateGraph, START, END, add_messages
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.storage import InMemoryStore
-from langchain_core.messages import AIMessage, BaseMessage
+from langchain_core.messages import AIMessage, BaseMessage, ToolCall
 from langchain_core.runnables.config import RunnableConfig
 from src.agents.clients.scheduler import SchedulerClient
 from langchain_auth0_ai.states import Auth0State
@@ -53,18 +53,18 @@ async def check_condition(state: StateAnnotation, config: RunnableConfig, store)
     return {
         "messages": [
             AIMessage(
-                content="",
+                content="Calling trade tool...",
                 tool_calls=[
-                    {
-                        "name": "trade_tool",
-                        "args": {
+                    ToolCall(
+                        name="trade_tool",
+                        args={
                             "ticker": state["data"]["ticker"],
                             "qty": state["data"]["qty"],
                         },
-                        "id": "tool_abcd123",
-                    }
-                ],
-            ).to_dict()
+                        id="tool_abcd123",
+                    )
+                ]
+            )
         ]
     }
 
