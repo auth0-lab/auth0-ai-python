@@ -4,6 +4,7 @@ from langgraph.graph import StateGraph, START, END, add_messages
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.storage import InMemoryStore
 from langchain_core.messages import AIMessage, BaseMessage
+from langchain_core.runnables.config import RunnableConfig
 from src.agents.clients.scheduler import SchedulerClient
 from langchain_auth0_ai.states import Auth0State
 from langchain_auth0_ai.auth0_ai import Auth0AI
@@ -17,9 +18,8 @@ class ConditionalTrade(TypedDict):
     threshold: float;
     operator: str
 
-class StateAnnotation(TypedDict):
+class StateAnnotation(Auth0State, total=True):
     messages: Annotated[Sequence[BaseMessage], add_messages]
-    auth0: Auth0State
     data: ConditionalTrade
 
 def should_continue(state: StateAnnotation):
@@ -30,7 +30,7 @@ def should_continue(state: StateAnnotation):
         return "tools"
     return END
 
-async def check_condition(state: StateAnnotation, config):
+async def check_condition(state: StateAnnotation, config: RunnableConfig, store):
     """
     Checks the condition of a given state and config, and performs actions based on the status.
     
@@ -38,17 +38,16 @@ async def check_condition(state: StateAnnotation, config):
     :param config: The configuration object for LangGraphRunnable, containing the store.
     :return: Updated state or an object containing messages with tool calls.
     """
-    store = config.get("store")
-    if not store:
+
+    # TODO: This function should contains the logic to check if the stock condition is met.
+    stored_status = await store.aget(state["task_id"], "status")
+    
+    if stored_status and stored_status.value == "processing":
+        # Skip since the job is already processing
         return state
-    
-    data = await store.get([state["taskId"]], "status")
-    
-    if data and data.get("value", {}).get("status") == "processing":
-        return state
-    
-    if not data:
-        await store.put([state["taskId"]], "status", {"status": "processing"})
+
+    if not stored_status:
+        await store.aput(state["task_id"], "status", "processing")
     
     # Calling the trade tool to initiate the trade
     return {
