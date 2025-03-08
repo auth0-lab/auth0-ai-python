@@ -9,7 +9,7 @@ class TradeSchema(BaseModel):
     qty: int
 
 def get_access_token(config: RunnableConfig) -> str:
-    return ""  # TODO: Implement access token retrieval
+    return ""  # TODO: Implement access token retrieval (move get_access_token to auth0-langchain)
 
 def trade_tool_function(ticker: str, qty: int, config: RunnableConfig) -> str:
     access_token = get_access_token(config)

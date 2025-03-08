@@ -1,6 +1,7 @@
-from typing import Generic, List, Optional, TypeVar, Callable, Any
+from typing import Awaitable, Generic, Hashable, List, Optional, TypeVar, Callable, Any, Union
 from langchain_core.tools import StructuredTool
 from langgraph.graph import StateGraph, END, START
+from langchain_core.runnables import Runnable
 from auth0_ai.types import AuthorizerParams
 from ..types import Auth0Nodes
 from .initialize_ciba import initialize_ciba
@@ -8,6 +9,7 @@ from .initialize_hitl import initialize_hitl
 from .types import CIBAGraphOptions, CIBAOptions, ProtectedTool, State
 
 N = TypeVar("N", bound=str)
+F = TypeVar("F", bound=Callable[..., Any])
 
 class CIBAGraph(Generic[N]):
     def __init__(
@@ -15,10 +17,10 @@ class CIBAGraph(Generic[N]):
         options: Optional[CIBAGraphOptions[N]] = None,
         authorizer_params: Optional[AuthorizerParams] = None,
     ):
-        self.graph: Optional[StateGraph] = None
         self.options = options
-        self.tools: List[ProtectedTool[N]] = []
         self.authorizer_params = authorizer_params
+        self.tools: List[ProtectedTool[N]] = []
+        self.graph: Optional[StateGraph] = None
 
     def get_tools(self) -> List[ProtectedTool[N]]:
         return self.tools
@@ -39,11 +41,11 @@ class CIBAGraph(Generic[N]):
         self.graph = graph
 
         # Add CIBA HITL and CIBA nodes
-        self.graph.add_node(Auth0Nodes.AUTH0_CIBA_HITL, initialize_hitl(self))
-        self.graph.add_node(Auth0Nodes.AUTH0_CIBA, initialize_ciba(self))
+        self.graph.add_node(Auth0Nodes.AUTH0_CIBA_HITL.value, initialize_hitl(self))
+        self.graph.add_node(Auth0Nodes.AUTH0_CIBA.value, initialize_ciba(self))
         self.graph.add_conditional_edges(
-            Auth0Nodes.AUTH0_CIBA,
-            lambda state: END if state.auth0 and state.auth0.get("error") else Auth0Nodes.AUTH0_CIBA_HITL,
+            Auth0Nodes.AUTH0_CIBA.value,
+            lambda state: END if getattr(state, "auth0", {}).get("error") else Auth0Nodes.AUTH0_CIBA_HITL.value,
         )
 
         return graph
@@ -66,26 +68,30 @@ class CIBAGraph(Generic[N]):
 
         return tool
 
-    def with_auth(self, fn: Callable[..., Any]) -> Callable[..., Any]:
-        def wrapper(*args: Any) -> Any:
-            state: State = args[0]
-            messages = state["messages"]
-            last_message = messages[-1] if messages else None
-
-            if not callable(fn):
+    def with_auth(self, path: Union[
+            Callable[..., Union[Hashable, list[Hashable]]],
+            Callable[..., Awaitable[Union[Hashable, list[Hashable]]]],
+            Runnable[Any, Union[Hashable, list[Hashable]]],
+        ]):
+        def wrapper(*args):
+            if not callable(path):
                 return START
 
-            # Call default function if no tool calls
+            state: State = args[0]
+            messages = state.get("messages")
+            last_message = messages[-1] if messages else None
+
+            # Call default path if there are no tool calls
             if not last_message or not hasattr(last_message, "tool_calls") or not last_message.tool_calls:
-                return fn(*args)
+                return path(*args)
             
             tool_name = last_message.tool_calls[0]["name"]
             tool = next((t for t in self.tools if t.tool_name == tool_name), None)
-
+            
             if tool:
-                return Auth0Nodes.AUTH0_CIBA
+                return Auth0Nodes.AUTH0_CIBA.value
 
-            # Call default function if tool is not protected
-            return fn(*args)
+            # Call default path if tool is not protected
+            return path(*args)
 
         return wrapper

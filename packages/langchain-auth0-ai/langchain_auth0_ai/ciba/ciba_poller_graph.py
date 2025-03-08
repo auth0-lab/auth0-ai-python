@@ -15,15 +15,15 @@ class CibaState(TypedDict):
     # Internal
     task_id: str
     tool_id: str
-    status: str
+    status: CibaAuthorizerCheckResponse
     token_response: Optional[TokenResponse]
 
 def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaitable[None]]]):
     async def check_status(state: CibaState):
         try:
-            res = await CIBAAuthorizer.check(state.ciba_response.authReqId)
-            state.token_response = res.token
-            state.status = res.status
+            res = await CIBAAuthorizer.check(state["ciba_response"]["auth_req_id"])
+            state["token_response"] = res["token"]
+            state["status"] = res["status"]
         except Exception as e:
             print(f"Error in check_status: {e}")
         return state
@@ -32,7 +32,7 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaita
         try:
             if isinstance(on_stop_scheduler, str):
                 langgraph = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
-                await langgraph.crons.create_for_thread(state.thread_id, Auth0Graphs.CIBA_POLLER)
+                await langgraph.crons.create_for_thread(state.thread_id, Auth0Graphs.CIBA_POLLER.value)
             elif callable(on_stop_scheduler):
                 await on_stop_scheduler(state)
         except Exception as e:
@@ -41,23 +41,24 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaita
     
     async def resume_agent(state: CibaState):
         langgraph = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
-        _credentials: Optional[Credentials] = None
+        _credentials: Credentials = None
         
         try:
-            if state.status == CibaAuthorizerCheckResponse.APPROVED:
+            if state["status"] == CibaAuthorizerCheckResponse.APPROVED:
                 _credentials = {
                     "access_token": {
-                        "type": state.token_response.get("tokenType", "bearer"),
-                        "value": state.token_response["accessToken"],
+                        "type": state["token_response"].get("tokenType", "Bearer"),
+                        "value": state["token_response"].get("accessToken"),
                     }
                 }
-            
+
             await langgraph.runs.wait(
-                state.thread_id, state.on_resume_invoke,
+                thread_id=state["thread_id"],
+                assistant_id=state["on_resume_invoke"],
                 config={
-                    "configurable": {"_credentials": _credentials}
+                    "configurable": {"_credentials": _credentials} # this is only for this run / threadid
                 },
-                command={"resume": state.status}
+                command={"resume": True}
             )
         except Exception as e:
             print(f"Error in resume_agent: {e}")
@@ -65,11 +66,11 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaita
         return state
     
     async def should_continue(state: CibaState):
-        if state.status == CibaAuthorizerCheckResponse.PENDING:
+        if state["status"] == CibaAuthorizerCheckResponse.PENDING:
             return END
-        elif state.status == CibaAuthorizerCheckResponse.EXPIRED:
+        elif state["status"] == CibaAuthorizerCheckResponse.EXPIRED:
             return "stop_scheduler"
-        elif state.status in [CibaAuthorizerCheckResponse.APPROVED, CibaAuthorizerCheckResponse.REJECTED]:
+        elif state["status"] in [CibaAuthorizerCheckResponse.APPROVED, CibaAuthorizerCheckResponse.REJECTED]:
             return "resume_agent"
         return END
     

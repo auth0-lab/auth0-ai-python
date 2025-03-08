@@ -1,15 +1,17 @@
-from typing import Optional, List, TypeVar, Generic, Callable, Union, Awaitable
+from typing import Optional, List, TypeVar, Generic, Callable, Union, Awaitable, TypedDict
 from abc import ABC, abstractmethod
 from langgraph.graph import StateGraph
 from langchain_core.messages import AIMessage, ToolMessage
 from auth0_ai.types import AuthorizerParams
 from auth0_ai.authorizers.ciba_authorizer import AuthorizeResponse
-from ...states import Auth0StateType
 
-class State:
-    def __init__(self, messages: List[Union[AIMessage, ToolMessage]], auth0: Optional[Auth0StateType] = None):
-        self.messages = messages
-        self.auth0 = auth0 if auth0 is not None else {}
+class Auth0State(TypedDict):
+    error: str
+
+class State(TypedDict):
+    task_id: str
+    messages: List[Union[AIMessage, ToolMessage]]
+    auth0: Optional[Auth0State] = None
 
 class SchedulerParams:
     def __init__(
