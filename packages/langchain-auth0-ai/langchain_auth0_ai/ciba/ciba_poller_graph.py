@@ -2,6 +2,7 @@ import os
 from langgraph.graph import StateGraph, END, START
 from typing import Awaitable, Callable, Union, Optional, TypedDict
 from langgraph_sdk import get_client
+from langgraph_sdk.schema import Command
 from auth0_ai.authorizers.ciba_authorizer import CIBAAuthorizer, CibaAuthorizerCheckResponse, AuthorizeResponse
 from auth0_ai.types import Credentials, TokenResponse
 from langchain_auth0_ai.ciba.types import Auth0Graphs
@@ -53,12 +54,12 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaita
                 }
 
             await langgraph.runs.wait(
-                thread_id=state["thread_id"],
-                assistant_id=state["on_resume_invoke"],
+                state["thread_id"],
+                state["on_resume_invoke"],
                 config={
-                    "configurable": {"_credentials": _credentials} # this is only for this run / threadid
+                    "configurable": {"_credentials": _credentials} # this is only for this run / thread_id
                 },
-                command={"resume": True}
+                command=Command(resume={"status": state["status"]})
             )
         except Exception as e:
             print(f"Error in resume_agent: {e}")

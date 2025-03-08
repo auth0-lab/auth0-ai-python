@@ -6,7 +6,3 @@ class Auth0Nodes(Enum):
 
 class Auth0Graphs(Enum):
     CIBA_POLLER = "AUTH0_CIBA_POLLER"
-
-class HumanResponse(Enum):
-  APPROVED = "approved"
-  REJECTED = "rejected"

@@ -2,6 +2,7 @@ import os
 from typing import TypedDict
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.prebuilt import ToolNode
 from langchain.storage import InMemoryStore
 from langchain_core.messages import AIMessage, ToolCall
 from langchain_core.runnables.config import RunnableConfig
@@ -17,7 +18,7 @@ class ConditionalTrade(TypedDict):
     threshold: float;
     operator: str
 
-class StateAnnotation(State, total=True):
+class StateAnnotation(State):
     data: ConditionalTrade
 
 def should_continue(state: StateAnnotation):
@@ -51,6 +52,7 @@ async def check_condition(state: StateAnnotation, config: RunnableConfig, store)
     return {
         "messages": [
             AIMessage(
+                id="message_abcd123",
                 content="Calling trade tool...",
                 tool_calls=[
                     ToolCall(
@@ -125,15 +127,17 @@ state_graph.add_node("notify_user", notify_user)
 state_graph.add_node("stop_scheduler", stop_scheduler)
 state_graph.add_node(
     "tools",
-    ciba.protect_tool(
-        trade_tool,
-        options=CIBAOptions(
-            on_approve_go_to="tools",
-            on_reject_go_to="stop_scheduler",
-            scope="stock:trade",
-            binding_message=binding_message,
+    ToolNode([
+        ciba.protect_tool(
+            trade_tool,
+            options=CIBAOptions(
+                on_approve_go_to="tools",
+                on_reject_go_to="stop_scheduler",
+                scope="stock:trade",
+                binding_message=binding_message,
+            )
         )
-    ),
+    ]),
 )
 
 state_graph.add_edge(START, "check_condition")

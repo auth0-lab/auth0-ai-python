@@ -1,5 +1,6 @@
 from typing import Awaitable, Generic, Hashable, List, Optional, TypeVar, Callable, Any, Union
 from langchain_core.tools import StructuredTool
+from langchain_core.tools.base import BaseTool
 from langgraph.graph import StateGraph, END, START
 from langchain_core.runnables import Runnable
 from auth0_ai.types import AuthorizerParams
@@ -52,7 +53,7 @@ class CIBAGraph(Generic[N]):
 
     def protect_tool(
         self,
-        tool: StructuredTool,
+        tool: Union[BaseTool, Callable],
         options: CIBAOptions[N],
     ) -> StructuredTool:
         # Merge default options with tool-specific options
