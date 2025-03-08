@@ -140,7 +140,7 @@ state_graph.add_node(
             options=CIBAOptions(
                 on_approve_go_to="tools",
                 on_reject_go_to="stop_scheduler",
-                scope="stock:trade", # TODO: access token is not including this scope
+                scope="stock:trade",
                 binding_message=binding_message,
             )
         )
