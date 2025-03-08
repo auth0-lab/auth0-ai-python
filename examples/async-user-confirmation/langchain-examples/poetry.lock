@@ -1149,14 +1149,14 @@ url = "../../../packages/langchain-auth0-ai"
 
 [[package]]
 name = "langchain-core"
-version = "0.3.41"
+version = "0.3.43"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "langchain_core-0.3.41-py3-none-any.whl", hash = "sha256:1a27cca5333bae7597de4004fb634b5f3e71667a3da6493b94ce83bcf15a23bd"},
-    {file = "langchain_core-0.3.41.tar.gz", hash = "sha256:d3ee9f3616ebbe7943470ade23d4a04e1729b1512c0ec55a4a07bd2ac64dedb4"},
+    {file = "langchain_core-0.3.43-py3-none-any.whl", hash = "sha256:caa6bc1f4c6ab71d3c2e400f8b62e1cd6dc5ac2c37e03f12f3e2c60befd5b273"},
+    {file = "langchain_core-0.3.43.tar.gz", hash = "sha256:bec60f4f5665b536434ff747b8f23375a812e82cfa529f519b54cc1e7a94a875"},
 ]
 
 [package.dependencies]
@@ -1223,14 +1223,14 @@ langgraph-sdk = ">=0.1.42,<0.2.0"
 
 [[package]]
 name = "langgraph-api"
-version = "0.0.27"
+version = "0.0.28"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.11.0"
 groups = ["main"]
 files = [
-    {file = "langgraph_api-0.0.27-py3-none-any.whl", hash = "sha256:9b21742238b15b8db9c2d3fd760a670332c8897d0bcbbd9d82e43b6ac15a7937"},
-    {file = "langgraph_api-0.0.27.tar.gz", hash = "sha256:c21eb2b7fe3b93998379f7b13ad7d23b3ef06ab821b008c6b12b954acfb587ec"},
+    {file = "langgraph_api-0.0.28-py3-none-any.whl", hash = "sha256:06f5784e83c6d8fcd62701d279de6f8c837f7ffe260b2d945d2893e0323e4679"},
+    {file = "langgraph_api-0.0.28.tar.gz", hash = "sha256:d040833276681a5b00f27eb85d72b0dadc7a324e951b9b35fb542abf0d3e9eda"},
 ]
 
 [package.dependencies]
@@ -1246,7 +1246,7 @@ orjson = ">=3.9.7"
 pyjwt = ">=2.9.0,<3.0.0"
 sse-starlette = ">=2.1.0,<2.2.0"
 starlette = ">=0.38.6"
-structlog = ">=23.1.0,<24.0.0"
+structlog = ">=24.1.0,<26"
 tenacity = ">=8.0.0"
 uvicorn = ">=0.26.0"
 watchfiles = ">=0.13"
@@ -1269,14 +1269,14 @@ msgpack = ">=1.1.0,<2.0.0"
 
 [[package]]
 name = "langgraph-cli"
-version = "0.1.74"
+version = "0.1.75"
 description = "CLI for interacting with LangGraph API"
 optional = false
 python-versions = "<4.0.0,>=3.9.0"
 groups = ["main"]
 files = [
-    {file = "langgraph_cli-0.1.74-py3-none-any.whl", hash = "sha256:1bb02cc9c1eabd4470cf00369167c343645ffed35c40dc296b6abb5aac5d61a3"},
-    {file = "langgraph_cli-0.1.74.tar.gz", hash = "sha256:ff879cf4cd358bd7274aecdfb63941272c649c7d9793308351ceb7f8bcfb3475"},
+    {file = "langgraph_cli-0.1.75-py3-none-any.whl", hash = "sha256:edf381264982aef8d9279706c813535c3becf4233620501a7240025b790e55c5"},
+    {file = "langgraph_cli-0.1.75.tar.gz", hash = "sha256:4b490a9a3f8b8b910422e0d84d054066902de45d5df0f23b18d4130aaac9ac06"},
 ]
 
 [package.dependencies]
@@ -2466,19 +2466,19 @@ full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart 
 
 [[package]]
 name = "structlog"
-version = "23.3.0"
+version = "25.1.0"
 description = "Structured Logging for Python"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "structlog-23.3.0-py3-none-any.whl", hash = "sha256:d6922a88ceabef5b13b9eda9c4043624924f60edbb00397f4d193bd754cde60a"},
-    {file = "structlog-23.3.0.tar.gz", hash = "sha256:24b42b914ac6bc4a4e6f716e82ac70d7fb1e8c3b1035a765591953bfc37101a5"},
+    {file = "structlog-25.1.0-py3-none-any.whl", hash = "sha256:843fe4f254540329f380812cbe612e1af5ec5b8172205ae634679cd35a6d6321"},
+    {file = "structlog-25.1.0.tar.gz", hash = "sha256:2ef2a572e0e27f09664965d31a576afe64e46ac6084ef5cec3c2b8cd6e4e3ad3"},
 ]
 
 [package.extras]
-dev = ["structlog[tests,typing]"]
-docs = ["furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphinxcontrib-mermaid", "sphinxext-opengraph", "twisted"]
+dev = ["freezegun (>=0.2.8)", "mypy (>=1.4)", "pretend", "pytest (>=6.0)", "pytest-asyncio (>=0.17)", "rich", "simplejson", "twisted"]
+docs = ["cogapp", "furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphinxcontrib-mermaid", "sphinxext-opengraph", "twisted"]
 tests = ["freezegun (>=0.2.8)", "pretend", "pytest (>=6.0)", "pytest-asyncio (>=0.17)", "simplejson"]
 typing = ["mypy (>=1.4)", "rich", "twisted"]
 
@@ -3072,4 +3072,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "5156da7ee6dcdc628f267721fca23c81be8853235458bca87ad13e92c8a5d1b8"
+content-hash = "03cbc37951f36c39feadb3c1f8b48f52bbbd3a99b90c9a6ba5355d89d3a5a14b"
