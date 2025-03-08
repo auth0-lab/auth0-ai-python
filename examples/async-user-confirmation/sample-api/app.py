@@ -77,6 +77,7 @@ def requires_auth(f):
 @cross_origin(headers=['Content-Type', 'Authorization'])
 @requires_auth
 def stock_purchase():
+    # TODO: validate scope
     print("Received request to purchase stock")
     return jsonify({"message": "Stock purchase request received"}), 200
 

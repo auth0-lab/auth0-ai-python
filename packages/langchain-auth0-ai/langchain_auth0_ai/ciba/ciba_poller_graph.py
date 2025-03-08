@@ -48,8 +48,8 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaita
             if state["status"] == CibaAuthorizerCheckResponse.APPROVED:
                 _credentials = {
                     "access_token": {
-                        "type": state["token_response"].get("tokenType", "Bearer"),
-                        "value": state["token_response"].get("accessToken"),
+                        "type": state["token_response"].get("token_type", "Bearer"),
+                        "value": state["token_response"].get("access_token"),
                     }
                 }
 

@@ -100,12 +100,12 @@ class CIBAAuthorizer:
             result = self.get_token.backchannel_login(auth_req_id=auth_req_id)
             response["status"] = CibaAuthorizerCheckResponse.APPROVED
             response["token"] = {
-                "accessToken": result["access_token"],
-                "idToken": result["id_token"],
-                "expiresIn": result["expires_in"],
+                "access_token": result["access_token"],
+                "id_token": result["id_token"],
+                "expires_in": result["expires_in"],
                 "scope": result["scope"],
-                "refreshToken": result.get("refresh_token"),
-                "tokenType": result.get("token_type"),
+                "refresh_token": result.get("refresh_token"),
+                "token_type": result.get("token_type"),
             }
         except Exception as e:
             error_code = getattr(e, "error", "")
@@ -128,7 +128,7 @@ class CIBAAuthorizer:
             try:
                 response = self.auth0.backchannel_grant(auth_req_id=params.get("auth_req_id"))
                 return {
-                    "accessToken": {
+                    "access_token": {
                         "type": response.get("token_type", "bearer"),
                         "value": response["access_token"],
                     }
@@ -151,7 +151,7 @@ class CIBAAuthorizer:
         authorizer = CIBAAuthorizer(params)
         credentials = await authorizer._authorize(options, tool_context)
         claims = jwt.decode(credentials["access_token"]["value"])
-        return {"accessToken": credentials["access_token"]["value"], "claims": claims}
+        return {"access_token": credentials["access_token"]["value"], "claims": claims}
 
     @staticmethod
     async def start[T](options: CibaAuthorizerOptions, params: AuthorizerParams = None, tool_context: T = None) -> Awaitable[AuthorizeResponse]:

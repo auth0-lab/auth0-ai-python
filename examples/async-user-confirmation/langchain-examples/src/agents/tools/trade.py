@@ -1,24 +1,22 @@
 import os
 import httpx
+from pydantic import BaseModel
 from langchain_core.tools import StructuredTool
 from langchain_core.runnables.config import RunnableConfig
-from pydantic import BaseModel
+from langchain_auth0_ai.auth0_ai import get_access_token
 
 class TradeSchema(BaseModel):
     ticker: str
     qty: int
 
-def get_access_token(config: RunnableConfig) -> str:
-    return ""  # TODO: Implement access token retrieval (move get_access_token to auth0-langchain)
-
 def trade_tool_function(ticker: str, qty: int, config: RunnableConfig) -> str:
     access_token = get_access_token(config)
-    
+
     if not access_token:
         raise ValueError("Access token not found")
 
     headers = {
-        "Authorization": f"Bearer {access_token}",
+        "Authorization": f"{access_token["type"]} {access_token["value"]}",
         "Content-Type": "application/json"
     }
 

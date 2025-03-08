@@ -4,7 +4,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import ToolNode
 from langchain.storage import InMemoryStore
-from langchain_core.messages import AIMessage, ToolCall
+from langchain_core.messages import AIMessage, ToolCall, ToolMessage
 from langchain_core.runnables.config import RunnableConfig
 from src.agents.clients.scheduler import SchedulerClient
 from langchain_auth0_ai.auth0_ai import Auth0AI
@@ -78,8 +78,15 @@ async def notify_user(state: StateAnnotation):
     :param state: The current state of the trade.
     :return: The updated state after notification.
     """
+    details="unknown"
+    messages = state.get("messages")
+    last_message = messages[-1] if messages else None
+    if isinstance(last_message, ToolMessage):
+        details = last_message.content
+
     print("----")
     print("Notifying the user about the trade.")
+    print(f"Details: {details}")
     print("----")
     
     return state
