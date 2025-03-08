@@ -1,7 +1,7 @@
 from typing import Optional, List
-from .types import ProtectedTool, State
+from .types import ProtectedTool, BaseState
 
-def get_tool_definition(state: State, tools: List[ProtectedTool]) -> Optional[dict]:
+def get_tool_definition(state: BaseState, tools: List[ProtectedTool]) -> Optional[dict]:
     message = state["messages"][-1]
     
     if not hasattr(message, "tool_calls") or not message.tool_calls:

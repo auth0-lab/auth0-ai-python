@@ -10,7 +10,7 @@ class TokenResponse(TypedDict):
 
 class Credential(TypedDict):
     type: str
-    value: int
+    value: str
 
 class Credentials(TypedDict):
     access_token: Credential

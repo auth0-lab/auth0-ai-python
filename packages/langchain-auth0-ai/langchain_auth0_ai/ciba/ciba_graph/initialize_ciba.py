@@ -4,11 +4,11 @@ from langgraph_sdk import get_client
 from langchain_core.runnables.config import RunnableConfig
 from auth0_ai.authorizers.ciba_authorizer import CIBAAuthorizer
 from ..types import Auth0Graphs, Auth0Nodes
-from .types import ICIBAGraph, State
+from .types import ICIBAGraph, BaseState
 from .utils import get_tool_definition
 
 def initialize_ciba(ciba_graph: ICIBAGraph):
-    async def handler(state: State, config: RunnableConfig):
+    async def handler(state: BaseState, config: RunnableConfig):
         try:
             ciba_params = ciba_graph.get_options()
             tools = ciba_graph.get_tools()

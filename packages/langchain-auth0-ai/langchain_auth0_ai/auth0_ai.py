@@ -1,12 +1,12 @@
-from typing import Generic, Optional, TypeVar, Literal
+from typing import Generic, Optional, TypeVar
 from langchain_core.runnables.config import RunnableConfig
-from auth0_ai.types import AuthorizerParams
+from auth0_ai.types import AuthorizerParams, Credential
 from .ciba.ciba_graph.ciba_graph import CIBAGraph
 from .ciba.ciba_graph.types import CIBAGraphOptions
 
 N = TypeVar("N", bound=str)
 
-def get_access_token(config: RunnableConfig) -> dict[Literal["type", "value"], str]:
+def get_access_token(config: RunnableConfig) -> Credential:
     return config.get("configurable", {}).get("_credentials", {}).get("access_token")
 
 class Auth0AI(Generic[N]):

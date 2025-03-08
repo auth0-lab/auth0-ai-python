@@ -8,7 +8,7 @@ from auth0_ai.authorizers.ciba_authorizer import AuthorizeResponse
 class Auth0State(TypedDict):
     error: str
 
-class State(TypedDict):
+class BaseState(TypedDict):
     task_id: str
     messages: List[Union[AIMessage, ToolMessage]]
     auth0: Optional[Auth0State] = None

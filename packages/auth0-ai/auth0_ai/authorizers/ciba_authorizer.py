@@ -87,14 +87,14 @@ class CIBAAuthorizer:
             headers={"Content-Type":"application/x-www-form-urlencoded"}
         )
 
-        return {
-            "auth_req_id": response["auth_req_id"],
-            "expires_in": response["expires_in"],
-            "interval": response["interval"],
-        }
+        return AuthorizeResponse(
+            auth_req_id=response["auth_req_id"],
+            expires_in=response["expires_in"],
+            interval=response["interval"],
+        )
 
     async def _check(self, auth_req_id: str) -> Awaitable[CibaCheckReponse]:
-        response = {"token": None, "status": CibaAuthorizerCheckResponse.PENDING}
+        response = CibaCheckReponse(status=CibaAuthorizerCheckResponse.PENDING)
 
         try:
             result = self.get_token.backchannel_login(auth_req_id=auth_req_id)
@@ -127,12 +127,12 @@ class CIBAAuthorizer:
         while time.time() - start_time < params.get("expires_in"):
             try:
                 response = self.auth0.backchannel_grant(auth_req_id=params.get("auth_req_id"))
-                return {
-                    "access_token": {
+                return Credentials(
+                    access_token={
                         "type": response.get("token_type", "bearer"),
                         "value": response["access_token"],
                     }
-                }
+                )
             except Exception as e:
                 error_code = getattr(e, "error", "")
                 error_description = getattr(e, "error_description", "")
@@ -151,7 +151,7 @@ class CIBAAuthorizer:
         authorizer = CIBAAuthorizer(params)
         credentials = await authorizer._authorize(options, tool_context)
         claims = jwt.decode(credentials["access_token"]["value"])
-        return {"access_token": credentials["access_token"]["value"], "claims": claims}
+        return AuthParams(access_token=credentials["access_token"]["value"], claims=claims)
 
     @staticmethod
     async def start[T](options: CibaAuthorizerOptions, params: AuthorizerParams = None, tool_context: T = None) -> Awaitable[AuthorizeResponse]:

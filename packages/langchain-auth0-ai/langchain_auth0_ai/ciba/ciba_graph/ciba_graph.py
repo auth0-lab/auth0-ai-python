@@ -7,7 +7,7 @@ from auth0_ai.types import AuthorizerParams
 from ..types import Auth0Nodes
 from .initialize_ciba import initialize_ciba
 from .initialize_hitl import initialize_hitl
-from .types import CIBAGraphOptions, CIBAOptions, ProtectedTool, State
+from .types import CIBAGraphOptions, CIBAOptions, ProtectedTool, BaseState
 
 N = TypeVar("N", bound=str)
 F = TypeVar("F", bound=Callable[..., Any])
@@ -78,7 +78,7 @@ class CIBAGraph(Generic[N]):
             if not callable(path):
                 return START
 
-            state: State = args[0]
+            state: BaseState = args[0]
             messages = state.get("messages")
             last_message = messages[-1] if messages else None
 

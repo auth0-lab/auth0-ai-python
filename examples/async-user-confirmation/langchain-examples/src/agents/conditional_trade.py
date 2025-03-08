@@ -8,7 +8,7 @@ from langchain_core.messages import AIMessage, ToolCall, ToolMessage
 from langchain_core.runnables.config import RunnableConfig
 from src.agents.clients.scheduler import SchedulerClient
 from langchain_auth0_ai.auth0_ai import Auth0AI
-from langchain_auth0_ai.ciba.ciba_graph.types import State, CIBAOptions
+from langchain_auth0_ai.ciba.ciba_graph.types import BaseState, CIBAOptions
 from tools.trade import trade_tool
 
 class ConditionalTrade(TypedDict):
@@ -18,10 +18,10 @@ class ConditionalTrade(TypedDict):
     threshold: float;
     operator: str
 
-class StateAnnotation(State):
+class State(BaseState):
     data: ConditionalTrade
 
-def should_continue(state: StateAnnotation):
+def should_continue(state: State):
     messages = state.get("messages")
     last_message = messages[-1] if messages else None
 
@@ -30,7 +30,7 @@ def should_continue(state: StateAnnotation):
     
     return END
 
-async def check_condition(state: StateAnnotation, config: RunnableConfig, store):
+async def check_condition(state: State, config: RunnableConfig, store):
     """
     Checks the condition of a given state and config, and performs actions based on the status.
     
@@ -68,10 +68,10 @@ async def check_condition(state: StateAnnotation, config: RunnableConfig, store)
         ]
     }
 
-async def stop_scheduler(state: StateAnnotation):
+async def stop_scheduler(state: State):
     await SchedulerClient().stop(state['task_id'])
 
-async def notify_user(state: StateAnnotation):
+async def notify_user(state: State):
     """
     Notifies the user about the trade.
     
@@ -128,7 +128,7 @@ The `tools` node uses the `trade_tool` with CIBA protection, which includes:
 async def binding_message(ctx):
     return f"Authorize the purchase of {ctx['qty']} {ctx['ticker']}"
 
-state_graph = StateGraph(StateAnnotation)
+state_graph = StateGraph(State)
 state_graph.add_node("check_condition", check_condition)
 state_graph.add_node("notify_user", notify_user)
 state_graph.add_node("stop_scheduler", stop_scheduler)
@@ -140,7 +140,7 @@ state_graph.add_node(
             options=CIBAOptions(
                 on_approve_go_to="tools",
                 on_reject_go_to="stop_scheduler",
-                scope="stock:trade",
+                scope="stock:trade", # TODO: access token is not including this scope
                 binding_message=binding_message,
             )
         )

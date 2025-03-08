@@ -1,12 +1,12 @@
 from typing import Awaitable, Callable
 from langchain_core.messages import ToolMessage, AIMessage, ToolCall
 from langgraph.types import interrupt, Command
-from .types import ICIBAGraph, State
+from .types import ICIBAGraph, BaseState
 from .utils import get_tool_definition
 from auth0_ai.authorizers.ciba_authorizer import CibaAuthorizerCheckResponse
 
-def initialize_hitl(ciba_graph: ICIBAGraph) -> Callable[[State], Awaitable[Command]]:
-    async def handler(state: State) -> Awaitable[Command]:
+def initialize_hitl(ciba_graph: ICIBAGraph) -> Callable[[BaseState], Awaitable[Command]]:
+    async def handler(state: BaseState) -> Awaitable[Command]:
         tools = ciba_graph.get_tools()
         tool_definition = get_tool_definition(state, tools)
 

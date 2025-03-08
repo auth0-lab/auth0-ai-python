@@ -7,7 +7,7 @@ from auth0_ai.authorizers.ciba_authorizer import CIBAAuthorizer, CibaAuthorizerC
 from auth0_ai.types import Credentials, TokenResponse
 from langchain_auth0_ai.ciba.types import Auth0Graphs
 
-class CibaState(TypedDict):
+class State(TypedDict):
     ciba_response: AuthorizeResponse
     on_resume_invoke: str
     thread_id: str
@@ -19,8 +19,8 @@ class CibaState(TypedDict):
     status: CibaAuthorizerCheckResponse
     token_response: Optional[TokenResponse]
 
-def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaitable[None]]]):
-    async def check_status(state: CibaState):
+def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[State], Awaitable[None]]]):
+    async def check_status(state: State):
         try:
             res = await CIBAAuthorizer.check(state["ciba_response"]["auth_req_id"])
             state["token_response"] = res["token"]
@@ -29,7 +29,7 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaita
             print(f"Error in check_status: {e}")
         return state
     
-    async def stop_scheduler(state: CibaState):
+    async def stop_scheduler(state: State):
         try:
             if isinstance(on_stop_scheduler, str):
                 langgraph = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
@@ -40,7 +40,7 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaita
             print(f"Error in stop_scheduler: {e}")
         return state
     
-    async def resume_agent(state: CibaState):
+    async def resume_agent(state: State):
         langgraph = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
         _credentials: Credentials = None
         
@@ -66,7 +66,7 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaita
         
         return state
     
-    async def should_continue(state: CibaState):
+    async def should_continue(state: State):
         if state["status"] == CibaAuthorizerCheckResponse.PENDING:
             return END
         elif state["status"] == CibaAuthorizerCheckResponse.EXPIRED:
@@ -75,7 +75,7 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[CibaState], Awaita
             return "resume_agent"
         return END
     
-    state_graph = StateGraph(CibaState)
+    state_graph = StateGraph(State)
     state_graph.add_node("check_status", check_status)
     state_graph.add_node("stop_scheduler", stop_scheduler)
     state_graph.add_node("resume_agent", resume_agent)

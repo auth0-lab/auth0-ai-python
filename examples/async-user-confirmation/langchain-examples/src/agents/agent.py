@@ -7,16 +7,16 @@ from tools.trade import trade_tool
 from tools.conditional_trade import conditional_trade_tool
 from langchain_openai import ChatOpenAI
 
-class AgentState(TypedDict):
+class State(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
 
 llm = ChatOpenAI(model="gpt-4o").bind_tools([trade_tool, conditional_trade_tool])
 
-async def call_llm(state: AgentState):
+async def call_llm(state: State):
     response = await llm.ainvoke(state["messages"])
     return {"messages": [response]}
 
-def should_continue(state: AgentState):
+def should_continue(state: State):
     messages = state["messages"]
     last_message = messages[-1] if messages else None
 
@@ -25,7 +25,7 @@ def should_continue(state: AgentState):
     return END
 
 workflow = (
-    StateGraph(AgentState)
+    StateGraph(State)
     .add_node("call_llm", call_llm)
     .add_node("tools", ToolNode([trade_tool, conditional_trade_tool]))
     .add_edge(START, "call_llm")
