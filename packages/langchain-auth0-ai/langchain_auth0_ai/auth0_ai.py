@@ -7,6 +7,12 @@ from .ciba.ciba_graph.types import CIBAGraphOptions
 N = TypeVar("N", bound=str)
 
 def get_access_token(config: RunnableConfig) -> Credential:
+    """
+    Fetch the access token obtained during the CIBA flow.
+
+    Attributes:
+        config(RunnableConfig): LangGraph runnable configuration instance.
+    """
     return config.get("configurable", {}).get("_credentials", {}).get("access_token")
 
 class Auth0AI(Generic[N]):
@@ -15,5 +21,11 @@ class Auth0AI(Generic[N]):
         self.config = config
 
     def with_CIBA(self, options: Optional[CIBAGraphOptions[N]] = None) -> CIBAGraph[N]:
+        """
+        Initializes and registers a state graph for conditional trade operations using CIBA.
+
+        Attributes:
+            options (Optional[CIBAGraphOptions[N]]): The base CIBA options.
+        """
         self._graph = CIBAGraph(options, self.config)
         return self._graph

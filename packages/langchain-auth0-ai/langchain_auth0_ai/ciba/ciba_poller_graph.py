@@ -20,6 +20,12 @@ class State(TypedDict):
     token_response: Optional[TokenResponse]
 
 def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[State], Awaitable[None]]]):
+    """
+    A LangGraph graph to monitor the status of a CIBA transaction.
+
+    Attributes:
+        on_stop_scheduler (Union[str, Callable[[State], Awaitable[None]]]): A graph name to redirect the flow, or a function to execute when the CIBA transaction expires.
+    """
     async def check_status(state: State):
         try:
             res = await CIBAAuthorizer.check(state["ciba_response"]["auth_req_id"])

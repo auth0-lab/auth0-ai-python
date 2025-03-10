@@ -56,6 +56,14 @@ class CIBAGraph(Generic[N]):
         tool: Union[BaseTool, Callable],
         options: CIBAOptions[N],
     ) -> StructuredTool:
+        """
+        Authorize Options to start CIBA flow.
+
+        Attributes:
+            tool (Union[BaseTool, Callable]): The tool to be protected.
+            options (CIBAOptions[N]): The CIBA options.
+        """
+
         # Merge default options with tool-specific options
         merged_options = {**self.options, **options.__dict__} if isinstance(self.options, dict) else {**vars(self.options), **vars(options)}
 
@@ -74,6 +82,12 @@ class CIBAGraph(Generic[N]):
             Callable[..., Awaitable[Union[Hashable, list[Hashable]]]],
             Runnable[Any, Union[Hashable, list[Hashable]]],
         ]):
+        """
+        A wrapper for the callable that determines the next node or nodes using a protected tool.
+
+        Attributes:
+            path (Union[Callable[..., Union[Hashable, list[Hashable]]], Callable[..., Awaitable[Union[Hashable, list[Hashable]]]], Runnable[Any, Union[Hashable, list[Hashable]]]])): The callable that determines the next node or nodes using a protected tool.
+        """
         def wrapper(*args):
             if not callable(path):
                 return START

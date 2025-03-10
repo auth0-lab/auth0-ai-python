@@ -24,12 +24,21 @@ class CibaCheckReponse(TypedDict):
     status: CibaAuthorizerCheckResponse
 
 class CibaAuthorizerOptions(TypedDict):
+    """
+    Authorize Options to start CIBA flow.
+
+    Attributes:
+        scope (str): Space-separated list of OIDC and custom API scopes.
+        binding_message (Union[str, Callable[..., Awaitable[str]]]): A human-readable string to display to the user, or a function that resolves it.
+        user_id (Union[str, Callable[..., Awaitable[str]]]): The user id string, or a function that resolves it.
+        audience (Optional[str]): Unique identifier of the audience for an issued token.
+        request_expiry (Optional[int]): To configure a custom expiry time in seconds for CIBA request, pass a number between 1 and 300.
+    """
     scope: str
     binding_message: Union[str, Callable[..., Awaitable[str]]]
     user_id: Union[str, Callable[..., Awaitable[str]]]
     audience: Optional[str]
-    request_expiry: Optional[str]
-    subject_issuer_context: Optional[str]
+    request_expiry: Optional[int]
 
 class CIBAAuthorizer:
     def __init__(self, options: AuthorizerParams = None):
@@ -64,7 +73,6 @@ class CIBAAuthorizer:
             "scope": self._ensure_openid_scope(params.get("scope")),
             "audience": params.get("audience"),
             "request_expiry": params.get("request_expiry"),
-            "subject_issuer_context": params.get("subject_issuer_context")
         }
 
         if isinstance(params.get("user_id"), str):

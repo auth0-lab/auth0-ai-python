@@ -33,6 +33,17 @@ class SchedulerParams:
 N = TypeVar("N", bound=str)
 
 class CIBAOptions(Generic[N]):
+    """
+    The CIBA options.
+
+    Attributes:
+        binding_message (Union[str, Callable[..., Awaitable[str]]]): A human-readable string to display to the user, or a function that resolves it.
+        scope (Optional[str]): Space-separated list of OIDC and custom API scopes.
+        on_approve_go_to (Optional[N]): A node name to redirect the flow after user approval.
+        on_reject_go_to (Optional[N]): A node name to redirect the flow after user rejection.
+        audience (Optional[str]): Unique identifier of the audience for an issued token.
+        request_expiry (Optional[int]): To configure a custom expiry time in seconds for CIBA request, pass a number between 1 and 300.
+    """
     def __init__(
         self,
         binding_message: Union[str, Callable[..., Awaitable[str]]],
@@ -40,8 +51,7 @@ class CIBAOptions(Generic[N]):
         on_approve_go_to: Optional[N] = None,
         on_reject_go_to: Optional[N] = None,
         audience: Optional[str] = None,
-        request_expiry: Optional[str] = None,
-        subject_issuer_context: Optional[str] = None,
+        request_expiry: Optional[int] = None,
     ):
         self.binding_message = binding_message
         self.scope = scope
@@ -49,7 +59,6 @@ class CIBAOptions(Generic[N]):
         self.on_reject_go_to = on_reject_go_to
         self.audience = audience
         self.request_expiry = request_expiry
-        self.subject_issuer_context = subject_issuer_context
 
 class ProtectedTool(Generic[N]):
     def __init__(self, tool_name: str, options: CIBAOptions[N]):
@@ -62,6 +71,17 @@ class CIBAGraphOptionsConfig:
         self.scheduler = scheduler
 
 class CIBAGraphOptions(Generic[N]):
+    """
+    The base CIBA options.
+
+    Attributes:
+        config (CIBAGraphOptionsConfig): Configuration options.
+        scope (Optional[str]): Space-separated list of OIDC and custom API scopes.
+        on_approve_go_to (Optional[N]): A node name to redirect the flow after user approval.
+        on_reject_go_to (Optional[N]): A node name to redirect the flow after user rejection.
+        audience (Optional[str]): Unique identifier of the audience for an issued token.
+        request_expiry (Optional[int]): To configure a custom expiry time in seconds for CIBA request, pass a number between 1 and 300.
+    """
     def __init__(
         self,
         config: CIBAGraphOptionsConfig,
@@ -69,8 +89,7 @@ class CIBAGraphOptions(Generic[N]):
         on_approve_go_to: Optional[N] = None,
         on_reject_go_to: Optional[N] = None,
         audience: Optional[str] = None,
-        request_expiry: Optional[str] = None,
-        subject_issuer_context: Optional[str] = None,
+        request_expiry: Optional[int] = None,
         
     ):
         self.config = config
@@ -79,7 +98,6 @@ class CIBAGraphOptions(Generic[N]):
         self.on_reject_go_to = on_reject_go_to
         self.audience = audience
         self.request_expiry = request_expiry
-        self.subject_issuer_context = subject_issuer_context
 
 class ICIBAGraph(ABC, Generic[N]):
     @abstractmethod
