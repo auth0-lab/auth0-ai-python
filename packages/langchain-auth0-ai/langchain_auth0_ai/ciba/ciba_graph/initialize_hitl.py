@@ -6,7 +6,7 @@ from .utils import get_tool_definition
 from auth0_ai.authorizers.ciba_authorizer import CibaAuthorizerCheckResponse
 
 def initialize_hitl(ciba_graph: ICIBAGraph) -> Callable[[BaseState], Awaitable[Command]]:
-    async def handler(state: BaseState) -> Awaitable[Command]:
+    async def handler(state: BaseState) -> Command:
         tools = ciba_graph.get_tools()
         tool_definition = get_tool_definition(state, tools)
 
