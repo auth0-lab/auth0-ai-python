@@ -1,4 +1,4 @@
-from typing import Any, TypedDict, Optional, Union, Tuple
+from typing import TypedDict, Optional, Union, Tuple
 
 class TokenResponse(TypedDict):
     access_token: str
@@ -39,8 +39,3 @@ class AuthorizerParams(TypedDict):
     telemetry: Optional[bool]
     timeout: Optional[Union[float, Tuple[float, float]]]
     protocol: Optional[str]
-
-class AuthParams(TypedDict):
-  allowed: Optional[bool]
-  access_token: Optional[str]
-  claims: Optional[Any]
