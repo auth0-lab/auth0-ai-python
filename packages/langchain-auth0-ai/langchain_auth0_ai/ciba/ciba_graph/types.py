@@ -1,4 +1,4 @@
-from typing import Optional, List, TypeVar, Generic, Callable, Union, Awaitable, TypedDict
+from typing import Optional, List, Callable, Union, Awaitable, TypedDict
 from abc import ABC, abstractmethod
 from langgraph.graph import StateGraph
 from langchain_core.messages import AIMessage, ToolMessage
@@ -30,17 +30,15 @@ class SchedulerParams:
         self.ciba_graph_id = ciba_graph_id
         self.ciba_response = ciba_response
 
-N = TypeVar("N", bound=str)
-
-class CIBAOptions(Generic[N]):
+class CIBAOptions():
     """
     The CIBA options.
 
     Attributes:
         binding_message (Union[str, Callable[..., Awaitable[str]]]): A human-readable string to display to the user, or a function that resolves it.
         scope (Optional[str]): Space-separated list of OIDC and custom API scopes.
-        on_approve_go_to (Optional[N]): A node name to redirect the flow after user approval.
-        on_reject_go_to (Optional[N]): A node name to redirect the flow after user rejection.
+        on_approve_go_to (Optional[str]): A node name to redirect the flow after user approval.
+        on_reject_go_to (Optional[str]): A node name to redirect the flow after user rejection.
         audience (Optional[str]): Unique identifier of the audience for an issued token.
         request_expiry (Optional[int]): To configure a custom expiry time in seconds for CIBA request, pass a number between 1 and 300.
     """
@@ -48,8 +46,8 @@ class CIBAOptions(Generic[N]):
         self,
         binding_message: Union[str, Callable[..., Awaitable[str]]],
         scope: Optional[str] = None,
-        on_approve_go_to: Optional[N] = None,
-        on_reject_go_to: Optional[N] = None,
+        on_approve_go_to: Optional[str] = None,
+        on_reject_go_to: Optional[str] = None,
         audience: Optional[str] = None,
         request_expiry: Optional[int] = None,
     ):
@@ -60,8 +58,8 @@ class CIBAOptions(Generic[N]):
         self.audience = audience
         self.request_expiry = request_expiry
 
-class ProtectedTool(Generic[N]):
-    def __init__(self, tool_name: str, options: CIBAOptions[N]):
+class ProtectedTool():
+    def __init__(self, tool_name: str, options: CIBAOptions):
         self.tool_name = tool_name
         self.options = options
 
@@ -70,15 +68,15 @@ class CIBAGraphOptionsConfig:
         self.on_resume_invoke = on_resume_invoke
         self.scheduler = scheduler
 
-class CIBAGraphOptions(Generic[N]):
+class CIBAGraphOptions():
     """
     The base CIBA options.
 
     Attributes:
         config (CIBAGraphOptionsConfig): Configuration options.
         scope (Optional[str]): Space-separated list of OIDC and custom API scopes.
-        on_approve_go_to (Optional[N]): A node name to redirect the flow after user approval.
-        on_reject_go_to (Optional[N]): A node name to redirect the flow after user rejection.
+        on_approve_go_to (Optional[str]): A node name to redirect the flow after user approval.
+        on_reject_go_to (Optional[str]): A node name to redirect the flow after user rejection.
         audience (Optional[str]): Unique identifier of the audience for an issued token.
         request_expiry (Optional[int]): To configure a custom expiry time in seconds for CIBA request, pass a number between 1 and 300.
     """
@@ -86,8 +84,8 @@ class CIBAGraphOptions(Generic[N]):
         self,
         config: CIBAGraphOptionsConfig,
         scope: Optional[str] = None,
-        on_approve_go_to: Optional[N] = None,
-        on_reject_go_to: Optional[N] = None,
+        on_approve_go_to: Optional[str] = None,
+        on_reject_go_to: Optional[str] = None,
         audience: Optional[str] = None,
         request_expiry: Optional[int] = None,
         
@@ -99,9 +97,9 @@ class CIBAGraphOptions(Generic[N]):
         self.audience = audience
         self.request_expiry = request_expiry
 
-class ICIBAGraph(ABC, Generic[N]):
+class ICIBAGraph(ABC):
     @abstractmethod
-    def get_tools(self) -> List[ProtectedTool[N]]:
+    def get_tools(self) -> List[ProtectedTool]:
         pass
 
     @abstractmethod
@@ -113,5 +111,5 @@ class ICIBAGraph(ABC, Generic[N]):
         pass
 
     @abstractmethod
-    def get_options(self) -> Optional[CIBAGraphOptions[N]]:
+    def get_options(self) -> Optional[CIBAGraphOptions]:
         pass

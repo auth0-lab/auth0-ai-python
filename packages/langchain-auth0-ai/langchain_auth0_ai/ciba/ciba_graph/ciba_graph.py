@@ -1,4 +1,4 @@
-from typing import Awaitable, Generic, Hashable, List, Optional, TypeVar, Callable, Any, Union
+from typing import Awaitable, Hashable, List, Optional, Callable, Any, Union
 from langchain_core.tools import StructuredTool
 from langchain_core.tools.base import BaseTool
 from langgraph.graph import StateGraph, END, START
@@ -9,27 +9,24 @@ from .initialize_ciba import initialize_ciba
 from .initialize_hitl import initialize_hitl
 from .types import CIBAGraphOptions, CIBAOptions, ProtectedTool, BaseState
 
-N = TypeVar("N", bound=str)
-F = TypeVar("F", bound=Callable[..., Any])
-
-class CIBAGraph(Generic[N]):
+class CIBAGraph():
     def __init__(
         self,
-        options: Optional[CIBAGraphOptions[N]] = None,
+        options: Optional[CIBAGraphOptions] = None,
         authorizer_params: Optional[AuthorizerParams] = None,
     ):
         self.options = options
         self.authorizer_params = authorizer_params
-        self.tools: List[ProtectedTool[N]] = []
+        self.tools: List[ProtectedTool] = []
         self.graph: Optional[StateGraph] = None
 
-    def get_tools(self) -> List[ProtectedTool[N]]:
+    def get_tools(self) -> List[ProtectedTool]:
         return self.tools
 
     def get_graph(self) -> Optional[StateGraph]:
         return self.graph
 
-    def get_options(self) -> Optional[CIBAGraphOptions[N]]:
+    def get_options(self) -> Optional[CIBAGraphOptions]:
         return self.options
 
     def get_authorizer_params(self) -> Optional[AuthorizerParams]:
@@ -54,14 +51,14 @@ class CIBAGraph(Generic[N]):
     def protect_tool(
         self,
         tool: Union[BaseTool, Callable],
-        options: CIBAOptions[N],
+        options: CIBAOptions,
     ) -> StructuredTool:
         """
         Authorize Options to start CIBA flow.
 
         Attributes:
             tool (Union[BaseTool, Callable]): The tool to be protected.
-            options (CIBAOptions[N]): The CIBA options.
+            options (CIBAOptions): The CIBA options.
         """
 
         # Merge default options with tool-specific options

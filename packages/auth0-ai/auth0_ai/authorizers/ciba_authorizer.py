@@ -2,7 +2,7 @@ import os
 import time
 import jwt
 from enum import Enum
-from typing import Awaitable, Callable, Optional, TypedDict, Union
+from typing import Any, Awaitable, Callable, Optional, TypedDict, Union
 from auth0_ai.errors import AccessDeniedError, AuthorizationRequestExpiredError, UserDoesNotHavePushNotificationsError
 from auth0_ai.types import AuthorizerParams, Credentials, TokenResponse
 from auth0_ai.authorizers.types import AuthParams
@@ -69,7 +69,7 @@ class CIBAAuthorizer:
             scopes.insert(0, "openid")
         return " ".join(scopes)
 
-    async def _start[T](self, params: CibaAuthorizerOptions, tool_context: Optional[T]) -> AuthorizeResponse:
+    async def _start(self, params: CibaAuthorizerOptions, tool_context: Optional[Any]) -> AuthorizeResponse:
         authorize_params = {
             "scope": self._ensure_openid_scope(params.get("scope")),
             "audience": params.get("audience"),
@@ -127,8 +127,8 @@ class CIBAAuthorizer:
         
         return response
 
-    async def _authorize[T](self, params: CibaAuthorizerOptions, tool_context: Optional[T]) -> Credentials:
-        return await self._poll(await self._start[T](**{**params, tool_context: tool_context}))
+    async def _authorize(self, params: CibaAuthorizerOptions, tool_context: Optional[Any]) -> Credentials:
+        return await self._poll(await self._start(params, tool_context))
 
     async def _poll(self, params: AuthorizeResponse) -> Credentials:
         start_time = time.time()
@@ -156,14 +156,14 @@ class CIBAAuthorizer:
         raise AuthorizationRequestExpiredError("Authorization request expired")
 
     @staticmethod
-    async def authorize[T](options: CibaAuthorizerOptions, params: AuthorizerParams = None, tool_context: T = None) -> AuthParams:
+    async def authorize(options: CibaAuthorizerOptions, params: AuthorizerParams = None, tool_context: Any = None) -> AuthParams:
         authorizer = CIBAAuthorizer(params)
         credentials = await authorizer._authorize(options, tool_context)
         claims = jwt.decode(credentials["access_token"]["value"])
         return AuthParams(access_token=credentials["access_token"]["value"], claims=claims)
 
     @staticmethod
-    async def start[T](options: CibaAuthorizerOptions, params: AuthorizerParams = None, tool_context: T = None) -> AuthorizeResponse:
+    async def start(options: CibaAuthorizerOptions, params: AuthorizerParams = None, tool_context: Any = None) -> AuthorizeResponse:
         authorizer = CIBAAuthorizer(params)
         return await authorizer._start(options, tool_context)
 
