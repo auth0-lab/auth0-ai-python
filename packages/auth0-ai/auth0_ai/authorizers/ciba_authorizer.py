@@ -86,7 +86,7 @@ class CIBAAuthorizer:
         else:
             authorize_params["binding_message"] = await params.get("binding_message")(tool_context)
 
-        # TODO: back_channel_login is not adding the content-type header, which is mandatory for '/bc-authorize'
+        # FIXME: `back_channel_login()` is not adding the form-urlencoded content-type header, which is mandatory for '/bc-authorize' (using `authenticated_post` as workaround)
         # response = self.back_channel_login.back_channel_login(**authorize_params)
         authorize_params["client_id"] = self.client_id
         authorize_params["client_secret"] = self.client_secret
