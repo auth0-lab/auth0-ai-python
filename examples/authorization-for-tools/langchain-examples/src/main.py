@@ -4,6 +4,8 @@ import questionary
 from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph_sdk import get_client
 
+USER_ID = "john"
+
 def main():
     asyncio.run(async_main())
 
@@ -16,7 +18,7 @@ async def async_main():
         print("<Enter a command (type 'exit' to quit)>\n\n")
         
         while True:
-            message = await questionary.text("User ·").ask_async()
+            message = await questionary.text(f"User (ID={USER_ID}) ·").ask_async()
             
             if message.lower() == "exit":
                 print("Goodbye!")
@@ -28,7 +30,7 @@ async def async_main():
                 thread["thread_id"],
                 "agent",
                 input={"messages": messages},
-                config={"configurable":{"user_id": "john"}}
+                config={"configurable":{"user_id": USER_ID}}
             )
             
             if wait_result and "messages" in wait_result:
