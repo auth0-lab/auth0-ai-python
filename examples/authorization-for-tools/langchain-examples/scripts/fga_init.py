@@ -116,7 +116,6 @@ async def async_main():
 
         # ATKO Trading Window Restriction
         now = datetime.now()
-        print(start_of_month(now).isoformat(), end_of_month(now).isoformat())
         restricted_assets_tuples = [
             {
                 "user": "company:ATKO#employee",

@@ -5,7 +5,13 @@
 ### Prerequisites
 
 - An OpenAI account and API key create one [here](https://platform.openai.com).
+  - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
 - [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/)
+- An [Auth0](https://manage.auth0.com/) account with the following configuration:
+  - An API with the audience set to `http://localhost:8081` and `stock:trade` as a supported permission (scope).
+  - A Web Application client.
+  - `Push Notifications using Auth0 Guardian` enabled.
+  - A test user enrolled in Guardian.
 
 ### Setup
 
@@ -28,10 +34,6 @@ OPENAI_API_KEY="<openai-api-key>"
 LANGGRAPH_API_URL="http://localhost:54367"
 ```
 
-#### Obtain OpenAI API Key
-
-[Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key). Once you have your key, update the `.env` file accordingly.
-
 ### How to run it
 
 1.  **Install Dependencies**
@@ -42,24 +44,36 @@ LANGGRAPH_API_URL="http://localhost:54367"
     $ poetry install
     ```
 
-2.  **Run the Example**
-
-    Running the API:
+2.  **Run Stock Trading API**
 
     ```sh
     $ export $(grep -v '^#' ../langchain-examples/.env | xargs) && poetry install --project ../sample-api && poetry run --project ../sample-api python ../sample-api/app.py
     ```
 
-    Running the scheduler:
+3.  **Run Scheduler**
 
     ```sh
     $ poetry run python ./src/services/scheduler.py
     ```
 
-    Running the example:
+4.  **Run Langraph**
 
     ```sh
     $ poetry run dev
+    ```
+
+5.  **Go to Manage Assistants and create a new one with the following configuration**
+
+    ```js
+    {
+        "user_id": "<auth0-user-id-enrolled-in-guardian>"
+    }
+    ```
+
+6.  **Select "Agent" graph and submit a proper message to start the flow, for example:**
+
+    ```
+    Buy 10 NVDA when P/E below 15
     ```
 
 ### How this works
@@ -74,19 +88,19 @@ sequenceDiagram
     participant Stocks API
     participant User's Phone
 
-    User->>Agent: "Buy 10 NVDA when P/E above 15"
+    User->>Agent: "Buy 10 NVDA when P/E below 15"
     Agent->>+Conditional Trade Agent: Monitor Conditional Trade
     Agent->>User: "I've started a conditional trade"
     loop Every 10 mins
         Conditional Trade Agent->>Stocks API: Check P/E ratio
-        Stocks API-->>Conditional Trade Agent:
-        alt P/E > 15
+        Stocks API-->>Conditional Trade Agent:  
+        alt P/E < 15
             Conditional Trade Agent->>Auth0: Initiate CIBA request
             Auth0->>User's Phone: Send push notification
             Conditional Trade Agent->>+CIBA Agent: Monitor user response
             loop Every minute
                 CIBA Agent->>Auth0: Check user approval status
-                Auth0-->>CIBA Agent:
+                Auth0-->>CIBA Agent: 
                 alt User approves
                     User's Phone-->>Auth0: User approves
                     Auth0-->>CIBA Agent: User approves
@@ -96,7 +110,7 @@ sequenceDiagram
         end
     end
     Conditional Trade Agent->>Stocks API: Execute trade for 10 NVDA
-    Stocks API-->>Conditional Trade Agent:
+    Stocks API-->>Conditional Trade Agent: 
     Conditional Trade Agent->>User's Phone: Inform user
 ```
 

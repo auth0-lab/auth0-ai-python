@@ -6,6 +6,7 @@
 
 - An Okta FGA account, you can create one [here](https://dashboard.fga.dev).
 - An OpenAI account and API key, you can create one [here](https://platform.openai.com).
+  - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
 - [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/)
 
 ### Setup
@@ -56,7 +57,11 @@ LANGGRAPH_API_URL="http://localhost:54367"
 5.  **Ask the assistant to purchase some shares**
 
     ```sh
-    ? User · purchase 10 shares of ATKO
+    purchase 10 shares of ATKO
+    ```
+
+    ```sh
+    purchase 10 shares of ZEKO
     ```
 
 ---
