@@ -8,20 +8,15 @@ packages = [{ include = "src" }]
 
 [tool.poetry.scripts]
 fga_init = "scripts.fga_init:main"
-langgraph_up = "scripts.langgraph_up:main"
 start = "src.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
 python-dotenv = "^1.0.1"
-langchain-core = "^0.3.43"
-langchain-openai = "^0.3.7"
-langgraph-cli = "^0.1.75"
-langgraph = "^0.3.5"
-langgraph-api = "^0.0.28"
 auth0-ai = {path = "../../../packages/auth0-ai", develop = true}
 questionary = "^2.1.0"
 openfga-sdk = "^0.9.1"
+llama-index-agent-openai = "^0.4.6"
 
 [build-system]
 requires = ["poetry-core"]

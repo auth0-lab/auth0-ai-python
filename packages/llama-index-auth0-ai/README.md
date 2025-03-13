@@ -4,9 +4,11 @@ This package integrates [LlamaIndex](https://docs.llamaindex.ai/en/stable/) with
 
 ## Installation
 
+> [!WARNING]
+> `llama-index-auth0-ai` is currently under development and it is not intended to be used in production, and therefore has no official support.
+
 ```bash
-# pip install llama-index-auth0-ai
-pip install "git+https://github.com/auth0-lab/auth0-ai-python.git@main#subdirectory=packages/llama-index-auth0-ai"
+pip install llama-index-auth0-ai
 ```
 
 ## Running Tests
