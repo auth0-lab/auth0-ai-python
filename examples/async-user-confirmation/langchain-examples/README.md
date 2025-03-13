@@ -41,25 +41,25 @@ LANGGRAPH_API_URL="http://localhost:54367"
     Use [Poetry](https://python-poetry.org/) to install the required dependencies:
 
     ```sh
-    $ poetry install
+    poetry install
     ```
 
 2.  **Run Stock Trading API**
 
     ```sh
-    $ export $(grep -v '^#' ../langchain-examples/.env | xargs) && poetry install --project ../sample-api && poetry run --project ../sample-api python ../sample-api/app.py
+    export $(grep -v '^#' ../langchain-examples/.env | xargs) && poetry install --project ../sample-api && poetry run --project ../sample-api python ../sample-api/app.py
     ```
 
 3.  **Run Scheduler**
 
     ```sh
-    $ poetry run python ./src/services/scheduler.py
+    poetry run python ./src/services/scheduler.py
     ```
 
 4.  **Run Langraph**
 
     ```sh
-    $ poetry run dev
+    poetry run dev
     ```
 
 5.  **Go to Manage Assistants and create a new one with the following configuration**
@@ -70,7 +70,7 @@ LANGGRAPH_API_URL="http://localhost:54367"
     }
     ```
 
-6.  **Select "Agent" graph and submit a proper message to start the flow, for example:**
+6.  **Select "agent" graph and submit a proper message to start the flow, for example:**
 
     ```
     Buy 10 NVDA when P/E below 15

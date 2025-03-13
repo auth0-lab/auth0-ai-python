@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from typing import Any
 from pydantic import BaseModel
 from langchain_core.tools import StructuredTool
 from langchain_core.runnables import ensure_config
@@ -25,19 +24,14 @@ use_fga = fga(FGAAuthorizerOptions(
   build_query=build_fga_query
 ))
 
-async def buy_tool_function(auth: AuthParams, params: BuySchema) -> dict[str, Any]:
+async def buy_tool_function(auth: AuthParams, ticker: str, qty: int) -> str:
     allowed = auth.get("allowed", False)
-    ticker = params.get("ticker")
-    qty = params.get("qty")
-
     if allowed:
-        # send email confirmation (mocked)
-        return {"ticker": ticker, "qty": qty}
+        return f"Purchased {qty} shares of {ticker}"
+    
+    return f"The user is not allowed to buy {ticker}."
 
-    # send email confirmation (mocked)
-    return {"error": f"The user is not allowed to buy {ticker}."}
-
-func=use_fga(buy_tool_function)
+func=use_fga(buy_tool_function, on_error=lambda err: f"Unexpected error from buy tool: {err}")
 
 buy_tool = StructuredTool(
     name="buy",

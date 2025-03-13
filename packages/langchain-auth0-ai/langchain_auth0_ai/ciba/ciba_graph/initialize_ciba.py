@@ -84,7 +84,7 @@ def initialize_ciba(ciba_graph: ICIBAGraph):
             print("CIBA Task Scheduled")
         except Exception as e:
             print(e)
-            state.auth0 = {"error": str(e)}
+            state["auth0"] = {"error": str(e)}
 
         return state
 

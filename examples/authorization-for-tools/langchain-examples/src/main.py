@@ -3,6 +3,9 @@ import asyncio
 import questionary
 from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph_sdk import get_client
+from dotenv import load_dotenv
+
+load_dotenv()
 
 USER_ID = "john"
 

@@ -1,4 +1,4 @@
-# Authorization for tools with LangChain
+# Authorization for tools with LlamaIndex
 
 ## Getting Started
 
@@ -7,7 +7,6 @@
 - An Okta FGA account, you can create one [here](https://dashboard.fga.dev).
 - An OpenAI account and API key, you can create one [here](https://platform.openai.com).
   - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
-- [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/)
 
 ### Setup
 
@@ -21,9 +20,6 @@ OPENAI_API_KEY="<openai-api-key>"
 FGA_STORE_ID="<fga-store-id>"
 FGA_CLIENT_ID="<fga-client-id>"
 FGA_CLIENT_SECRET="<fga-client-secret>"
-
-# Langchain
-LANGGRAPH_API_URL="http://localhost:54367"
 ```
 
 ### How to run it
@@ -42,19 +38,13 @@ LANGGRAPH_API_URL="http://localhost:54367"
     poetry run fga_init
     ```
 
-3.  **Run Langraph**
-
-    ```sh
-    poetry run langgraph_up
-    ```
-
-4.  **Run chat client**
+3.  **Run chat client**
 
     ```sh
     poetry run start
     ```
 
-5.  **Ask the assistant to purchase some shares**
+4.  **Ask the assistant to purchase some shares**
 
     ```sh
     # to test an unauthorized operation (trading window closed)

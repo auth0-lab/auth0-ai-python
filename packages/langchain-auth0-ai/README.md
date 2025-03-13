@@ -1,31 +1,21 @@
 # Auth0 AI for LangChain
 
-This package integrates [LangChain](https://python.langchain.com/docs/tutorials/) with [Auth0 AI](https://www.auth0.ai/) for enhanced document retrieval capabilities.
+`langchain-auth0-ai` is an SDK for building secure AI-powered applications using [Auth0](https://www.auth0.ai/), [Okta FGA](https://docs.fga.dev/) and [LangChain](https://python.langchain.com/docs/tutorials/).
 
 ## Installation
 
+> [!WARNING]
+> `langchain-auth0-ai` is currently under development and it is not intended to be used in production, and therefore has no official support.
+
 ```bash
-# pip install langchain-auth0-ai
-pip install "git+https://github.com/auth0-lab/auth0-ai-python.git@main#subdirectory=packages/langchain-auth0-ai"
+pip install langchain-auth0-ai
 ```
 
-## Running Tests
+## RAG with FGA
 
-1. **Install Dependencies**
+Example [RAG Application](../../examples/authorization-for-rag/langchain-examples/).
 
-   Use [Poetry](https://python-poetry.org/) to install the required dependencies:
-
-   ```sh
-   $ poetry install
-   ```
-
-2. **Run the tests**
-
-   ```sh
-   $ poetry run pytest tests
-   ```
-
-## Usage
+Create a retriever instance using the `FGARetriever` class.
 
 ```python
 from langchain.vectorstores import VectorStoreIndex
