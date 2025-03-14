@@ -60,7 +60,62 @@ print(response)
 
 Example [Authorization for Tools](../../examples/authorization-for-tools/llama-index-examples/).
 
-> TODO
+1. Create an instance of FGA Authorizer:
+
+```python
+from langchain_auth0_ai.fga.fga_authorizer import AuthParams, FGAAuthorizer, FGAAuthorizerOptions
+
+fga = FGAAuthorizer.create()
+```
+
+**Note**: Here, you can configure and specify your FGA credentials. By `default`, they are read from environment variables:
+
+```sh
+FGA_STORE_ID="<fga-store-id>"
+FGA_CLIENT_ID="<fga-client-id>"
+FGA_CLIENT_SECRET="<fga-client-secret>"
+```
+
+2. Define the FGA query:
+
+```python
+def build_fga_query(params):
+    return {
+        "user": f"user:{context.get("user_id")}",
+        "object": f"asset:{params.get("ticker")}",
+        "relation": "can_buy",
+        "context": {"current_time": datetime.now(timezone.utc).isoformat()}
+    }
+
+use_fga = fga(FGAAuthorizerOptions(
+    build_query=build_fga_query
+))
+```
+
+**Note**: The parameters given to the `build_query` function are the same as those provided to the tool function.
+
+3. Wrap the tool:
+
+```python
+from llama_index.core.tools import FunctionTool
+
+async def buy_tool_function(auth: AuthParams, ticker: str, qty: int) -> str:
+    allowed = auth.get("allowed", False)
+    if allowed:
+        # TODO: implement buy operation
+        return f"Purchased {qty} shares of {ticker}"
+
+    return f"The user is not allowed to buy {ticker}."
+
+func=use_fga(buy_tool_function)
+
+return FunctionTool.from_defaults(
+    fn=func,
+    async_fn=func,
+    name="buy",
+    description="Use this function to buy stocks",
+)
+```
 
 ---
 

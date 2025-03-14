@@ -21,6 +21,7 @@ def buy_tool (context: Context):
     async def buy_tool_function(auth: AuthParams, ticker: str, qty: int) -> str:
         allowed = auth.get("allowed", False)
         if allowed:
+            # TODO: implement buy operation
             return f"Purchased {qty} shares of {ticker}"
         
         return f"The user is not allowed to buy {ticker}."

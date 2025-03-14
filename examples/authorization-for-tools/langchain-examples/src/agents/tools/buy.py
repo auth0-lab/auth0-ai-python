@@ -20,12 +20,13 @@ async def build_fga_query(params):
     }
 
 use_fga = fga(FGAAuthorizerOptions(
-  build_query=build_fga_query
+    build_query=build_fga_query
 ))
 
 async def buy_tool_function(auth: AuthParams, ticker: str, qty: int) -> str:
     allowed = auth.get("allowed", False)
     if allowed:
+        # TODO: implement buy operation
         return f"Purchased {qty} shares of {ticker}"
     
     return f"The user is not allowed to buy {ticker}."
