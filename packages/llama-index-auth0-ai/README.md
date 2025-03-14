@@ -1,6 +1,6 @@
 # Auth0 AI for LlamaIndex
 
-This package integrates [LlamaIndex](https://docs.llamaindex.ai/en/stable/) with [Auth0 AI](https://www.auth0.ai/) for enhanced document retrieval capabilities.
+`llama-index-auth0-ai` is an SDK for building secure AI-powered applications using [Auth0](https://www.auth0.ai/), [Okta FGA](https://docs.fga.dev/) and [LlamaIndex](https://docs.llamaindex.ai/en/stable/).
 
 ## Installation
 
@@ -11,23 +11,9 @@ This package integrates [LlamaIndex](https://docs.llamaindex.ai/en/stable/) with
 pip install llama-index-auth0-ai
 ```
 
-## Running Tests
+## RAG with FGA
 
-1. **Install Dependencies**
-
-   Use [Poetry](https://python-poetry.org/) to install the required dependencies:
-
-   ```sh
-   $ poetry install
-   ```
-
-2. **Run the tests**
-
-   ```sh
-   $ poetry run pytest tests
-   ```
-
-## Usage
+Example [RAG Application](../../examples/authorization-for-rag/llama-index-examples/).
 
 ```python
 from llama_index.core import VectorStoreIndex, Document
@@ -69,6 +55,12 @@ response = query_engine.query("What is the forecast for ZEKO?")
 
 print(response)
 ```
+
+## Authorization for Tools
+
+Example [Authorization for Tools](../../examples/authorization-for-tools/llama-index-examples/).
+
+> TODO
 
 ---
 

@@ -11,6 +11,12 @@
 pip install langchain-auth0-ai
 ```
 
+## Async User Confirmation
+
+Example [Async User Confirmation](../../examples/async-user-confirmation/langchain-examples/).
+
+> TODO
+
 ## RAG with FGA
 
 Example [RAG Application](../../examples/authorization-for-rag/langchain-examples/).
@@ -58,6 +64,12 @@ response = query_engine.query("What is the forecast for ZEKO?")
 
 print(response)
 ```
+
+## Authorization for Tools
+
+Example [Authorization for Tools](../../examples/authorization-for-tools/langchain-examples/).
+
+> TODO
 
 ---
 
