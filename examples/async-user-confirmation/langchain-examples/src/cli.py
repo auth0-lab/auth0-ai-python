@@ -1,9 +1,15 @@
 import subprocess
 
-def start():
-    """Run `langgraph up`."""
-    subprocess.run(["langgraph", "up"], check=True)
+def start_api():
+    command = (
+        "export $(grep -v '^#' ../langchain-examples/.env | xargs) && "
+        "poetry install --project ../sample-api && "
+        "poetry run --project ../sample-api python ../sample-api/app.py"
+    )
+    subprocess.run(["bash", "-c", command], check=True)
 
-def dev():
-    """Run `langgraph dev --port 54367`."""
+def start_scheduler():
+    subprocess.run(["python", "./src/services/scheduler.py"], check=True)
+
+def start_langgraph_dev():
     subprocess.run(["langgraph", "dev", "--port", "54367"], check=True)

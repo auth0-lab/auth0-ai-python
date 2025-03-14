@@ -42,7 +42,7 @@ LANGGRAPH_API_URL="http://localhost:54367"
     poetry run fga_init
     ```
 
-3.  **Run Langraph**
+3.  **Run LangGraph (dev mode)**
 
     ```sh
     poetry run langgraph_up

@@ -7,8 +7,9 @@ readme = "README.md"
 packages = [{ include = "src" }]
 
 [tool.poetry.scripts]
-start = "src.cli:start"
-dev = "src.cli:dev"
+api = "src.cli:start_api"
+scheduler = "src.cli:start_scheduler"
+langgraph_up = "src.cli:start_langgraph_dev"
 
 [tool.poetry.dependencies]
 python = "^3.11"

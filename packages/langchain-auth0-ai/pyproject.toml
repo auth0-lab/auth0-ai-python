@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "langchain-auth0-ai"
 version = "0.1.0"
-description = "This package integrates LangChain with Auth0 AI for enhanced document retrieval capabilities."
+description = "This package is an SDK for building secure AI-powered applications using Auth0, Okta FGA and LangChain."
 license = "apache-2.0"
 homepage = "https://auth0.com"
 authors = [

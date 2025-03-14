@@ -13,10 +13,12 @@ start = "src.main:main"
 [tool.poetry.dependencies]
 python = "^3.11"
 python-dotenv = "^1.0.1"
-auth0-ai = {path = "../../../packages/auth0-ai", develop = true}
+langchain-auth0-ai = {path = "../../../packages/langchain-auth0-ai", develop = true}
 questionary = "^2.1.0"
-openfga-sdk = "^0.9.1"
 llama-index-agent-openai = "^0.4.6"
+
+[tool.poetry.group.dev.dependencies]
+openfga-sdk = "^0.9.1"
 
 [build-system]
 requires = ["poetry-core"]

@@ -2,8 +2,7 @@ from datetime import datetime, timezone
 from pydantic import BaseModel
 from langchain_core.tools import StructuredTool
 from langchain_core.runnables import ensure_config
-from auth0_ai.authorizers.types import AuthParams
-from auth0_ai.authorizers.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
+from langchain_auth0_ai.fga.fga_authorizer import AuthParams, FGAAuthorizer, FGAAuthorizerOptions
 
 class BuySchema(BaseModel):
     ticker: str
@@ -21,12 +20,13 @@ async def build_fga_query(params):
     }
 
 use_fga = fga(FGAAuthorizerOptions(
-  build_query=build_fga_query
+    build_query=build_fga_query
 ))
 
 async def buy_tool_function(auth: AuthParams, ticker: str, qty: int) -> str:
     allowed = auth.get("allowed", False)
     if allowed:
+        # TODO: implement buy operation
         return f"Purchased {qty} shares of {ticker}"
     
     return f"The user is not allowed to buy {ticker}."
