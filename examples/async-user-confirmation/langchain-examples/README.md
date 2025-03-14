@@ -47,19 +47,19 @@ LANGGRAPH_API_URL="http://localhost:54367"
 2.  **Run Stock Trading API**
 
     ```sh
-    export $(grep -v '^#' ../langchain-examples/.env | xargs) && poetry install --project ../sample-api && poetry run --project ../sample-api python ../sample-api/app.py
+    poetry run api
     ```
 
 3.  **Run Scheduler**
 
     ```sh
-    poetry run python ./src/services/scheduler.py
+    poetry run scheduler
     ```
 
-4.  **Run Langraph**
+4.  **Run LangGraph (dev mode)**
 
     ```sh
-    poetry run dev
+    poetry run langgraph_up
     ```
 
 5.  **Go to Manage Assistants and create a new one with the following configuration**
