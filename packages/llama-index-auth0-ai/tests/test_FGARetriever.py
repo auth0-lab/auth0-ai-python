@@ -4,7 +4,7 @@ import pytest
 from contextlib import asynccontextmanager, contextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 from openfga_sdk import ClientConfiguration
-from llama_index_auth0_ai.FGARetriever import FGARetriever
+from llama_index_auth0_ai.fga import FGARetriever
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import Node, NodeWithScore, QueryBundle
 
@@ -90,7 +90,7 @@ async def test_async_get_relevant_docs(
         mock.batch_check.return_value = mock_results
         yield mock
 
-    with patch("llama_index_auth0_ai.FGARetriever.OpenFgaClient", mock_client):
+    with patch("auth0_ai.authorizers.fga.fga_client.OpenFgaClient", mock_client):
         filtered_docs = await fga_retriever._aretrieve(query)
         assert len(filtered_docs) == expected_count
         mock_client_constructor.assert_called_once_with(mock_fga_configuration)
@@ -134,7 +134,7 @@ def test_get_relevant_docs(
         mock.batch_check.return_value = mock_results
         yield mock
 
-    with patch("llama_index_auth0_ai.FGARetriever.OpenFgaClientSync", mock_client):
+    with patch("auth0_ai.authorizers.fga.fga_client.OpenFgaClientSync", mock_client):
         filtered_docs = fga_retriever._retrieve(query)
         assert len(filtered_docs) == expected_count
         mock_client_constructor.assert_called_once_with(mock_fga_configuration)
