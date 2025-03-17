@@ -49,7 +49,7 @@ class FGARetriever(BaseRetriever):
         docs = await self._retriever._aget_relevant_documents(
             query, run_manager=run_manager
         )
-        return await self._fga_filter.filter(docs)
+        return await self._fga_filter.filter(docs, lambda doc: doc.id)
 
     def _get_relevant_documents(self, query, *, run_manager) -> list[Document]:
         """
@@ -63,4 +63,4 @@ class FGARetriever(BaseRetriever):
             List[Document]: Filtered and relevant documents.
         """
         docs = self._retriever._get_relevant_documents(query, run_manager=run_manager)
-        return self._fga_filter.filter_sync(docs)
+        return self._fga_filter.filter_sync(docs, lambda doc: doc.id)
