@@ -2,11 +2,8 @@ import os
 from typing import Callable, Optional, List
 from llama_index.core.retrievers import BaseRetriever
 from pydantic import PrivateAttr
-from openfga_sdk import ClientConfiguration, OpenFgaClient
-from openfga_sdk.client.client import ClientBatchCheckRequest
+from openfga_sdk import ClientConfiguration
 from openfga_sdk.client.models import ClientBatchCheckItem
-from openfga_sdk.sync import OpenFgaClient as OpenFgaClientSync
-from openfga_sdk.credentials import CredentialConfiguration, Credentials
 from auth0_ai.authorizers.fga.fga_filter import FGAFilter
 
 from llama_index.core.schema import (
@@ -45,11 +42,15 @@ class FGARetriever(BaseRetriever):
     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
         """Retrieve nodes given query and filtered by FGA access."""
         nodes = self._retriever._retrieve(query_bundle)
-        nodes = self._fga_filter.filter_sync(nodes)
+        nodes = self._fga_filter.filter_sync(
+            nodes, lambda node_with_score: node_with_score.id_
+        )
         return nodes
 
     async def _aretrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
         """Retrieve nodes given query and filtered by FGA access."""
         nodes = await self._retriever._aretrieve(query_bundle)
-        nodes = await self._fga_filter.filter(nodes)
+        nodes = await self._fga_filter.filter(
+            nodes, lambda node_with_score: node_with_score.id_
+        )
         return nodes
