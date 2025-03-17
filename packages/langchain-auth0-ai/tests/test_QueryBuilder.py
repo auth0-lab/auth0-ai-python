@@ -1,6 +1,6 @@
 import pytest
 
-from langchain_auth0_ai import FGARetriever
+from langchain_auth0_ai.fga import FGARetriever
 from unittest.mock import AsyncMock, MagicMock, patch, call
 from contextlib import asynccontextmanager, contextmanager
 from langchain_core.retrievers import BaseRetriever
@@ -96,7 +96,7 @@ async def test_async_query_builder_integration(
         yield mock
 
     # Execute
-    with patch("langchain_auth0_ai.FGARetriever.OpenFgaClient", mock_client):
+    with patch("auth0_ai.authorizers.fga.fga_client.OpenFgaClient", mock_client):
         await fga_retriever._aget_relevant_documents(query, run_manager=run_manager)
 
         # Verify behaviors
@@ -136,7 +136,7 @@ def test_sync_query_builder_integration(
         yield mock
 
     # Execute
-    with patch("langchain_auth0_ai.FGARetriever.OpenFgaClientSync", mock_client):
+    with patch("auth0_ai.authorizers.fga.fga_client.OpenFgaClientSync", mock_client):
         fga_retriever._get_relevant_documents(query, run_manager=run_manager)
 
         # Verify behaviors
