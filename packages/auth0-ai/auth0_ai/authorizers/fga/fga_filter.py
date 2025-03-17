@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 from auth0_ai.authorizers.fga.fga_client import (
     build_openfga_client,
     build_openfga_client_sync,
@@ -11,7 +11,7 @@ from openfga_sdk.client.client import ClientBatchCheckRequest
 
 class FGAFilter[T]:
     _query_builder: Callable[[T], ClientBatchCheckItem] = PrivateAttr()
-    _fga_configuration: ClientConfiguration
+    _fga_configuration: Optional[ClientConfiguration]
 
     def __init__(
         self,
@@ -22,18 +22,23 @@ class FGAFilter[T]:
         Initialize the FGAFilter with the specified query builder, and FGA parameters.
 
         Args:
-            query_builder (Callable[[Document], ClientBatchCheckItem]): Function to convert documents into FGA queries.
+            query_builder (Callable[[T], ClientBatchCheckItem]): Function to convert documents into FGA queries.
             fga_configuration (Optional[ClientConfiguration]): Configuration for the OpenFGA client. If not provided, defaults to environment variables.
         """
         self._fga_configuration = fga_configuration
         self._query_builder = query_builder
 
-    async def filter(self, documents: list[T]) -> list[T]:
+    async def filter(
+        self,
+        documents: list[T],
+        hash_document: Optional[Callable[[T], Any]] = None,
+    ) -> list[T]:
         """
         Asynchronously filter documents using OpenFGA.
 
         Args:
             documents (List[T]): List of documents to filter.
+            hash_document (Optional[Callable[T], Any]]: The filter function hashes the documents during the process. In some contexts, documents are not hasheable. You can provide this function which receives the document and returns a hashable, unique representation of the document.
 
         Returns:
             List[T]: Filtered list of documents authorized by FGA.
@@ -47,8 +52,15 @@ class FGAFilter[T]:
                 }.values()
             )
 
+            def default_hash_document(doc):
+                return doc
+
+            if not hash_document:
+                hash_document = default_hash_document
+
             doc_to_obj = {
-                doc: check.object for check, doc in zip(all_checks, documents)
+                hash_document(doc): check.object
+                for check, doc in zip(all_checks, documents)
             }
 
             fga_response = await fga_client.batch_check(
@@ -63,16 +75,21 @@ class FGAFilter[T]:
             return [
                 doc
                 for doc in documents
-                if doc_to_obj[doc] in permissions_map
-                and permissions_map[doc_to_obj[doc]]
+                if doc_to_obj[hash_document(doc)] in permissions_map
+                and permissions_map[doc_to_obj[hash_document(doc)]]
             ]
 
-    def filter_sync(self, documents: list[T]) -> list[T]:
+    def filter_sync(
+        self,
+        documents: list[T],
+        hash_document: Optional[Callable[[T], Any]] = None,
+    ) -> list[T]:
         """
         Synchronously filter documents using OpenFGA.
 
         Args:
             documents (List[T]): List of documents to filter.
+            hash_document (Optional[Callable[T], Any]]: The filter function hashes the documents during the process. In some contexts, documents are not hasheable. You can provide this function which receives the document and returns a hashable, unique representation of the document.
 
         Returns:
             List[T]: Filtered list of documents authorized by FGA.
@@ -86,8 +103,15 @@ class FGAFilter[T]:
                 }.values()
             )
 
+            def default_hash_document(doc):
+                return doc
+
+            if not hash_document:
+                hash_document = default_hash_document
+
             doc_to_obj = {
-                doc: check.object for check, doc in zip(all_checks, documents)
+                hash_document(doc): check.object
+                for check, doc in zip(all_checks, documents)
             }
 
             fga_response = fga_client.batch_check(
@@ -101,6 +125,6 @@ class FGAFilter[T]:
             return [
                 doc
                 for doc in documents
-                if doc_to_obj[doc] in permissions_map
-                and permissions_map[doc_to_obj[doc]]
+                if doc_to_obj[hash_document(doc)] in permissions_map
+                and permissions_map[doc_to_obj[hash_document(doc)]]
             ]
