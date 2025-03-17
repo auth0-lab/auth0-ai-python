@@ -3,14 +3,13 @@ from auth0_ai.authorizers.fga.fga_client import (
     build_openfga_client,
     build_openfga_client_sync,
 )
-from pydantic import PrivateAttr
 from openfga_sdk import ClientConfiguration
 from openfga_sdk.client.models import ClientBatchCheckItem
 from openfga_sdk.client.client import ClientBatchCheckRequest
 
 
 class FGAFilter[T]:
-    _query_builder: Callable[[T], ClientBatchCheckItem] = PrivateAttr()
+    _query_builder: Callable[[T], ClientBatchCheckItem]
     _fga_configuration: Optional[ClientConfiguration]
 
     def __init__(
@@ -43,6 +42,9 @@ class FGAFilter[T]:
         Returns:
             List[T]: Filtered list of documents authorized by FGA.
         """
+        if len(documents) == 0:
+            return []
+
         async with build_openfga_client(self._fga_configuration) as fga_client:
             all_checks = [self._query_builder(doc) for doc in documents]
             unique_checks = list(
@@ -94,6 +96,9 @@ class FGAFilter[T]:
         Returns:
             List[T]: Filtered list of documents authorized by FGA.
         """
+        if len(documents) == 0:
+            return []
+
         with build_openfga_client_sync(self._fga_configuration) as fga_client:
             all_checks = [self._query_builder(doc) for doc in documents]
             unique_checks = list(
