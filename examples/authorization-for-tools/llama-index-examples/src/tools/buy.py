@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from llama_index.core.tools import FunctionTool
-from auth0_ai.authorizers.types import AuthParams
-from auth0_ai.authorizers.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
+from langchain_auth0_ai.fga.fga_authorizer import AuthParams, FGAAuthorizer, FGAAuthorizerOptions
 from ..context import Context
 
 def buy_tool (context: Context):
@@ -22,6 +21,7 @@ def buy_tool (context: Context):
     async def buy_tool_function(auth: AuthParams, ticker: str, qty: int) -> str:
         allowed = auth.get("allowed", False)
         if allowed:
+            # TODO: implement buy operation
             return f"Purchased {qty} shares of {ticker}"
         
         return f"The user is not allowed to buy {ticker}."
