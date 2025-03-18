@@ -6,7 +6,7 @@ from langchain_core.retrievers import BaseRetriever
 from langchain_core.documents import Document
 from openfga_sdk import ClientConfiguration
 from openfga_sdk.client.models import ClientBatchCheckItem
-from langchain_auth0_ai.FGARetriever import FGARetriever
+from langchain_auth0_ai.fga.FGARetriever import FGARetriever
 
 
 @pytest.fixture
@@ -84,7 +84,7 @@ async def test_async_get_relevant_docs(
         mock.batch_check.return_value = mock_results
         yield mock
 
-    with patch("langchain_auth0_ai.FGARetriever.OpenFgaClient", mock_client):
+    with patch("auth0_ai.authorizers.fga.fga_client.OpenFgaClient", mock_client):
         filtered_docs = await fga_retriever._aget_relevant_documents(
             query, run_manager=run_manager
         )
@@ -130,7 +130,7 @@ def test_get_relevant_docs(
         mock.batch_check.return_value = mock_results
         yield mock
 
-    with patch("langchain_auth0_ai.FGARetriever.OpenFgaClientSync", mock_client):
+    with patch("auth0_ai.authorizers.fga.fga_client.OpenFgaClientSync", mock_client):
         filtered_docs = fga_retriever._get_relevant_documents(
             query, run_manager=run_manager
         )

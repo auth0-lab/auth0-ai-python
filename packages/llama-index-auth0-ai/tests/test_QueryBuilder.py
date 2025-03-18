@@ -3,7 +3,7 @@ import pytest
 from contextlib import asynccontextmanager, contextmanager
 from unittest.mock import AsyncMock, MagicMock, call, patch
 from openfga_sdk import ClientConfiguration
-from llama_index_auth0_ai.FGARetriever import FGARetriever
+from llama_index_auth0_ai.fga import FGARetriever
 from llama_index.core.retrievers import BaseRetriever
 from openfga_sdk.client.models import ClientBatchCheckItem
 from llama_index.core.schema import Node, NodeWithScore, QueryBundle
@@ -50,7 +50,7 @@ def verify_query_builder_calls(mock_query_builder, nodes):
     """Verify query builder was called correctly for each document."""
     assert mock_query_builder.call_count == len(nodes)
     for node, call_args in zip(nodes, mock_query_builder.call_args_list):
-        assert call_args == call(node.node)
+        assert call_args == call(node)
 
 
 def verify_batch_check_calls(mock_batch_check, check_requests):
@@ -92,7 +92,7 @@ async def test_async_query_builder_integration(
         yield mock
 
     # Execute
-    with patch("llama_index_auth0_ai.FGARetriever.OpenFgaClient", mock_client):
+    with patch("auth0_ai.authorizers.fga.fga_client.OpenFgaClient", mock_client):
         await fga_retriever._aretrieve(query)
 
         # Verify behaviors
@@ -132,7 +132,7 @@ def test_sync_query_builder_integration(
         yield mock
 
     # Execute
-    with patch("llama_index_auth0_ai.FGARetriever.OpenFgaClientSync", mock_client):
+    with patch("auth0_ai.authorizers.fga.fga_client.OpenFgaClientSync", mock_client):
         fga_retriever._retrieve(query)
 
         # Verify behaviors

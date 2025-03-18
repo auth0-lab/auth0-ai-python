@@ -32,7 +32,7 @@ def create_retriever(user: str):
         base_retriever,
         build_query=lambda node: ClientBatchCheckItem(
             user=f"user:{user}",
-            object=f"doc:{node.ref_doc_id}",
+            object=f"doc:{node.node.ref_doc_id}",
             relation="viewer",
         ),
     )

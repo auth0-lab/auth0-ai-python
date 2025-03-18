@@ -12,6 +12,10 @@ python = "^3.11"
 auth0-python = "^4.8.1"
 openfga-sdk = "^0.9.1"
 
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.5"
+pytest-asyncio = "^0.25.3"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
