@@ -2,7 +2,7 @@ from typing import Optional, List, Callable, Union, Awaitable, TypedDict
 from abc import ABC, abstractmethod
 from langgraph.graph import StateGraph
 from langchain_core.messages import AIMessage, ToolMessage
-from auth0_ai.types import AuthorizerParams
+from auth0_ai.authorizers.types import AuthorizerParams
 from auth0_ai.authorizers.ciba_authorizer import AuthorizeResponse
 
 class Auth0State(TypedDict):

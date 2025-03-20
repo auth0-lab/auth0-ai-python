@@ -3,7 +3,7 @@ from langchain_core.tools import StructuredTool
 from langchain_core.tools.base import BaseTool
 from langgraph.graph import StateGraph, END, START
 from langchain_core.runnables import Runnable
-from auth0_ai.types import AuthorizerParams
+from auth0_ai.authorizers.types import AuthorizerParams
 from ..types import Auth0Nodes
 from .initialize_ciba import initialize_ciba
 from .initialize_hitl import initialize_hitl
