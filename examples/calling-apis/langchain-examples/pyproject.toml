@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "langchain-examples"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+packages = [{ include = "src" }]
+
+[tool.poetry.scripts]
+langgraph_up = "scripts.langgraph_up:main"
+start = "src.main:main"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-dotenv = "^1.0.1"
+langchain-core = "^0.3.43"
+langchain-openai = "^0.3.7"
+langchain-auth0-ai = {path = "../../../packages/langchain-auth0-ai", develop = true}
+langgraph = "^0.3.20"
+langgraph-cli = "^0.1.79"
+langgraph-api = "^0.0.34"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -4,7 +4,9 @@ import jwt
 from enum import Enum
 from typing import Any, Awaitable, Callable, Optional, TypedDict, Union
 from auth0_ai.errors import AccessDeniedError, AuthorizationRequestExpiredError, UserDoesNotHavePushNotificationsError
-from auth0_ai.types import AuthorizerParams, Credentials, TokenResponse
+from auth0_ai.token_response import TokenResponse
+from auth0_ai.credentials import Credentials
+from auth0_ai.authorizers.types import AuthorizerParams
 from auth0_ai.authorizers.types import AuthParams
 from auth0.authentication.back_channel_login import BackChannelLogin
 from auth0.authentication.get_token import GetToken

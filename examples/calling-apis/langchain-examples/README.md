@@ -1,29 +1,34 @@
-# Authorization for Tools with LangChain
+# Calling APIs On User's Behalf with LangChain
 
 ## Getting Started
 
 ### Prerequisites
 
-- An Okta FGA account, you can create one [here](https://dashboard.fga.dev).
-- An OpenAI account and API key, you can create one [here](https://platform.openai.com).
+- An OpenAI account and API key create one [here](https://platform.openai.com).
   - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
 - [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/)
+- An [Auth0](https://manage.auth0.com/) account with the following configuration:
+  - **Regular Web Application** using the **Token Exchange (Federated Connection)** and **Refresh Token** grant types.
+  - **Google client** configured with access to the `https://www.googleapis.com/auth/calendar.freebusy` scope (Google Calendar API).
+  - **Google connection** set up with:
+    - The client ID and secret from the previously created Google client.
+    - The following settings:
+      - **Offline access** enabled
+      - **Calendar.Events.ReadOnly** scope granted
+      - **Token storage and retrieval** enabled
 
 ### Setup
 
 Create a `.env` file using the format below:
 
 ```sh
+# Auth0
+AUTH0_DOMAIN="<auth0-domain>"
+AUTH0_CLIENT_ID="<auth0-client-id>"
+AUTH0_CLIENT_SECRET="<auth0-client-secret>"
+
 # OpenAI
 OPENAI_API_KEY="<openai-api-key>"
-
-# Okta FGA
-FGA_STORE_ID="<fga-store-id>"
-FGA_CLIENT_ID="<fga-client-id>"
-FGA_CLIENT_SECRET="<fga-client-secret>"
-
-# Langchain
-LANGGRAPH_API_URL="http://localhost:54367"
 ```
 
 ### How to run it
@@ -36,32 +41,35 @@ LANGGRAPH_API_URL="http://localhost:54367"
     poetry install
     ```
 
-2.  **Configure FGA store**
-
-    ```sh
-    poetry run fga_init
-    ```
-
-3.  **Run LangGraph (dev mode)**
+2.  **Run LangGraph (dev mode)**
 
     ```sh
     poetry run langgraph_up
     ```
 
-4.  **Run chat client**
+3.  **Run chat client**
 
     ```sh
     poetry run start
     ```
 
-5.  **Ask the assistant to purchase some shares**
+4.  **Ask the assistant to TBD**
 
     ```sh
-    # to test an unauthorized operation (trading window closed)
-    purchase 10 shares of ATKO
-    # or test an authorized operation
-    purchase 10 shares of ZEKO
+    TBD
     ```
+
+### How this works
+
+The graph is configured with two tools:
+
+- **`check-country-holiday.py`**: Determines whether a specific date is a holiday in a given country.
+
+  - **Example prompt:** _"Is April 25th a holiday in Bolivia?"_
+
+- **`check-user-calendar.py`**: Checks if the logged-in user is available at a specified date and time.
+
+  - **Example prompt:** _"Am I available on April 25th at 9:15 AM?"_
 
 ---
 

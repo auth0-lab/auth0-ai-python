@@ -1,0 +1,53 @@
+import uuid
+import copy
+from abc import ABC
+from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerBase, FederatedConnectionAuthorizerParams
+from auth0_ai.authorizers.types import AuthorizerParams
+from auth0_ai.interrupts.federated_connection_interrupt import FederatedConnectionInterrupt
+from langchain_core.tools import BaseTool, tool
+from langchain_core.runnables import ensure_config
+from ..utils.interrupt import to_graph_interrupt
+
+async def get_refresh_token(*_args, **_kargs) -> str | None:
+    return ensure_config().get("configurable", {}).get("_credentials", {}).get("refresh_token")
+
+class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
+    def __init__(
+        self, 
+        auth0: AuthorizerParams, 
+        config: FederatedConnectionAuthorizerParams
+    ):
+        if config.refresh_token.value is None:
+            config = copy.copy(config)
+            config.refresh_token.value = get_refresh_token
+
+        super().__init__(auth0, config)
+        
+        self.middleware_instance_id = str(uuid.uuid4())
+        self.protected_tools: list[str] = []
+    
+    def _handle_authorization_interrupts(self, err: FederatedConnectionInterrupt) -> None:
+        raise to_graph_interrupt(err)
+    
+    def authorizer(self):
+        def wrapped_tool(t: BaseTool) -> BaseTool:
+            tool_fn = self.protect(
+                lambda *_args, **_kargs: {
+                    "tread_id": ensure_config().get("configurable", {}).get("tread_id"),
+                    "checkpoint_ns": ensure_config().get("configurable", {}).get("checkpoint_ns"),
+                    "run_id": ensure_config().get("configurable", {}).get("run_id"),
+                    "tool_call_id": ensure_config().get("configurable", {}).get("tool_call_id"),
+                },
+                lambda *_args, **kargs: t.invoke(input=kargs)
+            )
+            tool_fn.__name__ = t.name
+            
+            return tool(
+                tool_fn,
+                description=t.description,
+                return_direct=t.return_direct,
+                args_schema=t.args_schema,
+                response_format=t.response_format,
+            )
+        
+        return wrapped_tool

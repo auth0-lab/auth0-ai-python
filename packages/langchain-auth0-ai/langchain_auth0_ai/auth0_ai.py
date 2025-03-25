@@ -1,6 +1,10 @@
-from typing import Optional
+from typing import Callable, Optional
 from langchain_core.runnables.config import RunnableConfig
-from auth0_ai.types import AuthorizerParams, Credential
+from langchain_core.tools import BaseTool
+from auth0_ai.credentials import Credential
+from auth0_ai.authorizers.types import AuthorizerParams
+from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams 
+from .federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
 from .ciba.ciba_graph.ciba_graph import CIBAGraph
 from .ciba.ciba_graph.types import CIBAGraphOptions
 
@@ -27,3 +31,13 @@ class Auth0AI():
         """
         self._graph = CIBAGraph(options, self.config)
         return self._graph
+    
+    def with_federated_connection(self, **options: FederatedConnectionAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
+        """
+        Protects a tool execution with the Federated Connection authorizer.
+
+        Attributes:
+            options (FederatedConnectionAuthorizerParams): The Federated Connections authorizer options.
+        """
+        authorizer = FederatedConnectionAuthorizer(self.config, FederatedConnectionAuthorizerParams(**options))
+        return authorizer.authorizer()
