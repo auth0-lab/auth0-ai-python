@@ -35,12 +35,19 @@ def route_after_llm(state: State):
 workflow = (
     StateGraph(State)
     .add_node("call_llm", call_llm)
-    .add_node("tools", ToolNode([
-        # A tool with federated connection api access
-        with_calender_free_busy_access(check_user_calendar_tool),
-        # A tool without federated connection api access
-        check_country_holiday_tool,
-    ]))
+    .add_node(
+        "tools",
+        ToolNode(
+            [
+                # A tool with federated connection api access
+                with_calender_free_busy_access(check_user_calendar_tool),
+                # A tool without federated connection api access
+                check_country_holiday_tool,
+            ],
+            # The error handler should be disabled to allow interruptions to be triggered from within tools.
+            handle_tool_errors=False
+        )
+    )
     .add_edge(START, "call_llm")
     .add_edge("tools", "call_llm")
     .add_conditional_edges("call_llm", route_after_llm, [END, "tools"])
