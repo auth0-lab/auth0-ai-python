@@ -39,5 +39,5 @@ class Auth0AI():
         Attributes:
             options (FederatedConnectionAuthorizerParams): The Federated Connections authorizer options.
         """
-        authorizer = FederatedConnectionAuthorizer(self.config, FederatedConnectionAuthorizerParams(**options))
+        authorizer = FederatedConnectionAuthorizer(FederatedConnectionAuthorizerParams(**options), self.config)
         return authorizer.authorizer()

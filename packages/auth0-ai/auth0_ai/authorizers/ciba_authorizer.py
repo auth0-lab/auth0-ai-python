@@ -62,6 +62,7 @@ class CIBAAuthorizer:
         self.back_channel_login = BackChannelLogin(**params)
         self.get_token = GetToken(**params)
         self.auth0_domain = params["domain"]
+        # TODO: remove after update auth0 sdk
         self.client_id = params["client_id"]
         self.client_secret = params["client_secret"]
 

@@ -1,8 +1,8 @@
 import asyncio
 import contextvars
 import os
-import requests
 from typing import Awaitable, Callable, Generic, Optional, Any, TypedDict, Union
+from auth0.authentication.get_token import GetToken
 from .types import AuthorizerParams, AuthorizerToolParameter, ToolInput
 from ..token_response import TokenResponse
 from ..interrupts.auth0_interrupt import Auth0Interrupt
@@ -60,21 +60,30 @@ class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
 class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
     def __init__(
         self,
-        auth0: AuthorizerParams,
-        params: FederatedConnectionAuthorizerParams[ToolInput]
+        options: FederatedConnectionAuthorizerParams[ToolInput],
+        config: AuthorizerParams = None,
     ):
-        self.auth0 = auth0 or AuthorizerParams(
-            domain=os.getenv("AUTH0_DOMAIN"),
-            client_id=os.getenv("AUTH0_CLIENT_ID"),
-            client_secret=os.getenv("AUTH0_CLIENT_SECRET"),
-        )
-        self.params = params
+        self.options = options
+        auth0 = {
+            "domain": (config or {}).get("domain", os.getenv("AUTH0_DOMAIN")),
+            "client_id": (config or {}).get("client_id", os.getenv("AUTH0_CLIENT_ID")),
+            "client_secret": (config or {}).get("client_secret", os.getenv("AUTH0_CLIENT_SECRET")),
+            "client_assertion_signing_key": (config or {}).get("client_assertion_signing_key"),
+            "client_assertion_signing_alg": (config or {}).get("client_assertion_signing_alg"),
+            "telemetry": (config or {}).get("telemetry"),
+            "timeout": (config or {}).get("timeout"),
+            "protocol": (config or {}).get("protocol")
+        }
+
+        # Remove keys with None values
+        auth0 = {k: v for k, v in auth0.items() if v is not None}
+        self.get_token = GetToken(**auth0)
 
         # Ensure either refreshToken or accessToken is provided
-        if params.refresh_token.value is None and params.access_token.value is None:
+        if options.refresh_token.value is None and options.access_token.value is None:
             raise ValueError("Either refresh_token or access_token must be provided to initialize the Authorizer.")
         
-        if params.refresh_token.value is not None and params.access_token.value is not None:
+        if options.refresh_token.value is not None and options.access_token.value is not None:
             raise ValueError("Only one of refresh_token or access_token can be provided to initialize the Authorizer.")
     
     def _handle_authorization_interrupts(self, err: Auth0Interrupt) -> None:
@@ -117,35 +126,33 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
         subject_token = await self.get_refresh_token(*args, **kwargs)
         if not subject_token:
             return None
-
-        exchange_params = {
-            "grant_type": "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
-            "client_id": self.auth0["client_id"],
-            "client_secret": self.auth0["client_secret"],
-            "subject_token_type": "urn:ietf:params:oauth:token-type:refresh_token",
-            "subject_token": subject_token,
-            "connection": connection,
-            "requested_token_type": "http://auth0.com/oauth/token-type/federated-connection-access-token",
-        }
         
-        response = requests.post(f"https://{self.auth0['domain']}/oauth/token", json=exchange_params)
+        # TODO: replace after update auth0 sdk
+        response = self.get_token.authenticated_post(
+            f"{self.get_token.protocol}://{self.get_token.domain}/oauth/token",
+            data={
+                "grant_type": "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
+                "client_id": self.get_token.client_id,
+                "subject_token_type": "urn:ietf:params:oauth:token-type:refresh_token",
+                "subject_token": subject_token,
+                "connection": connection,
+                "requested_token_type": "http://auth0.com/oauth/token-type/federated-connection-access-token",
+            },
+        )
         
-        if response.status_code != 200:
-            return None
-        
-        return TokenResponse(**response.json())
+        return TokenResponse(**response)
     
     async def get_access_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> TokenResponse | None:
-        if callable(self.params.refresh_token.value) or asyncio.iscoroutinefunction(self.params.refresh_token.value):
+        if callable(self.options.refresh_token.value) or asyncio.iscoroutinefunction(self.options.refresh_token.value):
             token_response = await self.get_access_token_impl(*args, **kwargs)
         else:
-            token_response = await self.params.access_token.resolve(*args, **kwargs)
+            token_response = await self.options.access_token.resolve(*args, **kwargs)
         
         self.validate_token(token_response)
         return token_response
     
     async def get_refresh_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs):
-        return await self.params.refresh_token.resolve(*args, **kwargs)
+        return await self.options.refresh_token.resolve(*args, **kwargs)
     
     def protect(
         self,
@@ -155,8 +162,8 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
         async def wrapped_execute(*args: ToolInput.args, **kwargs: ToolInput.kwargs):
             store = {
                 "context": get_context(*args, **kwargs),
-                "scopes": await self.params.scopes.resolve(*args, **kwargs),
-                "connection": await self.params.connection.resolve(*args, **kwargs)
+                "scopes": await self.options.scopes.resolve(*args, **kwargs),
+                "connection": await self.options.connection.resolve(*args, **kwargs)
             }
 
             if local_storage.get():

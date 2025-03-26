@@ -14,14 +14,14 @@ async def get_refresh_token(*_args, **_kargs) -> str | None:
 class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
     def __init__(
         self, 
-        auth0: AuthorizerParams, 
-        config: FederatedConnectionAuthorizerParams
+        options: FederatedConnectionAuthorizerParams,
+        config: AuthorizerParams = None,
     ):
-        if config.refresh_token.value is None:
-            config = copy.copy(config)
-            config.refresh_token.value = get_refresh_token
+        if options.refresh_token.value is None:
+            options = copy.copy(options)
+            options.refresh_token.value = get_refresh_token
 
-        super().__init__(auth0, config)
+        super().__init__(options, config)
         
         self.middleware_instance_id = str(uuid.uuid4())
         self.protected_tools: list[str] = []
