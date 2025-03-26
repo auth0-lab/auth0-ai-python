@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import asynccontextmanager
 import contextvars
 import os
 from typing import Awaitable, Callable, Generic, Optional, Any, TypedDict, Union
@@ -8,20 +9,40 @@ from ..token_response import TokenResponse
 from ..interrupts.auth0_interrupt import Auth0Interrupt
 from ..interrupts.federated_connection_interrupt import FederatedConnectionError, FederatedConnectionInterrupt
 
-class AsyncStorageValue(TypedDict):
+class AsyncStorageValue(TypedDict, total=False):
     context: Any
     connection: str
     scopes: list[str]
     access_token: Optional[str]
     current_scopes: Optional[list[str]]
 
-local_storage: contextvars.ContextVar[Optional[AsyncStorageValue]] = contextvars.ContextVar("local_storage", default=None)
+_local_storage: contextvars.ContextVar[Optional[AsyncStorageValue]] = contextvars.ContextVar("local_storage", default=None)
+
+def _get_local_storage() -> AsyncStorageValue:
+    store = _local_storage.get()
+    if store is None:
+        raise RuntimeError("The tool must be wrapped with the with_federated_connection function.")
+    return store
+
+def _update_local_storage(data: AsyncStorageValue) -> None:
+    store = _get_local_storage()
+    updated = store.copy()
+    updated.update(data)
+    _local_storage.set(updated)
+
+@asynccontextmanager
+async def _run_with_local_storage(data: AsyncStorageValue):
+    if _local_storage.get() is not None:
+        raise RuntimeError("Cannot nest tool calls that require federated connection authorization.")
+    token = _local_storage.set(data)
+    try:
+        yield
+    finally:
+        _local_storage.reset(token)
 
 def get_access_token_for_connection() -> str | None:
-    store = local_storage.get()
-    if store is None:
-        raise RuntimeError("The tool must be wrapped with the with_federated_connections function.")
-    return store["access_token"]
+    store = _get_local_storage()
+    return store.get("access_token")
 
 class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
     def __init__(
@@ -90,10 +111,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
         raise err
     
     def validate_token(self, token_response: Optional[TokenResponse] = None):
-        store = local_storage.get()
-        if not store:
-            raise RuntimeError("The tool must be wrapped with the FederationConnectionAuthorizer.")
-
+        store = _get_local_storage()
         scopes = store["scopes"]
         connection = store["connection"]
         
@@ -107,7 +125,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
 
         current_scopes = token_response["scope"].split(" ") if token_response["scope"] else []
         missing_scopes = [s for s in scopes if s not in current_scopes]
-        store["current_scopes"] = current_scopes
+        _update_local_storage({"current_scopes": current_scopes})
         
         if missing_scopes:
             raise FederatedConnectionInterrupt(
@@ -118,9 +136,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
             )
 
     async def get_access_token_impl(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> TokenResponse | None:
-        store = local_storage.get()
-        if not store:
-            raise RuntimeError("The tool must be wrapped with the FederationConnectionAuthorizer.")
+        store = _get_local_storage()
         
         connection = store["connection"]
         subject_token = await self.get_refresh_token(*args, **kwargs)
@@ -166,28 +182,22 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
                 "connection": await self.options.connection.resolve(*args, **kwargs)
             }
 
-            if local_storage.get():
-                raise RuntimeError("Cannot nest tool calls that require federated connection authorization.")
-            
-            storage_token = local_storage.set(store)
-            
-            try:
-                token_response = await self.get_access_token(*args, **kwargs)
-                store["access_token"] = token_response["access_token"]
-                return await execute(*args, **kwargs)
-            except FederatedConnectionError as err:
-                interrupt = FederatedConnectionInterrupt(
-                    str(err),
-                    store["connection"],
-                    store["scopes"],
-                    store["scopes"]
-                )
-                return self._handle_authorization_interrupts(interrupt)
-            except Auth0Interrupt as err:
-                return self._handle_authorization_interrupts(err)
-            except Exception as err:
-                raise err
-            finally:
-                local_storage.reset(storage_token)
+            async with _run_with_local_storage(store):
+                try:
+                    token_response = await self.get_access_token(*args, **kwargs)
+                    _update_local_storage({"access_token": token_response["access_token"]})
+                    return await execute(*args, **kwargs)
+                except FederatedConnectionError as err:
+                    interrupt = FederatedConnectionInterrupt(
+                        str(err),
+                        store["connection"],
+                        store["scopes"],
+                        store["scopes"]
+                    )
+                    return self._handle_authorization_interrupts(interrupt)
+                except Auth0Interrupt as err:
+                    return self._handle_authorization_interrupts(err)
+                except Exception as err:
+                    raise err
         
         return wrapped_execute
