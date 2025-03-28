@@ -8,7 +8,6 @@
   - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
 - [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/)
 - An [Auth0](https://manage.auth0.com/) account with the following configuration:
-  - **Regular Web Application** using the **Token Exchange (Federated Connection)** and **Refresh Token** grant types.
   - **Google client** configured with access to the `https://www.googleapis.com/auth/calendar.freebusy` scope (Google Calendar API).
   - **Google connection** set up with:
     - The client ID and secret from the previously created Google client.
@@ -16,6 +15,8 @@
       - **Offline access** enabled
       - **Calendar.Events.ReadOnly** scope granted
       - **Token storage and retrieval** enabled
+  - **Regular Web Application** using the **Token Exchange (Federated Connection)** and **Refresh Token** grant types and the **Google connection** enabled.
+  - **Native Application** with `http://localhost:8000/callback` as **Allowed Callback URL** and the **Google connection** enabled.
 
 ### Setup
 
@@ -26,6 +27,7 @@ Create a `.env` file using the format below:
 AUTH0_DOMAIN="<auth0-domain>"
 AUTH0_CLIENT_ID="<auth0-client-id>"
 AUTH0_CLIENT_SECRET="<auth0-client-secret>"
+AUTH0_NATIVE_CLIENT_ID="<auth0-native-client-id>"
 
 # OpenAI
 OPENAI_API_KEY="<openai-api-key>"
@@ -53,23 +55,11 @@ OPENAI_API_KEY="<openai-api-key>"
     poetry run start
     ```
 
-4.  **Ask the assistant to TBD**
+4.  **Login with your Google account and ask the assistant about your availability**
 
     ```sh
-    TBD
+    Am I available on April 25th at 9:15 AM?
     ```
-
-### How this works
-
-The graph is configured with two tools:
-
-- **`check-country-holiday.py`**: Determines whether a specific date is a holiday in a given country.
-
-  - **Example prompt:** _"Is April 25th a holiday in Bolivia?"_
-
-- **`check-user-calendar.py`**: Checks if the logged-in user is available at a specified date and time.
-
-  - **Example prompt:** _"Am I available on April 25th at 9:15 AM?"_
 
 ---
 
