@@ -4,7 +4,8 @@ from typing import Awaitable, Callable, Union, Optional, TypedDict
 from langgraph_sdk import get_client
 from langgraph_sdk.schema import Command
 from auth0_ai.authorizers.ciba_authorizer import CIBAAuthorizer, CibaAuthorizerCheckResponse, AuthorizeResponse
-from auth0_ai.types import Credentials, TokenResponse
+from auth0_ai.credentials import Credentials
+from auth0_ai.token_response import TokenResponse
 from langchain_auth0_ai.ciba.types import Auth0Graphs
 
 class State(TypedDict):

@@ -2,12 +2,11 @@ import asyncio
 import functools
 import inspect
 import os
-from typing import Any, Awaitable, Callable, ParamSpec, TypedDict, Optional, Union
+from typing import Any, Awaitable, Callable, TypedDict, Optional, Union
 from openfga_sdk import OpenFgaClient, ConsistencyPreference, ClientConfiguration
 from openfga_sdk.client import ClientCheckRequest
 from openfga_sdk.credentials import Credentials, CredentialConfiguration
-
-ToolInput = ParamSpec("ToolInput")
+from .types import ToolInput
 
 class FGAAuthorizerCredentialsConfig(TypedDict, total=False):
     api_issuer: str

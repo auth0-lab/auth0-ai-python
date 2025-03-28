@@ -11,7 +11,7 @@ class BuySchema(BaseModel):
 fga = FGAAuthorizer.create()
 
 async def build_fga_query(tool_input):
-    user_id = ensure_config().get("configurable",{}).get("user_id")
+    user_id = ensure_config().get("configurable", {}).get("user_id")
     return {
         "user": f"user:{user_id}",
         "object": f"asset:{tool_input["ticker"]}",

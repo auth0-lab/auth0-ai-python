@@ -1,4 +1,4 @@
-# Step Up Auth for Tools with LangChain
+# Async User Confirmation with LangChain
 
 ## Getting Started
 
