@@ -7,16 +7,19 @@
 - An OpenAI account and API key create one [here](https://platform.openai.com).
   - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
 - [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/)
+- A [Google OAuth 2.0 Client](https://console.cloud.google.com/apis/credentials) configured with access to the `https://www.googleapis.com/auth/calendar.freebusy` scope (Google Calendar API).
 - An [Auth0](https://manage.auth0.com/) account with the following configuration:
-  - **Google client** configured with access to the `https://www.googleapis.com/auth/calendar.freebusy` scope (Google Calendar API).
   - **Google connection** set up with:
     - The client ID and secret from the previously created Google client.
     - The following settings:
-      - **Offline access** enabled
-      - **Calendar.Events.ReadOnly** scope granted
-      - **Token storage and retrieval** enabled
-  - **Regular Web Application** using the **Token Exchange (Federated Connection)** and **Refresh Token** grant types and the **Google connection** enabled.
-  - **Native Application** with `http://localhost:8000/callback` as **Allowed Callback URL** and the **Google connection** enabled.
+      - **Offline access** enabled.
+      - **https://www.googleapis.com/auth/calendar.freebusy** scope granted.
+      - **Store and retrieve tokens for APIs** enabled.
+  - **Regular Web Application** set up with:
+    - **Allowed Callback URLs**: `http://localhost:3000/callback`
+    - **Allowed Logout URLs**: `http://localhost:3000/`
+    - **Connections**: The previously created **Google connection**.
+    - **Advanced Settings -> Grant Types**: **Token Exchange (Federated Connection)** and **Refresh Token**.
 
 ### Setup
 
@@ -27,7 +30,6 @@ Create a `.env` file using the format below:
 AUTH0_DOMAIN="<auth0-domain>"
 AUTH0_CLIENT_ID="<auth0-client-id>"
 AUTH0_CLIENT_SECRET="<auth0-client-secret>"
-AUTH0_NATIVE_CLIENT_ID="<auth0-native-client-id>"
 
 # OpenAI
 OPENAI_API_KEY="<openai-api-key>"
@@ -55,10 +57,12 @@ OPENAI_API_KEY="<openai-api-key>"
     poetry run start
     ```
 
+    > And navigate to `http://localhost:3000/`
+
 4.  **Login with your Google account and ask the assistant about your availability**
 
     ```sh
-    Am I available on April 25th at 9:15 AM?
+    Am I available on September 25th at 9:15 AM?
     ```
 
 ---

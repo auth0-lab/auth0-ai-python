@@ -8,7 +8,7 @@ packages = [{ include = "src" }]
 
 [tool.poetry.scripts]
 langgraph_up = "scripts.langgraph_up:main"
-start = "src.main:main"
+start = "scripts.start:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -19,10 +19,11 @@ langchain-auth0-ai = {path = "../../../packages/langchain-auth0-ai", develop = t
 langgraph = "^0.3.20"
 langgraph-cli = "^0.1.79"
 langgraph-api = "^0.0.34"
-questionary = "^2.1.0"
-requests = "^2.32.3"
 dotenv = "^0.9.9"
-auth0-python = "^4.8.1"
+flask = {extras = ["async"], version = "^3.1.0"}
+requests = "^2.32.3"
+authlib = "^1.5.1"
+hypercorn = "^0.17.3"
 
 [build-system]
 requires = ["poetry-core"]
