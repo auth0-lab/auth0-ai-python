@@ -7,7 +7,7 @@ from langchain_core.tools import BaseTool, tool
 from langchain_core.runnables import ensure_config
 from ..utils.interrupt import to_graph_interrupt
 
-async def get_refresh_token(*_args, **_kargs) -> str | None:
+async def get_refresh_token(*_args, **_kwargs) -> str | None:
     return ensure_config().get("configurable", {}).get("_credentials", {}).get("refresh_token")
 
 class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
@@ -28,13 +28,13 @@ class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
     def authorizer(self):
         def wrapped_tool(t: BaseTool) -> BaseTool:
             tool_fn = self.protect(
-                lambda *_args, **_kargs: {
+                lambda *_args, **_kwargs: {
                     "tread_id": ensure_config().get("configurable", {}).get("tread_id"),
                     "checkpoint_ns": ensure_config().get("configurable", {}).get("checkpoint_ns"),
                     "run_id": ensure_config().get("configurable", {}).get("run_id"),
                     "tool_call_id": ensure_config().get("configurable", {}).get("tool_call_id"),
                 },
-                lambda *_args, **kargs: t.invoke(input=kargs)
+                lambda *_args, **kwargs: t.invoke(input=kwargs)
             )
             tool_fn.__name__ = t.name
             

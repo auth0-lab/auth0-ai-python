@@ -11,51 +11,6 @@
 pip install llama-index-auth0-ai
 ```
 
-## RAG with FGA
-
-Example [RAG Application](../../examples/authorization-for-rag/llama-index-examples/).
-
-```python
-from llama_index.core import VectorStoreIndex, Document
-from llama_index_auth0_ai import FGARetriever
-from openfga_sdk.client.models import ClientCheckRequest
-from openfga_sdk import ClientConfiguration
-from openfga_sdk.credentials import CredentialConfiguration, Credentials
-
-# Define some docs:
-documents = [
-    Document(text="This is a public doc", doc_id="public-doc"),
-    Document(text="This is a private doc", doc_id="private-doc"),
-]
-
-# Create a vector store:
-vector_store = VectorStoreIndex.from_documents(documents)
-
-# Create a retriever:
-base_retriever = vector_store.as_retriever()
-
-# Create the FGA retriever wrapper:
-retriever = FGARetriever(
-    base_retriever,
-    build_query=lambda node: ClientCheckRequest(
-        user=f'user:{user}',
-        object=f'doc:{node.ref_doc_id}',
-        relation="viewer",
-    )
-)
-
-# Create a query engine:
-query_engine = RetrieverQueryEngine.from_args(
-    retriever=retriever,
-    llm=OpenAI()
-)
-
-# Query:
-response = query_engine.query("What is the forecast for ZEKO?")
-
-print(response)
-```
-
 ## Authorization for Tools
 
 Example [Authorization for Tools](../../examples/authorization-for-tools/llama-index-examples/).
@@ -115,6 +70,84 @@ return FunctionTool.from_defaults(
     name="buy",
     description="Use this function to buy stocks",
 )
+```
+
+## Calling APIs On User's Behalf
+
+Example [Calling APIs On User's Behalf](../../examples/calling-apis/llama-index-examples/).
+
+Define a tool with the proper authorizer specifying a function to resolve the user's refresh token:
+
+```python
+from llama_index_auth0_ai.auth0_ai import Auth0AI
+from llama_index_auth0_ai.federated_connections import get_access_token_for_connection
+from llama_index.core.tools import FunctionTool
+
+auth0_ai = Auth0AI()
+
+with_google_calendar_access = auth0_ai.with_federated_connection(
+    connection="google-oauth2",
+    scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
+    refresh_token=lambda *_args, **_kwargs: session["user"]["refresh_token"],
+)
+
+def tool_function(date: datetime):
+    access_token = get_access_token_for_connection()
+    # Call Google API
+
+check_calendar_tool = with_google_calendar_access(
+    FunctionTool.from_defaults(
+        name="check_user_calendar",
+        description="Use this function to check if the user is available on a certain date and time",
+        fn=tool_function,
+        # ...
+    )
+)
+```
+
+## RAG with FGA
+
+Example [RAG Application](../../examples/authorization-for-rag/llama-index-examples/).
+
+```python
+from llama_index.core import VectorStoreIndex, Document
+from llama_index_auth0_ai import FGARetriever
+from openfga_sdk.client.models import ClientCheckRequest
+from openfga_sdk import ClientConfiguration
+from openfga_sdk.credentials import CredentialConfiguration, Credentials
+
+# Define some docs:
+documents = [
+    Document(text="This is a public doc", doc_id="public-doc"),
+    Document(text="This is a private doc", doc_id="private-doc"),
+]
+
+# Create a vector store:
+vector_store = VectorStoreIndex.from_documents(documents)
+
+# Create a retriever:
+base_retriever = vector_store.as_retriever()
+
+# Create the FGA retriever wrapper:
+retriever = FGARetriever(
+    base_retriever,
+    build_query=lambda node: ClientCheckRequest(
+        user=f'user:{user}',
+        object=f'doc:{node.ref_doc_id}',
+        relation="viewer",
+    )
+)
+
+# Create a query engine:
+query_engine = RetrieverQueryEngine.from_args(
+    retriever=retriever,
+    llm=OpenAI()
+)
+
+# Query:
+response = query_engine.query("What is the forecast for ZEKO?")
+
+print(response)
 ```
 
 ---

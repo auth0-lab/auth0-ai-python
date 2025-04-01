@@ -94,19 +94,23 @@ from langchain_core.tools import StructuredTool
 
 auth0_ai = Auth0AI()
 
-with_google_calender_access = auth0_ai.with_federated_connection(
+with_google_calendar_access = auth0_ai.with_federated_connection(
     connection="google-oauth2",
     scopes=["https://www.googleapis.com/auth/calendar.freebusy"]
 )
 
-async def tool_function(date: datetime):
+def tool_function(date: datetime):
     access_token = get_access_token_for_connection()
     # Call Google API
 
-check_calendar_tool = with_google_calender_access(StructuredTool(
-    coroutine=tool_function,
-    # ...
-))
+check_calendar_tool = with_google_calendar_access(
+    StructuredTool(
+        name="check_user_calendar",
+        description="Use this function to check if the user is available on a certain date and time",
+        func=tool_function,
+        # ...
+    )
+)
 ```
 
 2. Add a node to your graph for your tools:

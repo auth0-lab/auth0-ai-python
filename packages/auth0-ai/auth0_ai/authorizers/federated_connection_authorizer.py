@@ -1,7 +1,8 @@
 import asyncio
-from contextlib import asynccontextmanager
 import contextvars
+import inspect
 import os
+from contextlib import asynccontextmanager
 from typing import Awaitable, Callable, Generic, Optional, Any, TypedDict, Union
 from auth0.authentication.get_token import GetToken
 from .types import AuthorizerParams, AuthorizerToolParameter, ToolInput
@@ -186,7 +187,11 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
                 try:
                     token_response = await self.get_access_token(*args, **kwargs)
                     _update_local_storage({"access_token": token_response["access_token"]})
-                    return await execute(*args, **kwargs)
+
+                    if inspect.iscoroutinefunction(execute):
+                        return asyncio.run(execute(*args, **kwargs))
+                    else:
+                        return execute(*args, **kwargs)
                 except FederatedConnectionError as err:
                     interrupt = FederatedConnectionInterrupt(
                         str(err),
