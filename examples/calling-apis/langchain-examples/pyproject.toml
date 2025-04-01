@@ -19,7 +19,6 @@ langchain-auth0-ai = {path = "../../../packages/langchain-auth0-ai", develop = t
 langgraph = "^0.3.20"
 langgraph-cli = "^0.1.79"
 langgraph-api = "^0.0.34"
-dotenv = "^0.9.9"
 flask = {extras = ["async"], version = "^3.1.0"}
 requests = "^2.32.3"
 authlib = "^1.5.1"

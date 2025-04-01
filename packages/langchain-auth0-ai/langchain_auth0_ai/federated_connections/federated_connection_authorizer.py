@@ -1,4 +1,3 @@
-import uuid
 import copy
 from abc import ABC
 from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerBase, FederatedConnectionAuthorizerParams
@@ -22,9 +21,6 @@ class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
             options.refresh_token.value = get_refresh_token
 
         super().__init__(options, config)
-        
-        self.middleware_instance_id = str(uuid.uuid4())
-        self.protected_tools: list[str] = []
     
     def _handle_authorization_interrupts(self, err: FederatedConnectionInterrupt) -> None:
         raise to_graph_interrupt(err)
