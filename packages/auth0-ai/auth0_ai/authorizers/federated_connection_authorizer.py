@@ -189,7 +189,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
                     _update_local_storage({"access_token": token_response["access_token"]})
 
                     if inspect.iscoroutinefunction(execute):
-                        return asyncio.run(execute(*args, **kwargs))
+                        return await execute(*args, **kwargs)
                     else:
                         return execute(*args, **kwargs)
                 except FederatedConnectionError as err:

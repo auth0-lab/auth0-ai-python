@@ -1,3 +1,4 @@
+import inspect
 from abc import ABC
 from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerBase, FederatedConnectionAuthorizerParams
 from auth0_ai.authorizers.types import AuthorizerParams
@@ -16,19 +17,18 @@ class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
     
     def authorizer(self):
         def wrapped_tool(t: FunctionTool) -> FunctionTool:
-            wrapped_fn = self.protect(
-                lambda *_args, **_kwargs: { # TODO
-                    # "tread_id": ensure_config().get("configurable", {}).get("tread_id"),
-                    # "checkpoint_ns": ensure_config().get("configurable", {}).get("checkpoint_ns"),
-                    # "run_id": ensure_config().get("configurable", {}).get("run_id"),
-                    # "tool_call_id": ensure_config().get("configurable", {}).get("tool_call_id"),
+            tool_fn = self.protect(
+                lambda *_args, **_kwargs: { # TODO: review this
+                    "thread_id": "",
+                    "tool_name": t.metadata.name,
+                    "tool_call_id": "",
                 },
-                t.call,
+                t.acall if inspect.iscoroutinefunction(t.fn) else t.call
             )
 
             return FunctionTool(
-                fn=wrapped_fn,
-                async_fn=wrapped_fn,
+                fn=tool_fn,
+                async_fn=tool_fn,
                 metadata=t.metadata,
                 callback=t._callback,
                 async_callback=t._async_callback,
