@@ -61,10 +61,6 @@ class CIBAAuthorizer:
 
         self.back_channel_login = BackChannelLogin(**params)
         self.get_token = GetToken(**params)
-        self.auth0_domain = params["domain"]
-        # TODO: remove after update auth0 sdk
-        self.client_id = params["client_id"]
-        self.client_secret = params["client_secret"]
 
     def _ensure_openid_scope(self, scope: str) -> str:
         scopes = scope.strip().split()
@@ -80,25 +76,16 @@ class CIBAAuthorizer:
         }
 
         if isinstance(params.get("user_id"), str):
-            authorize_params["login_hint"] = f'{{ "format": "iss_sub", "iss": "https://{self.auth0_domain}/", "sub": "{params.get("user_id")}" }}'
+            authorize_params["login_hint"] = f'{{ "format": "iss_sub", "iss": "https://{self.back_channel_login.domain}/", "sub": "{params.get("user_id")}" }}'
         else:
-            authorize_params["login_hint"] = f'{{ "format": "iss_sub", "iss": "https://{self.auth0_domain}/", "sub": "{await params.get("user_id")(tool_context)}" }}'
+            authorize_params["login_hint"] = f'{{ "format": "iss_sub", "iss": "https://{self.back_channel_login.domain}/", "sub": "{await params.get("user_id")(tool_context)}" }}'
 
         if isinstance(params.get("binding_message"), str):
             authorize_params["binding_message"] = params.get("binding_message")
         else:
             authorize_params["binding_message"] = await params.get("binding_message")(tool_context)
 
-        # FIXME: `back_channel_login()` is not adding the form-urlencoded content-type header, which is mandatory for '/bc-authorize' (using `authenticated_post` as workaround)
-        # response = self.back_channel_login.back_channel_login(**authorize_params)
-        authorize_params["client_id"] = self.client_id
-        authorize_params["client_secret"] = self.client_secret
-        response = self.back_channel_login.authenticated_post(
-            f"https://{self.auth0_domain}/bc-authorize",
-            data={**authorize_params},
-            headers={"Content-Type":"application/x-www-form-urlencoded"}
-        )
-
+        response = self.back_channel_login.back_channel_login(**authorize_params)
         return AuthorizeResponse(
             auth_req_id=response["auth_req_id"],
             expires_in=response["expires_in"],

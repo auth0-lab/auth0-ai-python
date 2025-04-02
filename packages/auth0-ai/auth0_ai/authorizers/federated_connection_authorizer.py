@@ -144,7 +144,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
         if not subject_token:
             return None
         
-        # TODO: replace after update auth0 sdk
+        # TODO: replace once the auth0-python sdk supports this feature
         response = self.get_token.authenticated_post(
             f"{self.get_token.protocol}://{self.get_token.domain}/oauth/token",
             data={
