@@ -10,7 +10,7 @@ class CheckUserCalendarSchema(BaseModel):
 def add_hours(dt: datetime, hours: int) -> str:
     return (dt + timedelta(hours=hours)).isoformat()
 
-async def check_user_calendar_tool_function(date: datetime):
+def check_user_calendar_tool_function(date: datetime):
     access_token = get_access_token_for_connection()
     if not access_token:
         raise ValueError("Authorization required to access the Federated Connection API")
@@ -42,5 +42,4 @@ check_user_calendar_tool = StructuredTool(
     description="Use this function to check if the user is available on a certain date and time",
     args_schema=CheckUserCalendarSchema,
     func=check_user_calendar_tool_function,
-    coroutine=check_user_calendar_tool_function
 )

@@ -27,14 +27,17 @@ class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
     
     def authorizer(self):
         def wrapped_tool(t: BaseTool) -> BaseTool:
+            async def execute_fn(*_args, **kwargs):
+                return await t.ainvoke(input=kwargs)
+
             tool_fn = self.protect(
                 lambda *_args, **_kwargs: {
-                    "tread_id": ensure_config().get("configurable", {}).get("tread_id"),
+                    "thread_id": ensure_config().get("configurable", {}).get("thread_id"),
                     "checkpoint_ns": ensure_config().get("configurable", {}).get("checkpoint_ns"),
                     "run_id": ensure_config().get("configurable", {}).get("run_id"),
-                    "tool_call_id": ensure_config().get("configurable", {}).get("tool_call_id"),
+                    "tool_call_id": ensure_config().get("configurable", {}).get("tool_call_id"), # TODO: review this
                 },
-                lambda *_args, **kwargs: t.invoke(input=kwargs)
+                execute_fn
             )
             tool_fn.__name__ = t.name
             
