@@ -13,7 +13,9 @@ pip install llama-index-auth0-ai
 
 ## Authorization for Tools
 
-Example [Authorization for Tools](../../examples/authorization-for-tools/llama-index-examples/).
+The `FGAAuthorizer` can leverage Okta FGA to authorize tools executions. The `FGAAuthorizer.create` function can be used to create an authorizer that checks permissions before executing the tool.
+
+Full Example of [Authorization for Tools](../../examples/authorization-for-tools/llama-index-examples/).
 
 1. Create an instance of FGA Authorizer:
 
@@ -74,7 +76,9 @@ return FunctionTool.from_defaults(
 
 ## Calling APIs On User's Behalf
 
-Example [Calling APIs On User's Behalf](../../examples/calling-apis/llama-index-examples/).
+The `Auth0AI.with_federated_connection` function exchanges user's refresh token for a Federated Connection API access token.
+
+Full Example of [Calling APIs On User's Behalf](../../examples/calling-apis/llama-index-examples/).
 
 Define a tool with the proper authorizer specifying a function to resolve the user's refresh token:
 
@@ -107,7 +111,9 @@ check_calendar_tool = with_google_calendar_access(
 
 ## RAG with FGA
 
-Example [RAG Application](../../examples/authorization-for-rag/llama-index-examples/).
+The `FGARetriever` can be used to filter documents based on access control checks defined in Okta FGA. This retriever performs batch checks on retrieved documents, returning only the ones that pass the specified access criteria.
+
+Full Example of [RAG Application](../../examples/authorization-for-rag/llama-index-examples/).
 
 ```python
 from llama_index.core import VectorStoreIndex, Document

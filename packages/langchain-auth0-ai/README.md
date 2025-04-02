@@ -13,13 +13,17 @@ pip install langchain-auth0-ai
 
 ## Async User Confirmation
 
-Example [Async User Confirmation](../../examples/async-user-confirmation/langchain-examples/).
+`Auth0AI` uses CIBA (Client Initiated Backchannel Authentication) to handle user confirmation asynchronously. This is useful when you need to confirm a user action before proceeding with a tool execution.
+
+Full Example of [Async User Confirmation](../../examples/async-user-confirmation/langchain-examples/).
 
 > TODO
 
 ## Authorization for Tools
 
-Example [Authorization for Tools](../../examples/authorization-for-tools/langchain-examples/).
+The `FGAAuthorizer` can leverage Okta FGA to authorize tools executions. The `FGAAuthorizer.create` function can be used to create an authorizer that checks permissions before executing the tool.
+
+Full example of [Authorization for Tools](../../examples/authorization-for-tools/langchain-examples/).
 
 1. Create an instance of FGA Authorizer:
 
@@ -83,7 +87,9 @@ buy_tool = StructuredTool(
 
 ## Calling APIs On User's Behalf
 
-Example [Calling APIs On User's Behalf](../../examples/calling-apis/langchain-examples/).
+The `Auth0AI.with_federated_connection` function exchanges user's refresh token taken from the runnable configuration (`config.configurable._credentials.refresh_token`) for a Federated Connection API token.
+
+Full Example of [Calling APIs On User's Behalf](../../examples/calling-apis/langchain-examples/).
 
 1. Define a tool with the proper authorizer:
 
@@ -137,7 +143,9 @@ workflow = (
 
 ## RAG with FGA
 
-Example [RAG Application](../../examples/authorization-for-rag/langchain-examples/).
+The `FGARetriever` can be used to filter documents based on access control checks defined in Okta FGA. This retriever performs batch checks on retrieved documents, returning only the ones that pass the specified access criteria.
+
+Full Example of [RAG Application](../../examples/authorization-for-rag/langchain-examples/).
 
 Create a retriever instance using the `FGARetriever` class.
 
