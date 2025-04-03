@@ -2,7 +2,7 @@
 name = "langchain-examples"
 version = "0.1.0"
 description = ""
-authors = ["Jose F. Romaniello <jose@okta.com>", "Javier Centurion <javier.centurion@okta.com>"]
+authors = ["Auth0 <support@auth0.com>"]
 readme = "README.md"
 packages = []
 package-mode = false

@@ -2,7 +2,7 @@
 name = "llama-index-examples"
 version = "0.1.0"
 description = ""
-authors = []
+authors = ["Auth0 <support@auth0.com>"]
 readme = "README.md"
 packages = [{ include = "src" }]
 
