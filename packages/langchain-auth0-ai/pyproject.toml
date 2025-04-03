@@ -14,6 +14,7 @@ langchain = "^0.3.20"
 langgraph-sdk = "^0.1.55"
 langchain-core = "^0.3.43"
 auth0-ai = {path = "../auth0-ai", develop = true}
+langgraph = "^0.3.25"
 
 [tool.poetry.group.test.dependencies]
 pytest-randomly = "^3.15.0"
