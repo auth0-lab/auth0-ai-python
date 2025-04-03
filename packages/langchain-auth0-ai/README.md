@@ -2,6 +2,8 @@
 
 `langchain-auth0-ai` is an SDK for building secure AI-powered applications using [Auth0](https://www.auth0.ai/), [Okta FGA](https://docs.fga.dev/) and [LangChain](https://python.langchain.com/docs/tutorials/).
 
+![Release](https://img.shields.io/pypi/v/langchain-auth0-ai) ![Downloads](https://img.shields.io/pypi/dw/langchain-auth0-ai) [![License](https://img.shields.io/:license-APACHE%202.0-blue.svg?style=flat)](https://opensource.org/license/apache-2-0)
+
 ## Installation
 
 > [!WARNING]

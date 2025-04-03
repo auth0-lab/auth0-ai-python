@@ -2,6 +2,8 @@
 
 `llama-index-auth0-ai` is an SDK for building secure AI-powered applications using [Auth0](https://www.auth0.ai/), [Okta FGA](https://docs.fga.dev/) and [LlamaIndex](https://docs.llamaindex.ai/en/stable/).
 
+![Release](https://img.shields.io/pypi/v/llama-index-auth0-ai) ![Downloads](https://img.shields.io/pypi/dw/llama-index-auth0-ai) [![License](https://img.shields.io/:license-APACHE%202.0-blue.svg?style=flat)](https://opensource.org/license/apache-2-0)
+
 ## Installation
 
 > [!WARNING]
