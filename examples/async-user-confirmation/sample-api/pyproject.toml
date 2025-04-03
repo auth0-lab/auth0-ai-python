@@ -2,7 +2,7 @@
 name = "sample-api"
 version = "0.1.0"
 description = ""
-authors = []
+authors = ["Auth0 <support@auth0.com>"]
 readme = ""
 packages = []
 package-mode = false

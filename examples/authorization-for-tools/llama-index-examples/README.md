@@ -1,4 +1,4 @@
-# Authorization for tools with LlamaIndex
+# Authorization for Tools with LlamaIndex
 
 ## Getting Started
 

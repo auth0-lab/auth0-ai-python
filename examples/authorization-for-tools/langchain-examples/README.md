@@ -1,4 +1,4 @@
-# Authorization for tools with LangChain
+# Authorization for Tools with LangChain
 
 ## Getting Started
 

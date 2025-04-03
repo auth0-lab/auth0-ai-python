@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chatbot Example</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      h2 {
+        margin: 0;
+      }
+
+      #chatbox {
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        background: #fff;
+        margin-bottom: 15px;
+      }
+
+      .message {
+        margin: 8px 0;
+      }
+
+      .message.user {
+        text-align: right;
+        font-weight: bold;
+      }
+
+      .message.bot {
+        text-align: left;
+        color: #333;
+      }
+
+      form {
+        display: flex;
+        gap: 10px;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        padding: 8px;
+      }
+
+      button {
+        padding: 8px 16px;
+        cursor: pointer;
+      }
+
+      a.logout {
+        text-decoration: none;
+        color: #fff;
+        background-color: #d9534f;
+        padding: 6px 12px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h2>Hello, {{ user.userinfo.name }}!</h2>
+      <a class="logout" href="/logout">Logout</a>
+    </header>
+
+    <div id="chatbox"></div>
+
+    <form id="chat-form">
+      <input type="text" id="message" placeholder="Ask something..." required />
+      <button type="submit">Send</button>
+    </form>
+
+    <script>
+      const form = document.getElementById("chat-form");
+      const chatbox = document.getElementById("chatbox");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("message");
+        const message = input.value.trim();
+        if (!message) return;
+
+        input.value = "";
+
+        // Add user message
+        const userDiv = document.createElement("div");
+        userDiv.className = "message user";
+        userDiv.textContent = message;
+        chatbox.appendChild(userDiv);
+
+        const loadingDiv = document.createElement("div");
+        loadingDiv.className = "message bot";
+        loadingDiv.textContent = "Waiting...";
+        chatbox.appendChild(loadingDiv);
+        chatbox.scrollTop = chatbox.scrollHeight;
+
+        try {
+          const res = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message }),
+          });
+
+          const data = await res.json();
+
+          loadingDiv.textContent =
+            data.response || `Failed to fetch response: ${data.error}`;
+        } catch (err) {
+          loadingDiv.textContent = `Failed to fetch response: ${err}`;
+        }
+
+        chatbox.scrollTop = chatbox.scrollHeight;
+      });
+    </script>
+  </body>
+</html>

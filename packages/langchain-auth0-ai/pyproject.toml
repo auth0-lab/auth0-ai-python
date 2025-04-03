@@ -4,10 +4,7 @@ version = "0.1.0"
 description = "This package is an SDK for building secure AI-powered applications using Auth0, Okta FGA and LangChain."
 license = "apache-2.0"
 homepage = "https://auth0.com"
-authors = [
-    "Jose F. Romaniello <jose@okta.com>",
-    "Javier Centurion <javier.centurion@okta.com>",
-]
+authors = ["Auth0 <support@auth0.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

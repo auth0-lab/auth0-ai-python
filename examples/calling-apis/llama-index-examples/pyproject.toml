@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "llama-index-examples"
+version = "0.1.0"
+description = ""
+authors = ["Auth0 <support@auth0.com>"]
+readme = "README.md"
+packages = [{ include = "src" }]
+
+[tool.poetry.scripts]
+start = "scripts.start:main"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-dotenv = "^1.0.1"
+flask = {extras = ["async"], version = "^3.1.0"}
+requests = "^2.32.3"
+authlib = "^1.5.1"
+hypercorn = "^0.17.3"
+llama-index = "^0.12.27"
+llama-index-agent-openai = "^0.4.6"
+llama-index-auth0-ai = {path = "../../../packages/llama-index-auth0-ai", develop = true}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

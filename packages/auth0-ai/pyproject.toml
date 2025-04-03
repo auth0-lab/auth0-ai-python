@@ -4,13 +4,13 @@ version = "0.1.0"
 description = "This package provides base abstractions for authentication and authorization in AI applications."
 license = "apache-2.0"
 homepage = "https://auth0.com"
-authors = []
+authors = ["Auth0 <support@auth0.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-auth0-python = "^4.8.1"
 openfga-sdk = "^0.9.1"
+auth0-python = "^4.9.0"
 
 [build-system]
 requires = ["poetry-core"]

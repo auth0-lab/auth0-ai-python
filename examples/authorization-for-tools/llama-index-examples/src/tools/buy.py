@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from llama_index.core.tools import FunctionTool
-from langchain_auth0_ai.fga.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
+from llama_index_auth0_ai.fga.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
 from ..context import Context
 
 def buy_tool (context: Context):
