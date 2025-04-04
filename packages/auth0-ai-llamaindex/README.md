@@ -6,7 +6,8 @@
 
 ## Installation
 
-> [!WARNING] > `auth0-ai-llamaindex` is currently under development and it is not intended to be used in production, and therefore has no official support.
+> [!WARNING]
+> `auth0-ai-llamaindex` is currently under development and it is not intended to be used in production, and therefore has no official support.
 
 ```bash
 pip install auth0-ai-llamaindex
@@ -16,7 +17,7 @@ pip install auth0-ai-llamaindex
 
 `Auth0AI` uses CIBA (Client Initiated Backchannel Authentication) to handle user confirmation asynchronously. This is useful when you need to confirm a user action before proceeding with a tool execution.
 
-Full Example of [Async User Confirmation](../../examples/async-user-confirmation/llama-index-examples/).
+Full Example of [Async User Confirmation](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/async-user-confirmation/llama-index-examples).
 
 Define a tool with the proper authorizer specifying a function to resolve the user id:
 
@@ -55,7 +56,7 @@ trade_tool = with_async_user_confirmation(
 
 The `FGAAuthorizer` can leverage Okta FGA to authorize tools executions. The `FGAAuthorizer.create` function can be used to create an authorizer that checks permissions before executing the tool.
 
-Full Example of [Authorization for Tools](../../examples/authorization-for-tools/llama-index-examples/).
+Full Example of [Authorization for Tools](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/authorization-for-tools/llama-index-examples).
 
 1. Create an instance of FGA Authorizer:
 
@@ -118,7 +119,7 @@ return FunctionTool.from_defaults(
 
 The `Auth0AI.with_federated_connection` function exchanges user's refresh token for a Federated Connection API access token.
 
-Full Example of [Calling APIs On User's Behalf](../../examples/calling-apis/llama-index-examples/).
+Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/calling-apis/llama-index-examples).
 
 Define a tool with the proper authorizer specifying a function to resolve the user's refresh token:
 
@@ -153,7 +154,7 @@ check_calendar_tool = with_google_calendar_access(
 
 The `FGARetriever` can be used to filter documents based on access control checks defined in Okta FGA. This retriever performs batch checks on retrieved documents, returning only the ones that pass the specified access criteria.
 
-Full Example of [RAG Application](../../examples/authorization-for-rag/llama-index-examples/).
+Full Example of [RAG Application](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/authorization-for-rag/llama-index-examples).
 
 ```python
 from llama_index.core import VectorStoreIndex, Document
@@ -207,4 +208,4 @@ print(response)
 </p>
 <p align="center">Auth0 is an easy to implement, adaptable authentication and authorization platform. To learn more checkout <a href="https://auth0.com/why-auth0">Why Auth0?</a></p>
 <p align="center">
-This project is licensed under the Apache 2.0 license. See the <a href="/LICENSE"> LICENSE</a> file for more info.</p>
+This project is licensed under the Apache 2.0 license. See the <a href="https://github.com/auth0-lab/auth0-ai-python/blob/main/LICENSE"> LICENSE</a> file for more info.</p>
