@@ -19,7 +19,7 @@ langchain-openai = "^0.3.7"
 langgraph-cli = "^0.1.75"
 langgraph = "^0.3.5"
 langgraph-api = "^0.0.28"
-langchain-auth0-ai = {path = "../../../packages/langchain-auth0-ai", develop = true}
+auth0-ai-langchain = { path = "../../../packages/auth0-ai-langchain", develop = true }
 questionary = "^2.1.0"
 
 [tool.poetry.group.dev.dependencies]

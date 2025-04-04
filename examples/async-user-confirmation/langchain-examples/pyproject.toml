@@ -25,7 +25,7 @@ langgraph = "^0.3.5"
 langchain-core = "^0.3.43"
 langgraph-cli = "^0.1.75"
 langgraph-api = "^0.0.28"
-langchain-auth0-ai = {path = "../../../packages/langchain-auth0-ai", develop = true}
+auth0-ai-langchain = { path = "../../../packages/auth0-ai-langchain", develop = true }
 
 [build-system]
 requires = ["poetry-core"]

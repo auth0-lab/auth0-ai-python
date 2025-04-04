@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "langchain-auth0-ai"
+name = "auth0-ai-llamaindex"
 version = "0.1.0"
-description = "This package is an SDK for building secure AI-powered applications using Auth0, Okta FGA and LangChain."
+description = "This package is an SDK for building secure AI-powered applications using Auth0, Okta FGA and LlamaIndex."
 license = "apache-2.0"
 homepage = "https://auth0.com"
 authors = ["Auth0 <support@auth0.com>"]
@@ -9,17 +9,18 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+llama-index = "^0.12.11"
 openfga-sdk = "^0.9.0"
-langchain = "^0.3.20"
-langgraph-sdk = "^0.1.55"
-langchain-core = "^0.3.43"
-auth0-ai = {path = "../auth0-ai", develop = true}
-langgraph = "^0.3.25"
+# auth0-ai = "^0.1.0"
 
 [tool.poetry.group.test.dependencies]
-pytest-randomly = "^3.15.0"
 pytest-asyncio = "^0.25.0"
-pytest = "^8.2.0"
+pytest = "^8.3.4"
+
+
+[tool.poetry.group.dev.dependencies]
+twine = "^6.1.0"
+auth0-ai = { path = "../auth0-ai", develop = true }
 
 [build-system]
 requires = ["poetry-core"]
