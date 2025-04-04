@@ -13,6 +13,45 @@
 pip install llama-index-auth0-ai
 ```
 
+## Async User Confirmation
+
+`Auth0AI` uses CIBA (Client Initiated Backchannel Authentication) to handle user confirmation asynchronously. This is useful when you need to confirm a user action before proceeding with a tool execution.
+
+Full Example of [Async User Confirmation](../../examples/async-user-confirmation/llama-index-examples/).
+
+Define a tool with the proper authorizer specifying a function to resolve the user id:
+
+```python
+from llama_index_auth0_ai.auth0_ai import Auth0AI
+from llama_index_auth0_ai.ciba import get_access_token
+from llama_index.core.tools import FunctionTool
+
+auth0_ai = Auth0AI()
+with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+    scope="stock:trade",
+    audience=os.getenv("AUDIENCE"),
+    user_id=lambda _ctx: session["user"]["userinfo"]["sub"]
+    binding_message=lambda ctx: f"Authorize the purchase of {ctx['qty']} {ctx['ticker']}",
+)
+
+def tool_function(ticker: str, qty: int) -> str:
+    access_token = get_access_token()
+    headers = {
+        "Authorization": f"{access_token["type"]} {access_token["value"]}",
+        # ...
+    }
+    # Call API
+
+trade_tool = with_async_user_confirmation(
+    FunctionTool.from_defaults(
+        name="trade_tool",
+        description="Use this function to trade a stock",
+        fn=tool_function,
+        # ...
+    )
+)
+```
+
 ## Authorization for Tools
 
 The `FGAAuthorizer` can leverage Okta FGA to authorize tools executions. The `FGAAuthorizer.create` function can be used to create an authorizer that checks permissions before executing the tool.

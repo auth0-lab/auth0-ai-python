@@ -19,8 +19,6 @@ pip install langchain-auth0-ai
 
 Full Example of [Async User Confirmation](../../examples/async-user-confirmation/langchain-examples/).
 
-> TODO
-
 ## Authorization for Tools
 
 The `FGAAuthorizer` can leverage Okta FGA to authorize tools executions. The `FGAAuthorizer.create` function can be used to create an authorizer that checks permissions before executing the tool.

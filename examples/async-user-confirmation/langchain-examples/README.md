@@ -8,8 +8,8 @@
   - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
 - [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/)
 - An [Auth0](https://manage.auth0.com/) account with the following configuration:
-  - An API with the audience set to `http://localhost:8081` and `stock:trade` as a supported permission (scope).
-  - A Web Application client.
+  - An API with the audience set to `sample-api` and `stock:trade` as a supported permission (scope).
+  - A Web Application client with `CIBA grant type` enabled.
   - `Push Notifications using Auth0 Guardian` enabled.
   - A test user enrolled in Guardian.
 
@@ -25,7 +25,7 @@ AUTH0_CLIENT_SECRET="<auth0-client-secret>"
 
 # API
 API_URL=http://localhost:8081/
-AUDIENCE=http://localhost:8081
+AUDIENCE=sample-api
 
 # OpenAI
 OPENAI_API_KEY="<openai-api-key>"
@@ -62,7 +62,7 @@ LANGGRAPH_API_URL="http://localhost:54367"
     poetry run langgraph_up
     ```
 
-5.  **Go to Manage Assistants and create a new one with the following configuration**
+5.  **Select "agent" graph, go to Manage Assistants and create a new one with the following configuration**
 
     ```js
     {
@@ -70,7 +70,7 @@ LANGGRAPH_API_URL="http://localhost:54367"
     }
     ```
 
-6.  **Select "agent" graph and submit a proper message to start the flow, for example:**
+6.  **Submit a proper message to start the flow, for example:**
 
     ```
     Buy 10 NVDA when P/E below 15

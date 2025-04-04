@@ -22,14 +22,14 @@ class Auth0AI():
         self._graph: Optional[CIBAGraph] = None
         self.config = config
 
-    def with_CIBA(self, options: Optional[CIBAGraphOptions] = None) -> CIBAGraph:
+    def with_async_user_confirmation(self, **options: CIBAGraphOptions) -> CIBAGraph:
         """
         Initializes and registers a state graph for conditional trade operations using CIBA.
 
         Attributes:
             options (Optional[CIBAGraphOptions]): The base CIBA options.
         """
-        self._graph = CIBAGraph(options, self.config)
+        self._graph = CIBAGraph(CIBAGraphOptions(**options), self.config)
         return self._graph
     
     def with_federated_connection(self, **options: FederatedConnectionAuthorizerParams) -> Callable[[BaseTool], BaseTool]:

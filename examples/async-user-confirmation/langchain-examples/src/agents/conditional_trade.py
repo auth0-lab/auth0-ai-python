@@ -100,13 +100,11 @@ async def scheduler(input):
         "input": input
     })
 
-ciba = auth0_ai.with_CIBA(
-    {
-        "audience": os.getenv("AUDIENCE"),
-        "config": {
-            "on_resume_invoke": "conditional-trade",
-            "scheduler": scheduler,
-        },
+ciba = auth0_ai.with_async_user_confirmation(
+    audience=os.getenv("AUDIENCE"),
+    config={
+        "on_resume_invoke": "conditional-trade",
+        "scheduler": scheduler,
     }
 )
 

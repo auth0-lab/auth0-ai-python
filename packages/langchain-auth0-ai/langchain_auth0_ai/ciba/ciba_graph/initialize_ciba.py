@@ -36,9 +36,9 @@ def initialize_ciba(ciba_graph: ICIBAGraph):
             if ciba_options["on_reject_go_to"] not in graph.nodes:
                 raise ValueError(f"[{Auth0Nodes.AUTH0_CIBA}] \"{ciba_options["on_reject_go_to"]}\" is not a valid node.")
 
-            scheduler = (ciba_params or {}).get("config", {}).get("scheduler")
-            on_resume_invoke = (ciba_params or {}).get("config", {}).get("on_resume_invoke")
-            audience = (ciba_params or {}).get("audience")
+            scheduler = ciba_params.config["scheduler"]
+            on_resume_invoke = ciba_params.config["on_resume_invoke"]
+            audience = ciba_params.audience
 
             if not scheduler:
                 raise ValueError(f"[{Auth0Nodes.AUTH0_CIBA}] \"scheduler\" must be a \"function\" or a \"string\".")
