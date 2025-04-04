@@ -15,16 +15,15 @@ langgraph-sdk = "^0.1.55"
 langchain-core = "^0.3.43"
 langgraph = "^0.3.25"
 # auth0-ai = "^0.1.0"
+auth0-ai = { path = "../auth0-ai", develop = true }
 
 [tool.poetry.group.test.dependencies]
 pytest-randomly = "^3.15.0"
 pytest-asyncio = "^0.25.0"
 pytest = "^8.2.0"
 
-
 [tool.poetry.group.dev.dependencies]
 twine = "^6.1.0"
-auth0-ai = { path = "../auth0-ai", develop = true }
 
 [build-system]
 requires = ["poetry-core"]
