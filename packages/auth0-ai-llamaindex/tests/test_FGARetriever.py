@@ -1,12 +1,12 @@
-from openfga_sdk.client.client import ClientBatchCheckItem
-import pytest
-
 from contextlib import asynccontextmanager, contextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
-from openfga_sdk import ClientConfiguration
-from llama_index_auth0_ai.FGARetriever import FGARetriever
+
+import pytest
+from auth0_ai_llamaindex.FGARetriever import FGARetriever
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import Node, NodeWithScore, QueryBundle
+from openfga_sdk import ClientConfiguration
+from openfga_sdk.client.client import ClientBatchCheckItem
 
 
 @pytest.fixture
@@ -74,7 +74,8 @@ async def test_async_get_relevant_docs(
         result=[
             MagicMock(
                 allowed=x,
-                request=MagicMock(spec=ClientBatchCheckItem, object=f"doc:{i}"),
+                request=MagicMock(spec=ClientBatchCheckItem,
+                                  object=f"doc:{i}"),
             )
             for i, x in enumerate(allowed_flags)
         ]
@@ -90,7 +91,7 @@ async def test_async_get_relevant_docs(
         mock.batch_check.return_value = mock_results
         yield mock
 
-    with patch("llama_index_auth0_ai.FGARetriever.OpenFgaClient", mock_client):
+    with patch("auth0_ai_llamaindex.FGARetriever.OpenFgaClient", mock_client):
         filtered_docs = await fga_retriever._aretrieve(query)
         assert len(filtered_docs) == expected_count
         mock_client_constructor.assert_called_once_with(mock_fga_configuration)
@@ -118,7 +119,8 @@ def test_get_relevant_docs(
         result=[
             MagicMock(
                 allowed=x,
-                request=MagicMock(spec=ClientBatchCheckItem, object=f"doc:{i}"),
+                request=MagicMock(spec=ClientBatchCheckItem,
+                                  object=f"doc:{i}"),
             )
             for i, x in enumerate(allowed_flags)
         ]
@@ -134,7 +136,7 @@ def test_get_relevant_docs(
         mock.batch_check.return_value = mock_results
         yield mock
 
-    with patch("llama_index_auth0_ai.FGARetriever.OpenFgaClientSync", mock_client):
+    with patch("auth0_ai_llamaindex.FGARetriever.OpenFgaClientSync", mock_client):
         filtered_docs = fga_retriever._retrieve(query)
         assert len(filtered_docs) == expected_count
         mock_client_constructor.assert_called_once_with(mock_fga_configuration)

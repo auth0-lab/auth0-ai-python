@@ -1,25 +1,29 @@
 import os
 from typing import TypedDict
-from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.prebuilt import ToolNode
+
+from auth0_ai_langchain.auth0_ai import Auth0AI
+from auth0_ai_langchain.ciba.ciba_graph.types import BaseState, CIBAOptions
 from langchain.storage import InMemoryStore
 from langchain_core.messages import AIMessage, ToolCall, ToolMessage
 from langchain_core.runnables.config import RunnableConfig
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.prebuilt import ToolNode
 from src.agents.clients.scheduler import SchedulerClient
-from langchain_auth0_ai.auth0_ai import Auth0AI
-from langchain_auth0_ai.ciba.ciba_graph.types import BaseState, CIBAOptions
 from tools.trade import trade_tool
+
 
 class ConditionalTrade(TypedDict):
     ticker: str
-    qty: int;
+    qty: int
     metric: str
-    threshold: float;
+    threshold: float
     operator: str
+
 
 class State(BaseState):
     data: ConditionalTrade
+
 
 def should_continue(state: State):
     messages = state.get("messages")
@@ -27,13 +31,14 @@ def should_continue(state: State):
 
     if isinstance(last_message, AIMessage) and last_message.tool_calls:
         return "tools"
-    
+
     return END
+
 
 async def check_condition(state: State, config: RunnableConfig, store):
     """
     Checks the condition of a given state and config, and performs actions based on the status.
-    
+
     :param state: The current state object containing task information.
     :param config: The configuration object for LangGraphRunnable, containing the store.
     :return: Updated state or an object containing messages with tool calls.
@@ -47,7 +52,7 @@ async def check_condition(state: State, config: RunnableConfig, store):
 
     if not stored_status:
         await store.aput(state["task_id"], "status", "processing")
-    
+
     # Calling the trade tool to initiate the trade
     return {
         "messages": [
@@ -68,17 +73,19 @@ async def check_condition(state: State, config: RunnableConfig, store):
         ]
     }
 
+
 async def stop_scheduler(state: State):
     await SchedulerClient().stop(state['task_id'])
+
 
 async def notify_user(state: State):
     """
     Notifies the user about the trade.
-    
+
     :param state: The current state of the trade.
     :return: The updated state after notification.
     """
-    details="unknown"
+    details = "unknown"
     messages = state.get("messages")
     last_message = messages[-1] if messages else None
     if isinstance(last_message, ToolMessage):
@@ -88,11 +95,13 @@ async def notify_user(state: State):
     print("Notifying the user about the trade.")
     print(f"Details: {details}")
     print("----")
-    
+
     return state
 
 # Configure CIBA flow with Auth0 AI
 auth0_ai = Auth0AI()
+
+
 async def scheduler(input):
     await SchedulerClient().schedule({
         "graph_id": input["ciba_graph_id"],
@@ -123,6 +132,8 @@ The `tools` node uses the `trade_tool` with CIBA protection, which includes:
 - `scope`: Specifies the required scope for the trade operation (`stock:trade`).
 - `binding_message`: Generates a message asking the user if they want to buy a specified quantity of a stock ticker.
 """
+
+
 async def binding_message(ctx):
     return f"Authorize the purchase of {ctx['qty']} {ctx['ticker']}"
 
@@ -148,6 +159,8 @@ state_graph.add_node(
 state_graph.add_edge(START, "check_condition")
 state_graph.add_edge("tools", "stop_scheduler")
 state_graph.add_edge("stop_scheduler", "notify_user")
-state_graph.add_conditional_edges("check_condition", ciba.with_auth(should_continue))
+state_graph.add_conditional_edges(
+    "check_condition", ciba.with_auth(should_continue))
 
-graph = ciba.register_nodes(state_graph).compile(checkpointer=MemorySaver(), store=InMemoryStore())
+graph = ciba.register_nodes(state_graph).compile(
+    checkpointer=MemorySaver(), store=InMemoryStore())

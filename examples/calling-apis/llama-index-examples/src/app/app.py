@@ -1,11 +1,13 @@
 import os
 from datetime import datetime
 from urllib.parse import quote_plus, urlencode
+
+from auth0_ai_llamaindex.auth0_ai import Auth0AI
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, session, url_for, jsonify, request
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from llama_index.agent.openai import OpenAIAgent
-from llama_index_auth0_ai.auth0_ai import Auth0AI
+
 from ..tools.check_country_holiday import check_country_holiday_tool
 from ..tools.check_user_calendar import check_user_calendar_tool
 
@@ -21,16 +23,20 @@ auth0_ai = Auth0AI()
 with_calender_free_busy_access = auth0_ai.with_federated_connection(
     connection="google-oauth2",
     scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
-    refresh_token=lambda *_args, **_kwargs:session["user"]["refresh_token"],
+    refresh_token=lambda *_args, **_kwargs: session["user"]["refresh_token"],
 )
 
-tools = [check_country_holiday_tool, with_calender_free_busy_access(check_user_calendar_tool)]
+tools = [check_country_holiday_tool,
+         with_calender_free_busy_access(check_user_calendar_tool)]
+
 
 def get_agent():
     user_id = session["user"]["userinfo"]["sub"]
     if user_id not in agents:
-        agents[user_id] = OpenAIAgent.from_tools(tools=tools, model="gpt-4o", system_prompt=system_prompt, verbose=True)
+        agents[user_id] = OpenAIAgent.from_tools(
+            tools=tools, model="gpt-4o", system_prompt=system_prompt, verbose=True)
     return agents[user_id]
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY", "YOUR_SECRET_KEY")
@@ -46,12 +52,14 @@ oauth.register(
     server_metadata_url=f'https://{os.getenv("AUTH0_DOMAIN")}/.well-known/openid-configuration'
 )
 
+
 @app.route("/")
 def home():
     if "user" not in session:
         return redirect("/login")
 
     return render_template("index.html", user=session.get('user'))
+
 
 @app.route("/chat", methods=["POST"])
 async def chat():
@@ -65,17 +73,20 @@ async def chat():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/login")
 def login():
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("login_callback", _external=True)
     )
 
+
 @app.route("/login/callback", methods=["GET", "POST"])
 def login_callback():
     token = oauth.auth0.authorize_access_token()
     session["user"] = token
     return redirect("/")
+
 
 @app.route("/logout")
 def logout():

@@ -21,7 +21,7 @@ Full example of [Authorization for Tools](../../examples/authorization-for-tools
 1. Create an instance of FGA Authorizer:
 
 ```python
-from langchain_auth0_ai.fga.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
+from auth0_ai_langchain.fga.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
 
 fga = FGAAuthorizer.create()
 ```
@@ -87,8 +87,8 @@ Full Example of [Calling APIs On User's Behalf](../../examples/calling-apis/lang
 1. Define a tool with the proper authorizer:
 
 ```python
-from langchain_auth0_ai.auth0_ai import Auth0AI
-from langchain_auth0_ai.federated_connections import get_access_token_for_connection
+from auth0_ai_langchain.auth0_ai import Auth0AI
+from auth0_ai_langchain.federated_connections import get_access_token_for_connection
 from langchain_core.tools import StructuredTool
 
 auth0_ai = Auth0AI()
@@ -145,7 +145,7 @@ Create a retriever instance using the `FGARetriever` class.
 ```python
 from langchain.vectorstores import VectorStoreIndex
 from langchain.schema import Document
-from langchain_auth0_ai import FGARetriever
+from auth0_ai_langchain import FGARetriever
 from openfga_sdk.client.models import ClientCheckRequest
 from openfga_sdk import ClientConfiguration
 from openfga_sdk.credentials import CredentialConfiguration, Credentials

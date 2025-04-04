@@ -1,24 +1,32 @@
 import os
-from langgraph.graph import StateGraph, END, START
-from typing import Awaitable, Callable, Union, Optional, TypedDict
-from langgraph_sdk import get_client
-from langgraph_sdk.schema import Command
-from auth0_ai.authorizers.ciba_authorizer import CIBAAuthorizer, CibaAuthorizerCheckResponse, AuthorizeResponse
+from typing import Awaitable, Callable, Optional, TypedDict, Union
+
+from auth0_ai.authorizers.ciba_authorizer import (
+    AuthorizeResponse,
+    CIBAAuthorizer,
+    CibaAuthorizerCheckResponse,
+)
 from auth0_ai.credentials import Credentials
 from auth0_ai.token_response import TokenResponse
-from langchain_auth0_ai.ciba.types import Auth0Graphs
+from langgraph.graph import END, START, StateGraph
+from langgraph_sdk import get_client
+from langgraph_sdk.schema import Command
+
+from auth0_ai_langchain.ciba.types import Auth0Graphs
+
 
 class State(TypedDict):
     ciba_response: AuthorizeResponse
     on_resume_invoke: str
     thread_id: str
     user_id: str
-    
+
     # Internal
     task_id: str
     tool_id: str
     status: CibaAuthorizerCheckResponse
     token_response: Optional[TokenResponse]
+
 
 def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[State], Awaitable[None]]]):
     """
@@ -35,22 +43,24 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[State], Awaitable[
         except Exception as e:
             print(f"Error in check_status: {e}")
         return state
-    
+
     async def stop_scheduler(state: State):
         try:
             if isinstance(on_stop_scheduler, str):
-                langgraph = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
+                langgraph = get_client(url=os.getenv(
+                    "LANGGRAPH_API_URL", "http://localhost:54367"))
                 await langgraph.crons.create_for_thread(state.thread_id, Auth0Graphs.CIBA_POLLER.value)
             elif callable(on_stop_scheduler):
                 await on_stop_scheduler(state)
         except Exception as e:
             print(f"Error in stop_scheduler: {e}")
         return state
-    
+
     async def resume_agent(state: State):
-        langgraph = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
+        langgraph = get_client(url=os.getenv(
+            "LANGGRAPH_API_URL", "http://localhost:54367"))
         _credentials: Credentials = None
-        
+
         try:
             if state["status"] == CibaAuthorizerCheckResponse.APPROVED:
                 _credentials = {
@@ -64,15 +74,16 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[State], Awaitable[
                 state["thread_id"],
                 state["on_resume_invoke"],
                 config={
-                    "configurable": {"_credentials": _credentials} # this is only for this run / thread_id
+                    # this is only for this run / thread_id
+                    "configurable": {"_credentials": _credentials}
                 },
                 command=Command(resume={"status": state["status"]})
             )
         except Exception as e:
             print(f"Error in resume_agent: {e}")
-        
+
         return state
-    
+
     async def should_continue(state: State):
         status = state.get("status")
         if status == CibaAuthorizerCheckResponse.PENDING:
@@ -82,7 +93,7 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[State], Awaitable[
         elif status in [CibaAuthorizerCheckResponse.APPROVED, CibaAuthorizerCheckResponse.REJECTED]:
             return "resume_agent"
         return END
-    
+
     state_graph = StateGraph(State)
     state_graph.add_node("check_status", check_status)
     state_graph.add_node("stop_scheduler", stop_scheduler)
@@ -90,5 +101,5 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[State], Awaitable[
     state_graph.add_edge(START, "check_status")
     state_graph.add_edge("resume_agent", "stop_scheduler")
     state_graph.add_conditional_edges("check_status", should_continue)
-    
+
     return state_graph
