@@ -952,7 +952,7 @@ llama-index-llms-openai = ">=0.3.0,<0.4.0"
 openai = ">=1.14.0"
 
 [[package]]
-name = "llama-index-auth0-ai"
+name = "auth0-ai-llamaindex"
 version = "0.1.0"
 description = "This package integrates LangChain with Auth0 AI for enhanced document retrieval capabilities."
 optional = false
@@ -968,7 +968,7 @@ openfga-sdk = "^0.9.0"
 
 [package.source]
 type = "directory"
-url = "../../../packages/llama-index-auth0-ai"
+url = "../../../packages/auth0-ai-llamaindex"
 
 [[package]]
 name = "llama-index-cli"

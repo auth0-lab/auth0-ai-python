@@ -24,10 +24,10 @@ a person or organization. Common use cases include:
 
 ## Packages
 
-- [`llama-index-auth0-ai`](./packages/llama-index-auth0-ai/) -
+- [`auth0-ai-llamaindex`](./packages/auth0-ai-llamaindex/) -
   Integration with [LlamaIndex](https://docs.llamaindex.ai/en/stable/) framework.
 
-- [`langchain-auth0-ai`](./packages/langchain-auth0-ai/) -
+- [`auth0-ai-langchain`](./packages/auth0-ai-langchain/) -
   Integration with [LangChain](https://python.langchain.com/docs/tutorials/) framework.
 
 ## Examples
