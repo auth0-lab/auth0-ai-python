@@ -6,7 +6,8 @@
 
 ## Installation
 
-> [!WARNING] > `auth0-ai-langchain` is currently under development and it is not intended to be used in production, and therefore has no official support.
+> [!WARNING]
+> `auth0-ai-langchain` is currently under development and it is not intended to be used in production, and therefore has no official support.
 
 ```bash
 pip install auth0-ai-langchain
@@ -16,7 +17,7 @@ pip install auth0-ai-langchain
 
 The `FGAAuthorizer` can leverage Okta FGA to authorize tools executions. The `FGAAuthorizer.create` function can be used to create an authorizer that checks permissions before executing the tool.
 
-Full example of [Authorization for Tools](../../examples/authorization-for-tools/langchain-examples/).
+Full example of [Authorization for Tools](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/authorization-for-tools/langchain-examples).
 
 1. Create an instance of FGA Authorizer:
 
@@ -82,7 +83,7 @@ buy_tool = StructuredTool(
 
 The `Auth0AI.with_federated_connection` function exchanges user's refresh token taken from the runnable configuration (`config.configurable._credentials.refresh_token`) for a Federated Connection API token.
 
-Full Example of [Calling APIs On User's Behalf](../../examples/calling-apis/langchain-examples/).
+Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/calling-apis/langchain-examples).
 
 1. Define a tool with the proper authorizer:
 
@@ -138,7 +139,7 @@ workflow = (
 
 The `FGARetriever` can be used to filter documents based on access control checks defined in Okta FGA. This retriever performs batch checks on retrieved documents, returning only the ones that pass the specified access criteria.
 
-Full Example of [RAG Application](../../examples/authorization-for-rag/langchain-examples/).
+Full Example of [RAG Application](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/authorization-for-rag/langchain-examples).
 
 Create a retriever instance using the `FGARetriever` class.
 
@@ -195,4 +196,4 @@ print(response)
 </p>
 <p align="center">Auth0 is an easy to implement, adaptable authentication and authorization platform. To learn more checkout <a href="https://auth0.com/why-auth0">Why Auth0?</a></p>
 <p align="center">
-This project is licensed under the Apache 2.0 license. See the <a href="/LICENSE"> LICENSE</a> file for more info.</p>
+This project is licensed under the Apache 2.0 license. See the <a href="https://github.com/auth0-lab/auth0-ai-python/blob/main/LICENSE"> LICENSE</a> file for more info.</p>
