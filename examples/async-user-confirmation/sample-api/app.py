@@ -76,7 +76,7 @@ def requires_auth(scopes: Optional[List[str]] = None):
             
             is_authorized = not scopes or all(scope in jwt_payload.get("scope", "").strip().split() for scope in scopes)
             if not is_authorized:
-                raise AuthError({"code": "insufficient_scope", "description": f"insufficient scope, expected: {" ".join(scopes)}"}, 403)
+                raise AuthError({"code": "insufficient_scope", "description": f"insufficient scope, expected: {' '.join(scopes)}"}, 403)
 
             return f(*args, **kwargs)
         return decorated

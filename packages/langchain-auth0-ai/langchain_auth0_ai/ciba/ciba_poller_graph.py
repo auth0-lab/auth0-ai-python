@@ -30,8 +30,8 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[State], Awaitable[
     async def check_status(state: State):
         try:
             res = await CIBAAuthorizer.check(state["ciba_response"]["auth_req_id"])
-            state["token_response"] = res["token"]
-            state["status"] = res["status"]
+            state["token_response"] = res.get("token")
+            state["status"] = res.get("status")
         except Exception as e:
             print(f"Error in check_status: {e}")
         return state
@@ -74,11 +74,12 @@ def ciba_poller_graph(on_stop_scheduler: Union[str, Callable[[State], Awaitable[
         return state
     
     async def should_continue(state: State):
-        if state["status"] == CibaAuthorizerCheckResponse.PENDING:
+        status = state.get("status")
+        if status == CibaAuthorizerCheckResponse.PENDING:
             return END
-        elif state["status"] == CibaAuthorizerCheckResponse.EXPIRED:
+        elif status == CibaAuthorizerCheckResponse.EXPIRED:
             return "stop_scheduler"
-        elif state["status"] in [CibaAuthorizerCheckResponse.APPROVED, CibaAuthorizerCheckResponse.REJECTED]:
+        elif status in [CibaAuthorizerCheckResponse.APPROVED, CibaAuthorizerCheckResponse.REJECTED]:
             return "resume_agent"
         return END
     

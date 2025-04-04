@@ -1,13 +1,13 @@
+import inspect
 import os
 import time
-import jwt
 from enum import Enum
 from typing import Any, Awaitable, Callable, Optional, TypedDict, Union
+from auth0 import Auth0Error
 from auth0_ai.errors import AccessDeniedError, AuthorizationRequestExpiredError, UserDoesNotHavePushNotificationsError
 from auth0_ai.token_response import TokenResponse
 from auth0_ai.credentials import Credentials
 from auth0_ai.authorizers.types import AuthorizerParams
-from auth0_ai.authorizers.types import AuthParams
 from auth0.authentication.back_channel_login import BackChannelLogin
 from auth0.authentication.get_token import GetToken
 
@@ -76,15 +76,21 @@ class CIBAAuthorizer:
         }
 
         if isinstance(params.get("user_id"), str):
-            authorize_params["login_hint"] = f'{{ "format": "iss_sub", "iss": "https://{self.back_channel_login.domain}/", "sub": "{params.get("user_id")}" }}'
+            user_id = params.get("user_id")
+        elif inspect.iscoroutinefunction(params.get("user_id")):
+            user_id = await params.get("user_id")(tool_context)
         else:
-            authorize_params["login_hint"] = f'{{ "format": "iss_sub", "iss": "https://{self.back_channel_login.domain}/", "sub": "{await params.get("user_id")(tool_context)}" }}'
+            user_id = params.get("user_id")(tool_context)
+
+        authorize_params["login_hint"] = f'{{ "format": "iss_sub", "iss": "https://{self.back_channel_login.domain}/", "sub": "{user_id}" }}'
 
         if isinstance(params.get("binding_message"), str):
             authorize_params["binding_message"] = params.get("binding_message")
-        else:
+        elif inspect.iscoroutinefunction(params.get("binding_message")):
             authorize_params["binding_message"] = await params.get("binding_message")(tool_context)
-
+        else:
+            authorize_params["binding_message"] = params.get("binding_message")(tool_context)
+        
         response = self.back_channel_login.back_channel_login(**authorize_params)
         return AuthorizeResponse(
             auth_req_id=response["auth_req_id"],
@@ -106,51 +112,37 @@ class CIBAAuthorizer:
                 "refresh_token": result.get("refresh_token"),
                 "token_type": result.get("token_type"),
             }
-        except Exception as e:
-            error_code = getattr(e, "error", "")
-            if error_code == "invalid_request":
+        except Auth0Error as e:
+            if e.error_code == "invalid_request":
                 response["status"] = CibaAuthorizerCheckResponse.EXPIRED
-            elif error_code == "access_denied":
+            elif e.error_code == "access_denied":
                 response["status"] = CibaAuthorizerCheckResponse.REJECTED
-            elif error_code == "authorization_pending":
+            elif e.error_code == "authorization_pending":
                 response["status"] = CibaAuthorizerCheckResponse.PENDING
         
         return response
-
-    async def _authorize(self, params: CibaAuthorizerOptions, tool_context: Optional[Any]) -> Credentials:
-        return await self._poll(await self._start(params, tool_context))
-
-    async def _poll(self, params: AuthorizeResponse) -> Credentials:
+    
+    async def poll(self, params: AuthorizeResponse) -> Credentials:
         start_time = time.time()
-        
+
         while time.time() - start_time < params.get("expires_in"):
             try:
-                response = self.auth0.backchannel_grant(auth_req_id=params.get("auth_req_id"))
+                response = self.get_token.backchannel_login(auth_req_id=params.get("auth_req_id"))
                 return Credentials(
                     access_token={
                         "type": response.get("token_type", "bearer"),
                         "value": response["access_token"],
                     }
                 )
-            except Exception as e:
-                error_code = getattr(e, "error", "")
-                error_description = getattr(e, "error_description", "")
-                if error_code == "invalid_request":
-                    raise UserDoesNotHavePushNotificationsError(error_description)
-                elif error_code == "access_denied":
-                    raise AccessDeniedError(error_description)
-                elif error_code == "authorization_pending":
+            except Auth0Error as e:
+                if e.error_code == "invalid_request":
+                    raise UserDoesNotHavePushNotificationsError(e.message)
+                elif e.error_code == "access_denied":
+                    raise AccessDeniedError(e.message)
+                elif e.error_code == "authorization_pending":
                     time.sleep(params.get("interval"))
-                    continue
-        
-        raise AuthorizationRequestExpiredError("Authorization request expired")
-
-    @staticmethod
-    async def authorize(options: CibaAuthorizerOptions, params: AuthorizerParams = None, tool_context: Any = None) -> AuthParams:
-        authorizer = CIBAAuthorizer(params)
-        credentials = await authorizer._authorize(options, tool_context)
-        claims = jwt.decode(credentials["access_token"]["value"])
-        return AuthParams(access_token=credentials["access_token"]["value"], claims=claims)
+                else:
+                    raise AuthorizationRequestExpiredError("Authorization request expired")
 
     @staticmethod
     async def start(options: CibaAuthorizerOptions, params: AuthorizerParams = None, tool_context: Any = None) -> AuthorizeResponse:
