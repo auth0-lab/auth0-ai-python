@@ -1,17 +1,19 @@
 import os
 from datetime import datetime
 from urllib.parse import quote_plus, urlencode
+
+from auth0_ai_llamaindex.auth0_ai import Auth0AI
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, session, url_for, jsonify, request
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from llama_index.agent.openai import OpenAIAgent
-from llama_index_auth0_ai.auth0_ai import Auth0AI
+
 from ..tools.trade import trade_tool
 
 load_dotenv()
 
 agents = {}
-system_prompt = f"""You are a specialized stock trading assistant designed to 
+system_prompt = f"""You are a specialized stock trading assistant designed to
 guide users through the process of buying stocks step by step.
 
 **Important Constraints**:
@@ -28,16 +30,19 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope="stock:trade",
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ctx: f"Authorize the purchase of {ctx['qty']} {ctx['ticker']}",
-    user_id=lambda _ctx : session["user"]["userinfo"]["sub"]
+    user_id=lambda _ctx: session["user"]["userinfo"]["sub"]
 )
 
 tools = [with_async_user_confirmation(trade_tool)]
 
+
 def get_agent():
     user_id = session["user"]["userinfo"]["sub"]
     if user_id not in agents:
-        agents[user_id] = OpenAIAgent.from_tools(tools=tools, model="gpt-4o", system_prompt=system_prompt, verbose=True)
+        agents[user_id] = OpenAIAgent.from_tools(
+            tools=tools, model="gpt-4o", system_prompt=system_prompt, verbose=True)
     return agents[user_id]
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY", "YOUR_SECRET_KEY")
@@ -53,12 +58,14 @@ oauth.register(
     server_metadata_url=f'https://{os.getenv("AUTH0_DOMAIN")}/.well-known/openid-configuration'
 )
 
+
 @app.route("/")
 def home():
     if "user" not in session:
         return redirect("/login")
 
     return render_template("index.html", user=session.get('user'))
+
 
 @app.route("/chat", methods=["POST"])
 async def chat():
@@ -72,17 +79,20 @@ async def chat():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/login")
 def login():
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("login_callback", _external=True)
     )
 
+
 @app.route("/login/callback", methods=["GET", "POST"])
 def login_callback():
     token = oauth.auth0.authorize_access_token()
     session["user"] = token
     return redirect("/")
+
 
 @app.route("/logout")
 def logout():

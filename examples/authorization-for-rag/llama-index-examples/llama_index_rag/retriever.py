@@ -1,6 +1,7 @@
 import os
-from llama_index.core import VectorStoreIndex, Document
-from llama_index_auth0_ai import FGARetriever
+
+from auth0_ai_llamaindex import FGARetriever
+from llama_index.core import Document, VectorStoreIndex
 from openfga_sdk.client.models import ClientBatchCheckItem
 
 
@@ -9,7 +10,8 @@ def create_store():
 
     public_doc_path = os.path.join(current_dir, "../assets/docs/public-doc.md")
 
-    private_doc_path = os.path.join(current_dir, "../assets/docs/private-doc.md")
+    private_doc_path = os.path.join(
+        current_dir, "../assets/docs/private-doc.md")
 
     with open(public_doc_path, "r", encoding="utf-8") as file:
         public_doc_content = file.read()

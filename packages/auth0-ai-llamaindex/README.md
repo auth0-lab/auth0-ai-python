@@ -21,8 +21,8 @@ Full Example of [Async User Confirmation](../../examples/async-user-confirmation
 Define a tool with the proper authorizer specifying a function to resolve the user id:
 
 ```python
-from llama_index_auth0_ai.auth0_ai import Auth0AI
-from llama_index_auth0_ai.ciba import get_access_token
+from auth0_ai_llamaindex.auth0_ai import Auth0AI
+from auth0_ai_llamaindex.ciba import get_access_token
 from llama_index.core.tools import FunctionTool
 
 auth0_ai = Auth0AI()
@@ -60,7 +60,7 @@ Full Example of [Authorization for Tools](../../examples/authorization-for-tools
 1. Create an instance of FGA Authorizer:
 
 ```python
-from langchain_auth0_ai.fga.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
+from auth0_ai_langchain.fga.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
 
 fga = FGAAuthorizer.create()
 ```
@@ -123,8 +123,8 @@ Full Example of [Calling APIs On User's Behalf](../../examples/calling-apis/llam
 Define a tool with the proper authorizer specifying a function to resolve the user's refresh token:
 
 ```python
-from llama_index_auth0_ai.auth0_ai import Auth0AI
-from llama_index_auth0_ai.federated_connections import get_access_token_for_connection
+from auth0_ai_llamaindex.auth0_ai import Auth0AI
+from auth0_ai_llamaindex.federated_connections import get_access_token_for_connection
 from llama_index.core.tools import FunctionTool
 
 auth0_ai = Auth0AI()
@@ -157,7 +157,7 @@ Full Example of [RAG Application](../../examples/authorization-for-rag/llama-ind
 
 ```python
 from llama_index.core import VectorStoreIndex, Document
-from llama_index_auth0_ai import FGARetriever
+from auth0_ai_llamaindex import FGARetriever
 from openfga_sdk.client.models import ClientCheckRequest
 from openfga_sdk import ClientConfiguration
 from openfga_sdk.credentials import CredentialConfiguration, Credentials

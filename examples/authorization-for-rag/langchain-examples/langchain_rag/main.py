@@ -18,13 +18,13 @@ Example:
 The output of the query depends on the user's permissions to view the documents.
 """
 
+from auth0_ai_langchain import FGARetriever
 from dotenv import load_dotenv
-from termcolor import colored
-from openfga_sdk.client.models import ClientBatchCheckItem
-from langchain_auth0_ai import FGARetriever
 from memory_store import MemoryStore
+from openfga_sdk.client.models import ClientBatchCheckItem
 from read_documents import read_documents
 from retrieval_chain import RetrievalChain
+from termcolor import colored
 
 load_dotenv()
 

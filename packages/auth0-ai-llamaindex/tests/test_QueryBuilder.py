@@ -1,12 +1,12 @@
-import pytest
-
 from contextlib import asynccontextmanager, contextmanager
 from unittest.mock import AsyncMock, MagicMock, call, patch
-from openfga_sdk import ClientConfiguration
-from llama_index_auth0_ai.FGARetriever import FGARetriever
+
+import pytest
+from auth0_ai_llamaindex.FGARetriever import FGARetriever
 from llama_index.core.retrievers import BaseRetriever
-from openfga_sdk.client.models import ClientBatchCheckItem
 from llama_index.core.schema import Node, NodeWithScore, QueryBundle
+from openfga_sdk import ClientConfiguration
+from openfga_sdk.client.models import ClientBatchCheckItem
 
 
 @pytest.fixture
@@ -40,7 +40,8 @@ def create_test_data(num_nodes=2):
     for node in nodes:
         node.node = MagicMock(spec=Node)
     check_requests = [
-        MagicMock(spec=ClientBatchCheckItem, tuple_key=f"check_{i}", object=f"doc:{i}")
+        MagicMock(spec=ClientBatchCheckItem,
+                  tuple_key=f"check_{i}", object=f"doc:{i}")
         for i in range(num_nodes)
     ]
     return nodes, check_requests
@@ -78,7 +79,8 @@ async def test_async_query_builder_integration(
         result=[
             MagicMock(
                 allowed=True,
-                request=MagicMock(spec=ClientBatchCheckItem, object=f"doc:{i}"),
+                request=MagicMock(spec=ClientBatchCheckItem,
+                                  object=f"doc:{i}"),
             )
             for i in range(2)
         ]
@@ -92,7 +94,7 @@ async def test_async_query_builder_integration(
         yield mock
 
     # Execute
-    with patch("llama_index_auth0_ai.FGARetriever.OpenFgaClient", mock_client):
+    with patch("auth0_ai_llamaindex.FGARetriever.OpenFgaClient", mock_client):
         await fga_retriever._aretrieve(query)
 
         # Verify behaviors
@@ -118,7 +120,8 @@ def test_sync_query_builder_integration(
         result=[
             MagicMock(
                 allowed=True,
-                request=MagicMock(spec=ClientBatchCheckItem, object=f"doc:{i}"),
+                request=MagicMock(spec=ClientBatchCheckItem,
+                                  object=f"doc:{i}"),
             )
             for i in range(2)
         ]
@@ -132,7 +135,7 @@ def test_sync_query_builder_integration(
         yield mock
 
     # Execute
-    with patch("llama_index_auth0_ai.FGARetriever.OpenFgaClientSync", mock_client):
+    with patch("auth0_ai_llamaindex.FGARetriever.OpenFgaClientSync", mock_client):
         fga_retriever._retrieve(query)
 
         # Verify behaviors

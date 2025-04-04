@@ -1,10 +1,10 @@
-import pytest
-
-from langchain_auth0_ai import FGARetriever
-from unittest.mock import AsyncMock, MagicMock, patch, call
 from contextlib import asynccontextmanager, contextmanager
-from langchain_core.retrievers import BaseRetriever
+from unittest.mock import AsyncMock, MagicMock, call, patch
+
+import pytest
+from auth0_ai_langchain import FGARetriever
 from langchain_core.documents import Document
+from langchain_core.retrievers import BaseRetriever
 from openfga_sdk import ClientConfiguration
 from openfga_sdk.client.models import ClientBatchCheckItem
 
@@ -42,7 +42,8 @@ def create_test_data(num_docs=2):
         for i in range(num_docs)
     ]
     check_requests = [
-        MagicMock(spec=ClientBatchCheckItem, tuple_key=f"check_{i}", object=f"doc:{i}")
+        MagicMock(spec=ClientBatchCheckItem,
+                  tuple_key=f"check_{i}", object=f"doc:{i}")
         for i in range(num_docs)
     ]
     return docs, check_requests
@@ -82,7 +83,8 @@ async def test_async_query_builder_integration(
         result=[
             MagicMock(
                 allowed=True,
-                request=MagicMock(spec=ClientBatchCheckItem, object=f"doc:{i}"),
+                request=MagicMock(spec=ClientBatchCheckItem,
+                                  object=f"doc:{i}"),
             )
             for i in range(2)
         ]
@@ -96,7 +98,7 @@ async def test_async_query_builder_integration(
         yield mock
 
     # Execute
-    with patch("langchain_auth0_ai.FGARetriever.OpenFgaClient", mock_client):
+    with patch("auth0_ai_langchain.FGARetriever.OpenFgaClient", mock_client):
         await fga_retriever._aget_relevant_documents(query, run_manager=run_manager)
 
         # Verify behaviors
@@ -122,7 +124,8 @@ def test_sync_query_builder_integration(
         result=[
             MagicMock(
                 allowed=True,
-                request=MagicMock(spec=ClientBatchCheckItem, object=f"doc:{i}"),
+                request=MagicMock(spec=ClientBatchCheckItem,
+                                  object=f"doc:{i}"),
             )
             for i in range(2)
         ]
@@ -136,7 +139,7 @@ def test_sync_query_builder_integration(
         yield mock
 
     # Execute
-    with patch("langchain_auth0_ai.FGARetriever.OpenFgaClientSync", mock_client):
+    with patch("auth0_ai_langchain.FGARetriever.OpenFgaClientSync", mock_client):
         fga_retriever._get_relevant_documents(query, run_manager=run_manager)
 
         # Verify behaviors
