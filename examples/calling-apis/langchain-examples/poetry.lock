@@ -218,6 +218,28 @@ type = "directory"
 url = "../../../packages/auth0-ai"
 
 [[package]]
+name = "auth0-ai-langchain"
+version = "0.1.1"
+description = "This package is an SDK for building secure AI-powered applications using Auth0, Okta FGA and LangChain."
+optional = false
+python-versions = "^3.11"
+groups = ["main"]
+files = []
+develop = true
+
+[package.dependencies]
+auth0-ai = {path = "../auth0-ai", develop = true}
+langchain = "^0.3.20"
+langchain-core = "^0.3.43"
+langgraph = "^0.3.25"
+langgraph-sdk = "^0.1.55"
+openfga-sdk = "^0.9.0"
+
+[package.source]
+type = "directory"
+url = "../../../packages/auth0-ai-langchain"
+
+[[package]]
 name = "auth0-python"
 version = "4.9.0"
 description = ""
@@ -1205,27 +1227,6 @@ together = ["langchain-together"]
 xai = ["langchain-xai"]
 
 [[package]]
-name = "auth0-ai-langchain"
-version = "0.1.0"
-description = "This package is an SDK for building secure AI-powered applications using Auth0, Okta FGA and LangChain."
-optional = false
-python-versions = "^3.11"
-groups = ["main"]
-files = []
-develop = true
-
-[package.dependencies]
-auth0-ai = {path = "../auth0-ai", develop = true}
-langchain = "^0.3.20"
-langchain-core = "^0.3.43"
-langgraph-sdk = "^0.1.55"
-openfga-sdk = "^0.9.0"
-
-[package.source]
-type = "directory"
-url = "../../../packages/auth0-ai-langchain"
-
-[[package]]
 name = "langchain-core"
 version = "0.3.48"
 description = "Building applications with LLMs through composability"
@@ -1283,14 +1284,14 @@ langchain-core = ">=0.3.45,<1.0.0"
 
 [[package]]
 name = "langgraph"
-version = "0.3.20"
+version = "0.3.25"
 description = "Building stateful, multi-actor applications with LLMs"
 optional = false
 python-versions = "<4.0,>=3.9.0"
 groups = ["main"]
 files = [
-    {file = "langgraph-0.3.20-py3-none-any.whl", hash = "sha256:b700138e4b75853a76052b06d3f00bbb2336d0cb88482700b9f4974a76e030cd"},
-    {file = "langgraph-0.3.20.tar.gz", hash = "sha256:c980ec26aae3b52f4d75e7b852c22360c93c803e22297e85963c84bd53100020"},
+    {file = "langgraph-0.3.25-py3-none-any.whl", hash = "sha256:771fb4507aa9564e8eb31e96c4e7ad254dde33ac757188eb1d79f5b1fbdb05af"},
+    {file = "langgraph-0.3.25.tar.gz", hash = "sha256:78070c4ca3e160eaaf9ae2d62ef3c11b09bded6094e35a9ad75a608dc71cd299"},
 ]
 
 [package.dependencies]
@@ -3222,4 +3223,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "7011606c130d4ed7343bd42fb65a08e83db4ede907ef6774a970516636d2f056"
+content-hash = "e813b31cff67053d6d2c3c9835e2744447b14cb9e6e79e82f2eda152b05ff735"
