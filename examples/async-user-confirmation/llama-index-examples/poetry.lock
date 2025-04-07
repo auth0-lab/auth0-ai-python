@@ -218,6 +218,25 @@ type = "directory"
 url = "../../../packages/auth0-ai"
 
 [[package]]
+name = "auth0-ai-llamaindex"
+version = "0.1.0"
+description = "This package is an SDK for building secure AI-powered applications using Auth0, Okta FGA and LlamaIndex."
+optional = false
+python-versions = "^3.11"
+groups = ["main"]
+files = []
+develop = true
+
+[package.dependencies]
+auth0-ai = {path = "../auth0-ai", develop = true}
+llama-index = "^0.12.11"
+openfga-sdk = "^0.9.0"
+
+[package.source]
+type = "directory"
+url = "../../../packages/auth0-ai-llamaindex"
+
+[[package]]
 name = "auth0-python"
 version = "4.9.0"
 description = ""
@@ -1320,25 +1339,6 @@ files = [
 llama-index-core = ">=0.12.18,<0.13.0"
 llama-index-llms-openai = ">=0.3.0,<0.4.0"
 openai = ">=1.14.0"
-
-[[package]]
-name = "auth0-ai-llamaindex"
-version = "0.1.0"
-description = "This package is an SDK for building secure AI-powered applications using Auth0, Okta FGA and LlamaIndex."
-optional = false
-python-versions = "^3.11"
-groups = ["main"]
-files = []
-develop = true
-
-[package.dependencies]
-auth0-ai = {path = "../auth0-ai", develop = true}
-llama-index = "^0.12.11"
-openfga-sdk = "^0.9.0"
-
-[package.source]
-type = "directory"
-url = "../../../packages/auth0-ai-llamaindex"
 
 [[package]]
 name = "llama-index-cli"
@@ -3254,4 +3254,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "41bbed0b82076cad23b0e0b6f2fec6901c0ae1bddc069f7503d61da5bff04d9a"
+content-hash = "99187d7c10446778d78068cc61e886d7fd6daf89763d5177ade0be7b978ec132"

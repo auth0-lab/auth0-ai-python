@@ -7,56 +7,22 @@ This example demonstrates how to combine [LlamaIndex](https://docs.llamaindex.ai
 ### Prerequisites
 
 - An Okta FGA account, you can create one [here](https://dashboard.fga.dev).
-- An OpenAI account and API key create one [here](https://platform.openai.com).
+- An OpenAI account and API key, you can create one [here](https://platform.openai.com).
+  - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
 
 ### Setup
 
-1. Create a `.env` file using the format below:
+Create a `.env` file using the format below:
 
-   ```sh
-    # OpenAI
-    OPENAI_API_KEY=xx-xxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxx
+```sh
+# OpenAI
+OPENAI_API_KEY="<openai-api-key>"
 
-    # Okta FGA
-    FGA_STORE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxx
-    FGA_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxx
-    FGA_CLIENT_SECRET=xxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxx
-    # Optional
-    FGA_API_HOST=api.xxx.fga.dev
-    FGA_API_TOKEN_ISSUER=auth.fga.dev
-    FGA_API_AUDIENCE=https://api.xxx.fga.dev/
-   ```
-
-#### Obtain OpenAI API Key
-
-[Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key). Once you have your key, update the `.env` file accordingly.
-
-#### Configure Okta FGA
-
-1. **Add the model**
-
-   Under Model Explorer update the model to contain the model below:
-
-   ```
-   model
-     schema 1.1
-
-   type user
-
-   type doc
-     relations
-       define owner: [user]
-       define viewer: [user, user:*]
-       define can_view: viewer or owner
-       define can_edit: owner
-
-   ```
-
-2. **Create a client**
-
-   Navigate to _Settings_ and in the _Authorized Clients_ section click **+ Create Client** button. On the new page give your client a name and mark all three client permissions then click **Create**.
-
-3. Copy the information on the modal and update your `.env` file with the values you now have for `FGA_STORE_ID`, `FGA_CLIENT_ID`, and `FGA_CLIENT_SECRET`.
+# Okta FGA
+FGA_STORE_ID="<fga-store-id>"
+FGA_CLIENT_ID="<fga-client-id>"
+FGA_CLIENT_SECRET="<fga-client-secret>"
+```
 
 ### How to run it
 
@@ -65,15 +31,19 @@ This example demonstrates how to combine [LlamaIndex](https://docs.llamaindex.ai
     Use [Poetry](https://python-poetry.org/) to install the required dependencies:
 
     ```sh
-    $ poetry install
+    poetry install
     ```
 
-2.  **Run the Example**
-
-    Execute the main script using [Poetry](https://python-poetry.org/):
+2.  **Configure FGA store**
 
     ```sh
-    $ poetry run python llama_index_rag/main.py
+    poetry run fga_init
+    ```
+
+3.  **Run the Example**
+
+    ```sh
+    poetry run start
     ```
 
 ---
