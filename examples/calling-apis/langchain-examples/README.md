@@ -14,7 +14,7 @@
     - The following settings:
       - **Offline access** enabled.
       - **https://www.googleapis.com/auth/calendar.freebusy** scope granted.
-      - **Store and retrieve tokens for APIs** enabled.
+      - **Token Vault** enabled.
   - **Regular Web Application** set up with:
     - **Allowed Callback URLs**: `http://localhost:3000/callback`
     - **Allowed Logout URLs**: `http://localhost:3000/`
