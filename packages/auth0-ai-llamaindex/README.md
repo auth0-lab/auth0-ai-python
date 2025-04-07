@@ -6,8 +6,7 @@
 
 ## Installation
 
-> [!WARNING]
-> `auth0-ai-llamaindex` is currently under development and it is not intended to be used in production, and therefore has no official support.
+> ⚠️ **WARNING**: `auth0-ai-llamaindex` is currently under development and it is not intended to be used in production, and therefore has no official support.
 
 ```bash
 pip install auth0-ai-llamaindex

@@ -4,11 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["Auth0 <support@auth0.com>"]
 readme = "README.md"
-packages = []
-package-mode = false
+packages = [{ include = "langchain_rag" }]
 
 [tool.poetry.scripts]
-langchain-examples-scripts = "langchain_rag.main:main"
+fga_init = "scripts.fga_init:main"
+start = "langchain_rag.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"

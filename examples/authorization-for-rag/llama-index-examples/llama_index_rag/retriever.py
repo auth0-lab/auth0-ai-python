@@ -4,7 +4,6 @@ from auth0_ai_llamaindex import FGARetriever
 from llama_index.core import Document, VectorStoreIndex
 from openfga_sdk.client.models import ClientBatchCheckItem
 
-
 def create_store():
     current_dir = os.path.dirname(__file__)
 
@@ -39,5 +38,4 @@ def create_retriever(user: str):
         ),
     )
 
-
-__all__ = ["create_retriever", "create_retriever"]
+__all__ = ["create_retriever"]

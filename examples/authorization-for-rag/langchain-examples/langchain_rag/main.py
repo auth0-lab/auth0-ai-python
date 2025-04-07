@@ -20,14 +20,13 @@ The output of the query depends on the user's permissions to view the documents.
 
 from auth0_ai_langchain import FGARetriever
 from dotenv import load_dotenv
-from memory_store import MemoryStore
+from .memory_store import MemoryStore
 from openfga_sdk.client.models import ClientBatchCheckItem
-from read_documents import read_documents
-from retrieval_chain import RetrievalChain
+from .read_documents import read_documents
+from .retrieval_chain import RetrievalChain
 from termcolor import colored
 
 load_dotenv()
-
 
 def query(user: str, question: str):
     print(colored(f"{user}: {question}", "blue"))
@@ -56,8 +55,8 @@ def main():
     question = """what is the forecast for ZEKO?"""
     print("--------------------------")
 
-    # `manuel` only have access to public docs only.
-    query("manuel", question)
+    # `user0` only have access to public docs only.
+    query("user0", question)
 
     print("--------------------------")
 
