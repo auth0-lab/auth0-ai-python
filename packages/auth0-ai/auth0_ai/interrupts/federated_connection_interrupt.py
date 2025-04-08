@@ -36,6 +36,23 @@ class FederatedConnectionInterrupt(Auth0Interrupt):
             "scopes": self.scopes,
             "required_scopes": self.required_scopes,
         }
+    
+    def __copy__(self):
+        return type(self)(
+            self.args[0],
+            self.connection,
+            self.scopes,
+            self.required_scopes
+        )
+
+    def __deepcopy__(self, memo):
+        import copy
+        return type(self)(
+            copy.deepcopy(self.args[0], memo),
+            copy.deepcopy(self.connection, memo),
+            copy.deepcopy(self.scopes, memo),
+            copy.deepcopy(self.required_scopes, memo),
+        )
 
 
 class FederatedConnectionError(Exception):

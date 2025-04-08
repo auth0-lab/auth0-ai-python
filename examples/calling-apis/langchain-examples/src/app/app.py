@@ -51,7 +51,7 @@ async def chat():
             "agent",
             input={"messages": list(map(HumanMessage, session["messages"]))},
             config={"configurable": {
-                "_credentials": {"refresh_token": session["user"]["refresh_token"]}
+                "_credentials": {"refresh_token": session["user"].get("refresh_token")}
             }}
         )
 
