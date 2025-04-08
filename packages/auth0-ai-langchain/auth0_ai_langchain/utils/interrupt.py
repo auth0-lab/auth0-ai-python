@@ -5,7 +5,7 @@ from langgraph.types import Interrupt
 def to_graph_interrupt(interrupt: Auth0Interrupt) -> GraphInterrupt:
     return GraphInterrupt([
         Interrupt(
-            value=interrupt,
+            value=interrupt.to_json(),
             when="during",
             resumable=True,
             ns=[f"auth0AI:{interrupt.__class__.__name__}:{interrupt.code}"]

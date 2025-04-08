@@ -4,6 +4,7 @@ import inspect
 import os
 from contextlib import asynccontextmanager
 from typing import Awaitable, Callable, Generic, Optional, Any, TypedDict, Union
+from auth0 import Auth0Error
 from auth0.authentication.get_token import GetToken
 from .types import AuthorizerParams, AuthorizerToolParameter, ToolInput
 from ..token_response import TokenResponse
@@ -144,20 +145,23 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
         if not subject_token:
             return None
         
-        # TODO: replace once the auth0-python sdk supports this feature
-        response = self.get_token.authenticated_post(
-            f"{self.get_token.protocol}://{self.get_token.domain}/oauth/token",
-            data={
-                "grant_type": "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
-                "client_id": self.get_token.client_id,
-                "subject_token_type": "urn:ietf:params:oauth:token-type:refresh_token",
-                "subject_token": subject_token,
-                "connection": connection,
-                "requested_token_type": "http://auth0.com/oauth/token-type/federated-connection-access-token",
-            },
-        )
-        
-        return TokenResponse(**response)
+        try:
+            # TODO: replace once the auth0-python sdk supports this feature
+            response = self.get_token.authenticated_post(
+                f"{self.get_token.protocol}://{self.get_token.domain}/oauth/token",
+                data={
+                    "grant_type": "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
+                    "client_id": self.get_token.client_id,
+                    "subject_token_type": "urn:ietf:params:oauth:token-type:refresh_token",
+                    "subject_token": subject_token,
+                    "connection": connection,
+                    "requested_token_type": "http://auth0.com/oauth/token-type/federated-connection-access-token",
+                },
+            )
+            
+            return TokenResponse(**response)
+        except Auth0Error as err:
+            raise FederatedConnectionError(err.message) if 400 <= err.status_code <= 499 else err
     
     async def get_access_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> TokenResponse | None:
         if callable(self.options.refresh_token.value) or asyncio.iscoroutinefunction(self.options.refresh_token.value):
@@ -202,7 +206,5 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
                     return self._handle_authorization_interrupts(interrupt)
                 except Auth0Interrupt as err:
                     return self._handle_authorization_interrupts(err)
-                except Exception as err:
-                    raise err
         
         return wrapped_execute
