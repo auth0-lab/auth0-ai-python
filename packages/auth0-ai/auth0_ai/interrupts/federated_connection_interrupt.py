@@ -34,7 +34,7 @@ class FederatedConnectionInterrupt(Auth0Interrupt):
             **super().to_json(),
             "connection": self.connection,
             "scopes": self.scopes,
-            "requiredScopes": self.required_scopes,
+            "required_scopes": self.required_scopes,
         }
 
 
