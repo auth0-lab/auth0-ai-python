@@ -24,7 +24,7 @@ auth0_ai = Auth0AI()
 with_calender_free_busy_access = auth0_ai.with_federated_connection(
     connection="google-oauth2",
     scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
-    refresh_token=lambda *_args, **_kwargs: session.get("user", {}).get("refresh_token"),
+    refresh_token=lambda *_args, **_kwargs: session["user"].get("refresh_token"),
 )
 
 tools = [check_country_holiday_tool,
