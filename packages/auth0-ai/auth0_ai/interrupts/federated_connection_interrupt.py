@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Final
 from .auth0_interrupt import Auth0Interrupt
 
 class FederatedConnectionInterrupt(Auth0Interrupt):
@@ -8,7 +8,7 @@ class FederatedConnectionInterrupt(Auth0Interrupt):
     Throw this error if the service returns Unauthorized for the current access token.
     """
 
-    code = "FEDERATED_CONNECTION_ERROR"
+    code: Final[str] = "FEDERATED_CONNECTION_ERROR"
 
     def __init__(self, message: str, connection: str, scopes: list[str], required_scopes: list[str]):
         """
@@ -25,17 +25,6 @@ class FederatedConnectionInterrupt(Auth0Interrupt):
         self.connection = connection
         self.scopes = scopes
         self.required_scopes = required_scopes
-
-    def to_json(self) -> Dict[str, Any]:
-        """
-        Serializes the interrupt to a JSON object.
-        """
-        return {
-            **super().to_json(),
-            "connection": self.connection,
-            "scopes": self.scopes,
-            "required_scopes": self.required_scopes,
-        }
     
     def __copy__(self):
         return type(self)(
