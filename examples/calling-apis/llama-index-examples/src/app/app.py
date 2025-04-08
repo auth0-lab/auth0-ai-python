@@ -3,6 +3,7 @@ from datetime import datetime
 from urllib.parse import quote_plus, urlencode
 
 from auth0_ai_llamaindex.auth0_ai import Auth0AI
+from auth0_ai_llamaindex.federated_connections import FederatedConnectionInterrupt
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
@@ -23,7 +24,7 @@ auth0_ai = Auth0AI()
 with_calender_free_busy_access = auth0_ai.with_federated_connection(
     connection="google-oauth2",
     scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
-    refresh_token=lambda *_args, **_kwargs: session["user"]["refresh_token"],
+    refresh_token=lambda *_args, **_kwargs: session.get("user", {}).get("refresh_token"),
 )
 
 tools = [check_country_holiday_tool,
@@ -70,6 +71,8 @@ async def chat():
         message = request.json.get("message")
         response = await get_agent().achat(message)
         return jsonify({"response": str(response)})
+    except FederatedConnectionInterrupt as e:
+        return jsonify({"error": str(e.to_json())}), 403
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

@@ -16,7 +16,7 @@
       - **https://www.googleapis.com/auth/calendar.freebusy** scope granted.
       - **Token Vault** enabled.
   - **Regular Web Application** set up with:
-    - **Allowed Callback URLs**: `http://localhost:3000/callback`
+    - **Allowed Callback URLs**: `http://localhost:3000/login/callback`
     - **Allowed Logout URLs**: `http://localhost:3000/`
     - **Connections**: The previously created **Google connection**.
     - **Advanced Settings -> Grant Types**: **Token Exchange (Federated Connection)** and **Refresh Token**.
