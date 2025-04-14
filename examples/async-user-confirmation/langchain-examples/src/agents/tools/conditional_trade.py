@@ -31,7 +31,7 @@ async def schedule_conditional_trade(
     ticker: str, qty: int, metric: MetricEnum, operator: OperatorEnum, threshold: float, config: RunnableConfig
 ) -> str:
     await SchedulerClient().schedule({
-        "graph_id": "conditional-trade",
+        "assistant_id": "conditional-trade",
         "config": {
             "configurable": {
                 "user_id": config.get("configurable", {}).get("user_id"),

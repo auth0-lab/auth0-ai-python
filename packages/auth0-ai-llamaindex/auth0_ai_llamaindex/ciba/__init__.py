@@ -1,1 +1,2 @@
-from .ciba_authorizer import CIBAAuthorizer as CIBAAuthorizer, get_access_token as get_access_token
+from auth0_ai.authorizers.ciba.ciba_authorizer_base import get_ciba_credentials as get_ciba_credentials
+from auth0_ai_llamaindex.ciba.ciba_authorizer import CIBAAuthorizer as CIBAAuthorizer

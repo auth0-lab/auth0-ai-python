@@ -1,31 +1,31 @@
 from typing import Callable, Optional
 from llama_index.core.tools import BaseTool
-from auth0_ai.authorizers.types import AuthorizerParams
-from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams 
-from auth0_ai.authorizers.ciba_authorizer import CibaAuthorizerOptions
-from .federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
-from .ciba.ciba_authorizer import CIBAAuthorizer
+from auth0_ai.authorizers.ciba import CIBAAuthorizerParams
+from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams
+from auth0_ai.authorizers.types import Auth0ClientParams
+from auth0_ai_llamaindex.ciba.ciba_authorizer import CIBAAuthorizer
+from auth0_ai_llamaindex.federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
 
 class Auth0AI():
-    def __init__(self, config: Optional[AuthorizerParams] = None):
-        self.config = config
+    def __init__(self, auth0: Optional[Auth0ClientParams] = None):
+        self.auth0 = auth0
 
-    def with_federated_connection(self, **options: FederatedConnectionAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
+    def with_federated_connection(self, **params: FederatedConnectionAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
         """
         Protects a tool execution with the Federated Connection authorizer.
 
         Attributes:
-            options (FederatedConnectionAuthorizerParams): The Federated Connections authorizer options.
+            params (FederatedConnectionAuthorizerParams): The Federated Connections authorizer params.
         """
-        authorizer = FederatedConnectionAuthorizer(FederatedConnectionAuthorizerParams(**options), self.config)
+        authorizer = FederatedConnectionAuthorizer(FederatedConnectionAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 
-    def with_async_user_confirmation(self, **options: CibaAuthorizerOptions) -> Callable[[BaseTool], BaseTool]:
+    def with_async_user_confirmation(self, **params: CIBAAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
         """
         Protects a tool execution with the CIBA authorizer.
 
         Attributes:
-            options (CibaAuthorizerOptions): The CIBA authorizer options.
+            params (CIBAAuthorizerParams): The CIBA authorizer params.
         """
-        authorizer = CIBAAuthorizer(CibaAuthorizerOptions(**options), self.config)
+        authorizer = CIBAAuthorizer(CIBAAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()

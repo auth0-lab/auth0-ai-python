@@ -6,7 +6,7 @@ from typing import Any, Awaitable, Callable, TypedDict, Optional, Union
 from openfga_sdk import OpenFgaClient, ConsistencyPreference, ClientConfiguration
 from openfga_sdk.client import ClientCheckRequest
 from openfga_sdk.credentials import Credentials, CredentialConfiguration
-from .types import ToolInput
+from auth0_ai.authorizers.types import ToolInput
 
 class FGAAuthorizerCredentialsConfig(TypedDict, total=False):
     api_issuer: str

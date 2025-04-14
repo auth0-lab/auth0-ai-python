@@ -5,7 +5,7 @@ class AuthParams(TypedDict):
   access_token: Optional[str]
   claims: Optional[Any]
 
-class AuthorizerParams(TypedDict):
+class Auth0ClientParams(TypedDict):
     """
     Base authorizer parameters.
 

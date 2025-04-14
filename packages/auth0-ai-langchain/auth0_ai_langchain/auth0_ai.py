@@ -1,43 +1,31 @@
 from typing import Callable, Optional
-from langchain_core.runnables.config import RunnableConfig
 from langchain_core.tools import BaseTool
-from auth0_ai.credentials import Credential
-from auth0_ai.authorizers.types import AuthorizerParams
-from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams 
-from .federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
-from .ciba.ciba_graph.ciba_graph import CIBAGraph
-from .ciba.ciba_graph.types import CIBAGraphOptions
-
-def get_access_token(config: RunnableConfig) -> Credential:
-    """
-    Fetch the access token obtained during the CIBA flow.
-
-    Attributes:
-        config(RunnableConfig): LangGraph runnable configuration instance.
-    """
-    return config.get("configurable", {}).get("_credentials", {}).get("access_token")
+from auth0_ai.authorizers.ciba import CIBAAuthorizerParams
+from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams
+from auth0_ai.authorizers.types import Auth0ClientParams
+from auth0_ai_langchain.ciba.ciba_authorizer import CIBAAuthorizer
+from auth0_ai_langchain.federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
 
 class Auth0AI():
-    def __init__(self, config: Optional[AuthorizerParams] = None):
-        self._graph: Optional[CIBAGraph] = None
-        self.config = config
+    def __init__(self, auth0: Optional[Auth0ClientParams] = None):
+        self.auth0 = auth0
 
-    def with_async_user_confirmation(self, **options: CIBAGraphOptions) -> CIBAGraph:
+    def with_async_user_confirmation(self, **params: CIBAAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
         """
-        Initializes and registers a state graph for conditional trade operations using CIBA.
+        Protects a tool execution with the CIBA authorizer.
 
         Attributes:
-            options (Optional[CIBAGraphOptions]): The base CIBA options.
+            params (CIBAAuthorizerParams): The CIBA authorizer params.
         """
-        self._graph = CIBAGraph(CIBAGraphOptions(**options), self.config)
-        return self._graph
+        authorizer = CIBAAuthorizer(CIBAAuthorizerParams(**params), self.auth0)
+        return authorizer.authorizer()
     
-    def with_federated_connection(self, **options: FederatedConnectionAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
+    def with_federated_connection(self, **params: FederatedConnectionAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
         """
         Protects a tool execution with the Federated Connection authorizer.
 
         Attributes:
-            options (FederatedConnectionAuthorizerParams): The Federated Connections authorizer options.
+            options (FederatedConnectionAuthorizerParams): The Federated Connections authorizer params.
         """
-        authorizer = FederatedConnectionAuthorizer(FederatedConnectionAuthorizerParams(**options), self.config)
+        authorizer = FederatedConnectionAuthorizer(FederatedConnectionAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()

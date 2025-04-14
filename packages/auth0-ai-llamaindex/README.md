@@ -22,21 +22,21 @@ Define a tool with the proper authorizer specifying a function to resolve the us
 
 ```python
 from auth0_ai_llamaindex.auth0_ai import Auth0AI
-from auth0_ai_llamaindex.ciba import get_access_token
+from auth0_ai_llamaindex.ciba import get_ciba_credentials
 from llama_index.core.tools import FunctionTool
 
 auth0_ai = Auth0AI()
 with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope="stock:trade",
     audience=os.getenv("AUDIENCE"),
-    user_id=lambda _ctx: session["user"]["userinfo"]["sub"]
-    binding_message=lambda ctx: f"Authorize the purchase of {ctx['qty']} {ctx['ticker']}",
+    binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
+    user_id=lambda *_, **__: session["user"]["userinfo"]["sub"]
 )
 
 def tool_function(ticker: str, qty: int) -> str:
-    access_token = get_access_token()
+    credentials = get_ciba_credentials()
     headers = {
-        "Authorization": f"{access_token["type"]} {access_token["value"]}",
+        "Authorization": f"{credentials["token_type"]} {credentials["access_token"]}",
         # ...
     }
     # Call API

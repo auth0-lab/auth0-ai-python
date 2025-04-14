@@ -1,19 +1,19 @@
 import inspect
 from abc import ABC
 from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerBase, FederatedConnectionAuthorizerParams
-from auth0_ai.authorizers.types import AuthorizerParams
+from auth0_ai.authorizers.types import Auth0ClientParams
 from llama_index.core.tools import FunctionTool
 
 class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
     def __init__(
         self, 
         options: FederatedConnectionAuthorizerParams,
-        config: AuthorizerParams = None,
+        auth0: Auth0ClientParams = None,
     ):
         if options.refresh_token.value is None:
             raise ValueError('options.refresh_token must be provided.')
 
-        super().__init__(options, config)
+        super().__init__(options, auth0)
     
     def authorizer(self):
         def wrapped_tool(t: FunctionTool) -> FunctionTool:
