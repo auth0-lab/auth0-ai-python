@@ -19,5 +19,5 @@ def get_auth0_interrupts(thread: Thread) -> List[Interrupt]:
     for interrupt_list in thread["interrupts"].values():
         for interrupt in interrupt_list:
             if Auth0Interrupt.is_interrupt(interrupt["value"]):
-                result.append(interrupt["value"])
+                result.append(interrupt)
     return result
