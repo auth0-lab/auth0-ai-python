@@ -11,7 +11,7 @@ from auth0_ai.credentials import TokenResponse
 from auth0_ai.authorizers.ciba.ciba_authorizer_params import CIBAAuthorizerParams
 from auth0_ai.authorizers.ciba.ciba_authorization_request import CIBAAuthorizationRequest
 from auth0_ai.authorizers.types import Auth0ClientParams, ToolInput
-from auth0_ai.interrupts import AccessDeniedInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt, AuthorizationRequestExpiredInterrupt, InvalidGrantInterrupt, UserDoesNotHavePushNotificationsInterrupt
+from auth0_ai.interrupts.ciba_interrupts import AccessDeniedInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt, AuthorizationRequestExpiredInterrupt, InvalidGrantInterrupt, UserDoesNotHavePushNotificationsInterrupt
 
 class AsyncStorageValue(TypedDict, total=False):
     context: Any
@@ -89,7 +89,7 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
             user_id = self.params.get("user_id")(*args, **kwargs)
 
         if not user_id:
-            raise Exception("Unable to resolve user id")
+            raise ValueError("Unable to resolve user id, check the provided user_id parameter.")
 
         authorize_params["login_hint"] = f'{{ "format": "iss_sub", "iss": "https://{self.back_channel_login.domain}/", "sub": "{user_id}" }}'
 

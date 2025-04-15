@@ -172,7 +172,7 @@ workflow = (
 )
 ```
 
-3. Handle interruptions properly. If the tool does not have access to user's Google Calendar, it will throw an interruption.
+3. Handle interruptions properly. If the tool does not have access to user's Google Calendar, it will throw an interruption. See [Handling Interrupts](#handling-interrupts) section.
 
 ## RAG with FGA
 
@@ -222,6 +222,43 @@ query_engine = RetrieverQueryEngine.from_args(
 response = query_engine.query("What is the forecast for ZEKO?")
 
 print(response)
+```
+
+## Handling Interrupts
+
+`Auth0AI` uses interrupts extensively and will never block a graph. Whenever an authorizer requires user interaction, the graph throws a `GraphInterrupt` exception with data that allows the client to resume the flow.
+
+It is important to disable error handling in your tools node as follows:
+
+```python
+    .add_node(
+        "tools",
+        ToolNode(
+            [
+                # your authorizer-wrapped tools
+            ],
+            # Error handler should be disabled in order to trigger interruptions from within tools.
+            handle_tool_errors=False
+        )
+    )
+```
+
+From the client side of the graph you get the interrupts:
+
+```python
+from auth0_ai_langchain.utils.interrupt import get_auth0_interrupts
+
+# Get the langgraph thread:
+thread = await client.threads.get(thread_id)
+
+# Filter the auth0 interrupts:
+auth0_interrupts = get_auth0_interrupts(thread)
+```
+
+Then you can resume the thread by doing this:
+
+```python
+await client.runs.wait(thread_id, assistant_id)
 ```
 
 ---

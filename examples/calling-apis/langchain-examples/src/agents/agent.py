@@ -4,7 +4,6 @@ from auth0_ai_langchain.auth0_ai import Auth0AI
 from langchain.storage import InMemoryStore
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_openai import ChatOpenAI
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph, add_messages
 from langgraph.prebuilt import ToolNode
 from tools.check_country_holiday import check_country_holiday_tool
@@ -60,4 +59,4 @@ state_graph = (
     .add_conditional_edges("call_llm", route_after_llm, [END, "tools"])
 )
 
-graph = state_graph.compile(checkpointer=MemorySaver(), store=InMemoryStore())
+graph = state_graph.compile(store=InMemoryStore())

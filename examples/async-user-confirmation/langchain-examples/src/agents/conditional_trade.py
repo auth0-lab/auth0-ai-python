@@ -6,7 +6,6 @@ from langchain.storage import InMemoryStore
 from langchain_core.messages import AIMessage, ToolCall, ToolMessage
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.runnables import ensure_config
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
@@ -117,4 +116,4 @@ state_graph.add_edge(START, "check_condition")
 state_graph.add_conditional_edges("tools", check_trade_status, [END, "notify_user"])
 state_graph.add_conditional_edges("check_condition", should_continue, [END, "tools"])
 
-graph = state_graph.compile(checkpointer=MemorySaver(), store=InMemoryStore())
+graph = state_graph.compile(store=InMemoryStore())

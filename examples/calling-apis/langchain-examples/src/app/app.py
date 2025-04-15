@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, session, url_for, jsonify, request
 from langgraph_sdk import get_client
 from langchain_core.messages import HumanMessage
+from auth0_ai_langchain.utils.interrupt import get_auth0_interrupts
 
 load_dotenv()
 
@@ -64,8 +65,10 @@ async def chat():
         return jsonify({"error": str(e)}), 500
     
     thread = await client.threads.get(session["thread_id"])
-    if thread and "interrupts" in thread and len(thread["interrupts"]) > 0:
-        return jsonify({"response": json.dumps(next(iter(thread["interrupts"].values()))[0]["value"])})
+    auth0_interrupts = get_auth0_interrupts(thread)
+    
+    if len(auth0_interrupts) > 0:
+        return jsonify({"response": json.dumps(auth0_interrupts)})
 
     if wait_result and "messages" in wait_result:
         last_message = wait_result["messages"][-1]["content"]

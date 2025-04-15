@@ -33,4 +33,4 @@ state_graph = (
     .add_conditional_edges("call_llm", should_continue)
 )
 
-graph = state_graph.compile(checkpointer=MemorySaver())
+graph = state_graph.compile()
