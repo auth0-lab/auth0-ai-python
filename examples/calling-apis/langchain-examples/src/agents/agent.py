@@ -39,7 +39,7 @@ def route_after_llm(state: State):
     return END
 
 
-workflow = (
+state_graph = (
     StateGraph(State)
     .add_node("call_llm", call_llm)
     .add_node(
@@ -60,4 +60,4 @@ workflow = (
     .add_conditional_edges("call_llm", route_after_llm, [END, "tools"])
 )
 
-graph = workflow.compile(checkpointer=MemorySaver(), store=InMemoryStore())
+graph = state_graph.compile(checkpointer=MemorySaver(), store=InMemoryStore())

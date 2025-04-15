@@ -32,7 +32,7 @@ class FGARetriever(BaseRetriever):
         Args:
             retriever (BaseRetriever): The retriever used to fetch documents.
             build_query (Callable[[Document], ClientBatchCheckItem]): Function to convert documents into FGA queries.
-            fga_configuration (Optional[ClientConfiguration]): Configuration for the OpenFGA client. If not provided, defaults to environment variables.
+            fga_configuration (ClientConfiguration, optional): Configuration for the OpenFGA client. If not provided, defaults to environment variables.
         """
         super().__init__()
         self._retriever = retriever
@@ -95,7 +95,7 @@ class FGARetriever(BaseRetriever):
 
         Args:
             query (str): The query for retrieving documents.
-            run_manager (Optional[object]): Optional manager for tracking runs.
+            run_manager (object, optional): Optional manager for tracking runs.
 
         Returns:
             List[Document]: Filtered and relevant documents.
@@ -148,7 +148,7 @@ class FGARetriever(BaseRetriever):
 
         Args:
             query (str): The query for retrieving documents.
-            run_manager (Optional[object]): Optional manager for tracking runs.
+            run_manager (object, optional): Optional manager for tracking runs.
 
         Returns:
             List[Document]: Filtered and relevant documents.

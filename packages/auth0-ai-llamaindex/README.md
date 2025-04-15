@@ -60,7 +60,7 @@ Full Example of [Authorization for Tools](https://github.com/auth0-lab/auth0-ai-
 1. Create an instance of FGA Authorizer:
 
 ```python
-from auth0_ai_langchain.fga.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
+from auth0_ai_llamaindex.fga import FGAAuthorizer
 
 fga = FGAAuthorizer.create()
 ```
@@ -87,10 +87,10 @@ def build_fga_query(tool_input):
 def on_unauthorized(tool_input):
     return f"The user is not allowed to buy {tool_input["qty"]} shares of {tool_input["ticker"]}."
 
-use_fga = fga(FGAAuthorizerOptions(
+use_fga = fga(
     build_query=build_fga_query,
     on_unauthorized=on_unauthorized,
-))
+)
 ```
 
 **Note**: The parameters given to the `build_query` and `on_unauthorized` functions are the same as those provided to the tool function.
@@ -136,8 +136,8 @@ with_google_calendar_access = auth0_ai.with_federated_connection(
 )
 
 def tool_function(date: datetime):
-    access_token = get_access_token_for_connection()
-    # Call Google API
+    credentials = get_access_token_for_connection()
+    # Call Google API using credentials["access_token"]
 
 check_calendar_tool = with_google_calendar_access(
     FunctionTool.from_defaults(

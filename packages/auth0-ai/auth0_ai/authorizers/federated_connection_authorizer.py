@@ -15,8 +15,8 @@ class AsyncStorageValue(TypedDict, total=False):
     context: Any
     connection: str
     scopes: list[str]
-    access_token: Optional[str]
     current_scopes: Optional[list[str]]
+    credentials: Optional[TokenResponse]
 
 _local_storage: contextvars.ContextVar[Optional[AsyncStorageValue]] = contextvars.ContextVar("local_storage", default=None)
 
@@ -44,7 +44,7 @@ async def _run_with_local_storage(data: AsyncStorageValue):
 
 def get_access_token_for_connection() -> str | None:
     store = _get_local_storage()
-    return store.get("access_token")
+    return store.get("credentials")
 
 class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
     def __init__(
@@ -125,7 +125,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
                 scopes
             )
 
-        current_scopes = token_response["scope"].split(" ") if token_response["scope"] else []
+        current_scopes = token_response["scope"]
         missing_scopes = [s for s in scopes if s not in current_scopes]
         _update_local_storage({"current_scopes": current_scopes})
         
@@ -146,20 +146,21 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
             return None
         
         try:
-            # TODO: replace once the auth0-python sdk supports this feature
-            response = self.get_token.authenticated_post(
-                f"{self.get_token.protocol}://{self.get_token.domain}/oauth/token",
-                data={
-                    "grant_type": "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
-                    "client_id": self.get_token.client_id,
-                    "subject_token_type": "urn:ietf:params:oauth:token-type:refresh_token",
-                    "subject_token": subject_token,
-                    "connection": connection,
-                    "requested_token_type": "http://auth0.com/oauth/token-type/federated-connection-access-token",
-                },
+            response = self.get_token.access_token_for_connection(
+                subject_token_type="urn:ietf:params:oauth:token-type:refresh_token",
+                subject_token=subject_token,
+                requested_token_type="http://auth0.com/oauth/token-type/federated-connection-access-token",
+                connection=connection,
             )
             
-            return TokenResponse(**response)
+            return TokenResponse(
+                access_token=response["access_token"],
+                expires_in=response["expires_in"],
+                scope=response.get("scope", "").split(),
+                token_type=response.get("token_type"),
+                id_token=response.get("id_token"),
+                refresh_token=response.get("refresh_token"),
+            )
         except Auth0Error as err:
             raise FederatedConnectionError(err.message) if 400 <= err.status_code <= 499 else err
     
@@ -190,7 +191,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
             async with _run_with_local_storage(store):
                 try:
                     token_response = await self.get_access_token(*args, **kwargs)
-                    _update_local_storage({"access_token": token_response["access_token"]})
+                    _update_local_storage({"credentials": token_response})
 
                     if inspect.iscoroutinefunction(execute):
                         return await execute(*args, **kwargs)

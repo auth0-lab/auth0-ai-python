@@ -18,8 +18,8 @@ def add_hours(dt: datetime, hours: int) -> str:
 
 
 def check_user_calendar_tool_function(date: datetime):
-    access_token = get_access_token_for_connection()
-    if not access_token:
+    credentials = get_access_token_for_connection()
+    if not credentials:
         raise ValueError(
             "Authorization required to access the Federated Connection API")
 
@@ -33,7 +33,7 @@ def check_user_calendar_tool_function(date: datetime):
 
     response = requests.post(
         url,
-        headers={"Authorization": f"Bearer {access_token}"},
+        headers={"Authorization": f"{credentials["token_type"]} {credentials["access_token"]}"},
         json=body
     )
 
