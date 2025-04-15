@@ -1,12 +1,16 @@
 from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt as Auth0Interrupt
 
-from auth0_ai.interrupts.ciba_interrupts import CIBAInterrupt as CIBAInterrupt
-from auth0_ai.interrupts.ciba_interrupts import AccessDeniedInterrupt as AccessDeniedInterrupt
-from auth0_ai.interrupts.ciba_interrupts import UserDoesNotHavePushNotificationsInterrupt as UserDoesNotHavePushNotificationsInterrupt
-from auth0_ai.interrupts.ciba_interrupts import AuthorizationRequestExpiredInterrupt as AuthorizationRequestExpiredInterrupt
-from auth0_ai.interrupts.ciba_interrupts import AuthorizationPendingInterrupt as AuthorizationPendingInterrupt
-from auth0_ai.interrupts.ciba_interrupts import AuthorizationPollingInterrupt as AuthorizationPollingInterrupt
-from auth0_ai.interrupts.ciba_interrupts import InvalidGrantInterrupt as InvalidGrantInterrupt
+from auth0_ai.interrupts.ciba_interrupts import (
+    CIBAInterrupt as CIBAInterrupt,
+    AccessDeniedInterrupt as AccessDeniedInterrupt,
+    UserDoesNotHavePushNotificationsInterrupt as UserDoesNotHavePushNotificationsInterrupt,
+    AuthorizationRequestExpiredInterrupt as AuthorizationRequestExpiredInterrupt,
+    AuthorizationPendingInterrupt as AuthorizationPendingInterrupt,
+    AuthorizationPollingInterrupt as AuthorizationPollingInterrupt,
+    InvalidGrantInterrupt as InvalidGrantInterrupt
+)
 
-from auth0_ai.interrupts.federated_connection_interrupt import FederatedConnectionInterrupt as FederatedConnectionInterrupt
-from auth0_ai.interrupts.federated_connection_interrupt import FederatedConnectionError as FederatedConnectionError
+from auth0_ai.interrupts.federated_connection_interrupt import (
+    FederatedConnectionInterrupt as FederatedConnectionInterrupt,
+    FederatedConnectionError as FederatedConnectionError
+)

@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from auth0_ai_langchain.fga.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
+from auth0_ai_langchain.fga import FGAAuthorizer
 from langchain_core.runnables import ensure_config
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
@@ -28,10 +28,10 @@ def on_unauthorized(tool_input):
     return f"The user is not allowed to buy {tool_input["qty"]} shares of {tool_input["ticker"]}."
 
 
-use_fga = fga(FGAAuthorizerOptions(
+use_fga = fga(
     build_query=build_fga_query,
     on_unauthorized=on_unauthorized,
-))
+)
 
 
 async def buy_tool_function(ticker: str, qty: int) -> str:

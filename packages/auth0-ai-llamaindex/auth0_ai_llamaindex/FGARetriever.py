@@ -36,7 +36,7 @@ class FGARetriever(BaseRetriever):
         Args:
             retriever (BaseRetriever): The retriever used to fetch nodes.
             build_query (Callable[[BaseNode], ClientBatchCheckItem]): Function to convert nodes into FGA queries.
-            fga_configuration (Optional[ClientConfiguration]): Configuration for the OpenFGA client. If not provided, defaults to environment variables.
+            fga_configuration (ClientConfiguration, optional): Configuration for the OpenFGA client. If not provided, defaults to environment variables.
         """
         super().__init__()
         self._retriever = retriever

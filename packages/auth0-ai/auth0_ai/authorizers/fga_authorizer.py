@@ -77,7 +77,7 @@ class FGAAuthorizer:
     def create(params: Optional[FGAAuthorizerParams] = None) -> FGAInstance:
         authorizer = FGAAuthorizer(params)
 
-        def instance(options: FGAAuthorizerOptions):
+        def instance(**options: FGAAuthorizerOptions):
             def fga(
                 handler: Callable[ToolInput, Any]
             ) -> Callable[ToolInput, Awaitable[Any]]:

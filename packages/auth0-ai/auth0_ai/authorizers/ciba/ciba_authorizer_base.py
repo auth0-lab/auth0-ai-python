@@ -11,7 +11,7 @@ from auth0_ai.credentials import TokenResponse
 from auth0_ai.authorizers.ciba.ciba_authorizer_params import CIBAAuthorizerParams
 from auth0_ai.authorizers.ciba.ciba_authorization_request import CIBAAuthorizationRequest
 from auth0_ai.authorizers.types import Auth0ClientParams, ToolInput
-from auth0_ai.interrupts.ciba_interrupts import AccessDeniedInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt, AuthorizationRequestExpiredInterrupt, InvalidGrantInterrupt, UserDoesNotHavePushNotificationsInterrupt
+from auth0_ai.interrupts import AccessDeniedInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt, AuthorizationRequestExpiredInterrupt, InvalidGrantInterrupt, UserDoesNotHavePushNotificationsInterrupt
 
 class AsyncStorageValue(TypedDict, total=False):
     context: Any
@@ -112,6 +112,8 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
         except Auth0Error as e:
             if e.error_code == "invalid_request":
                 raise UserDoesNotHavePushNotificationsInterrupt(e.message)
+            else:
+                raise
 
     def _poll(self, authorization_request: CIBAAuthorizationRequest) -> TokenResponse:
         start_time = time.time()
@@ -121,11 +123,11 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
                 response = self.get_token.backchannel_login(auth_req_id=authorization_request.get("id"))
                 return TokenResponse(
                     access_token=response["access_token"],
-                    id_token=response["id_token"],
                     expires_in=response["expires_in"],
-                    scope=response["scope"],
-                    refresh_token=response.get("refresh_token"),
+                    scope=response.get("scope", "").split(),
                     token_type=response.get("token_type"),
+                    id_token=response.get("id_token"),
+                    refresh_token=response.get("refresh_token"),
                 )
             except Auth0Error as e:
                 if e.error_code == "invalid_request":
@@ -136,6 +138,8 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
                     raise InvalidGrantInterrupt(e.message, authorization_request)
                 elif e.error_code == "authorization_pending" or e.error_code == "slow_down":
                     time.sleep(authorization_request.get("interval"))
+                else:
+                    raise
         
         raise AuthorizationRequestExpiredInterrupt("The authorization request has expired.", authorization_request)
     

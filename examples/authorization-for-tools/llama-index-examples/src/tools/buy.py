@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from auth0_ai_llamaindex.fga.fga_authorizer import FGAAuthorizer, FGAAuthorizerOptions
+from auth0_ai_llamaindex.fga import FGAAuthorizer
 from llama_index.core.tools import FunctionTool
 
 from ..context import Context
@@ -20,10 +20,10 @@ def buy_tool(context: Context):
     def on_unauthorized(tool_input):
         return f"The user is not allowed to buy {tool_input["qty"]} shares of {tool_input["ticker"]}."
 
-    use_fga = fga(FGAAuthorizerOptions(
+    use_fga = fga(
         build_query=build_fga_query,
         on_unauthorized=on_unauthorized,
-    ))
+    )
 
     async def buy_tool_function(ticker: str, qty: int) -> str:
         #  TODO: implement buy operation

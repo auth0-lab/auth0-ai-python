@@ -1,3 +1,4 @@
+import json
 import os
 from urllib.parse import quote_plus, urlencode
 from authlib.integrations.flask_client import OAuth
@@ -27,6 +28,8 @@ def home():
     if "user" not in session:
         return redirect("/login")
 
+    session.pop("thread_id", None)
+    session.pop("messages", None)
     return render_template("index.html", user=session.get('user'))
 
 @app.route("/chat", methods=["POST"])
@@ -40,9 +43,9 @@ async def chat():
     message = request.json.get("message")
     session["messages"].append(message)
 
+    client = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
+
     async def run_and_return():
-        client = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
-        
         if "thread_id" not in session:
             session["thread_id"] = (await client.threads.create())["thread_id"]
 
@@ -59,12 +62,16 @@ async def chat():
         wait_result = await run_and_return()
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+    thread = await client.threads.get(session["thread_id"])
+    if thread and "interrupts" in thread and len(thread["interrupts"]) > 0:
+        return jsonify({"response": json.dumps(next(iter(thread["interrupts"].values()))[0]["value"])})
 
     if wait_result and "messages" in wait_result:
         last_message = wait_result["messages"][-1]["content"]
         return jsonify({"response": last_message})
 
-    return jsonify({"error": "server_error"}), 500
+    return jsonify({"error": "unexpected error"}), 500
 
 @app.route("/login")
 def login():
