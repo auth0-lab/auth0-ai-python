@@ -24,7 +24,7 @@ def should_continue(state: State):
         return "tools"
     return END
 
-workflow = (
+state_graph = (
     StateGraph(State)
     .add_node("call_llm", call_llm)
     .add_node("tools", ToolNode([trade_tool, conditional_trade_tool]))
@@ -33,4 +33,4 @@ workflow = (
     .add_conditional_edges("call_llm", should_continue)
 )
 
-graph = workflow.compile(checkpointer=MemorySaver())
+graph = state_graph.compile(checkpointer=MemorySaver())

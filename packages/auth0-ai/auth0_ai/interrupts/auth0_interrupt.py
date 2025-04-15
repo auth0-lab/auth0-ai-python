@@ -1,6 +1,6 @@
 from typing import Final, Type, TypeVar, Dict, Any
 
-T = TypeVar("T", bound="Auth0Interrupt")
+Auth0InterruptType = TypeVar("T", bound="Auth0Interrupt")
 
 class Auth0Interrupt(Exception):
     name: Final[str] = "AUTH0_AI_INTERRUPT"
@@ -18,7 +18,7 @@ class Auth0Interrupt(Exception):
         } | {"message": self.args[0], "name": self.name}
 
     @classmethod
-    def is_interrupt(cls: Type[T], interrupt: Any) -> bool:
+    def is_interrupt(cls: Type[Auth0InterruptType], interrupt: Any) -> bool:
         """
         Checks if an interrupt is of a specific type asserting its data component.
         """

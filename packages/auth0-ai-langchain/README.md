@@ -12,6 +12,46 @@
 pip install auth0-ai-langchain
 ```
 
+## Async User Confirmation
+
+`Auth0AI` uses CIBA (Client Initiated Backchannel Authentication) to handle user confirmation asynchronously. This is useful when you need to confirm a user action before proceeding with a tool execution.
+
+Full Example of [Async User Confirmation](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/async-user-confirmation/langchain-examples).
+
+Define a tool with the proper authorizer specifying a function to resolve the user id:
+
+```python
+from auth0_ai_langchain.auth0_ai import Auth0AI
+from auth0_ai_langchain.ciba import get_ciba_credentials
+from langchain_core.runnables import ensure_config
+from langchain_core.tools import StructuredTool
+
+auth0_ai = Auth0AI()
+with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+    scope="stock:trade",
+    audience=os.getenv("AUDIENCE"),
+    binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
+    user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id")
+)
+
+def tool_function(ticker: str, qty: int) -> str:
+    credentials = get_ciba_credentials()
+    headers = {
+        "Authorization": f"{credentials["token_type"]} {credentials["access_token"]}",
+        # ...
+    }
+    # Call API
+
+trade_tool = with_async_user_confirmation(
+    StructuredTool(
+        name="trade_tool",
+        description="Use this function to trade a stock",
+        func=trade_tool_function,
+        # ...
+    )
+)
+```
+
 ## Authorization for Tools
 
 The `FGAAuthorizer` can leverage Okta FGA to authorize tools executions. The `FGAAuthorizer.create` function can be used to create an authorizer that checks permissions before executing the tool.

@@ -6,10 +6,10 @@ from contextlib import asynccontextmanager
 from typing import Awaitable, Callable, Generic, Optional, Any, TypedDict, Union
 from auth0 import Auth0Error
 from auth0.authentication.get_token import GetToken
-from .types import AuthorizerParams, AuthorizerToolParameter, ToolInput
-from ..token_response import TokenResponse
-from ..interrupts.auth0_interrupt import Auth0Interrupt
-from ..interrupts.federated_connection_interrupt import FederatedConnectionError, FederatedConnectionInterrupt
+from auth0_ai.authorizers.types import Auth0ClientParams, AuthorizerToolParameter, ToolInput
+from auth0_ai.credentials import TokenResponse
+from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
+from auth0_ai.interrupts.federated_connection_interrupt import FederatedConnectionError, FederatedConnectionInterrupt
 
 class AsyncStorageValue(TypedDict, total=False):
     context: Any
@@ -84,7 +84,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
     def __init__(
         self,
         options: FederatedConnectionAuthorizerParams[ToolInput],
-        config: AuthorizerParams = None,
+        config: Auth0ClientParams = None,
     ):
         self.options = options
         auth0 = {

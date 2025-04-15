@@ -1,5 +1,5 @@
 from typing import Final
-from .auth0_interrupt import Auth0Interrupt
+from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
 
 class FederatedConnectionInterrupt(Auth0Interrupt):
     """

@@ -178,5 +178,5 @@ n
 
 # misc
 .DS_Store
-.scheduler.db
+.scheduler
 .langgraph_api

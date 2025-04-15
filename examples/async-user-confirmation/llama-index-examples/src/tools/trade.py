@@ -1,18 +1,18 @@
 import os
 
 import httpx
-from auth0_ai_llamaindex.ciba import get_access_token
+from auth0_ai_llamaindex.ciba import get_ciba_credentials
 from llama_index.core.tools import FunctionTool
 
 
 def trade_tool_function(ticker: str, qty: int) -> str:
-    access_token = get_access_token()
+    credentials = get_ciba_credentials()
 
-    if not access_token:
+    if not credentials:
         raise ValueError("Access token not found")
 
     headers = {
-        "Authorization": f"{access_token["type"]} {access_token["value"]}",
+        "Authorization": f"{credentials["token_type"]} {credentials["access_token"]}",
         "Content-Type": "application/json"
     }
 

@@ -21,24 +21,25 @@ class Schedule(TypedDict):
     interval: int
 
 class TaskData(TypedDict):
-    graph_id: str
+    assistant_id: str
     config: dict
     input: dict
     schedule: Optional[Schedule]
 
-async def execute_task(graph_id: str, task_id: str, data: dict):
-    print(f"Executing task {task_id} | {graph_id}")
+async def execute_task(assistant_id: str, task_id: str, data: dict):
+    print(f"Executing task {task_id} | {assistant_id}")
     client = get_client(url=os.getenv("LANGGRAPH_API_URL", "http://localhost:54367"))
     thread = await client.threads.create()
+    
     await client.runs.create(
         thread_id=thread["thread_id"],
-        assistant_id=graph_id,
+        assistant_id=assistant_id,
         input={**data.get('input', {}), 'task_id': task_id},
-        config=data.get('config')
+        config=data['config']
     )
 
-def run_async_task(graph_id, task_id, data):
-    asyncio.run(execute_task(graph_id, task_id, data))
+def run_async_task(assistant_id, task_id, data):
+    asyncio.run(execute_task(assistant_id, task_id, data))
 
 def load_tasks():
     with shelve.open(DB_FILE) as db:
@@ -48,8 +49,8 @@ def add_task(task_id, data):
     unit = data.get("schedule", {}).get("unit", "seconds")
     interval = data.get("schedule", {}).get("interval", 5)
     trigger_args = {unit: interval}
-    graph_id = data["graph_id"]
-    scheduler.add_job(run_async_task, "interval", id=task_id, args=[graph_id, task_id, data], **trigger_args)
+    assistant_id = data["assistant_id"]
+    scheduler.add_job(run_async_task, "interval", id=task_id, args=[assistant_id, task_id, data], **trigger_args)
     with shelve.open(DB_FILE, writeback=True) as db:
         db[task_id] = data
 

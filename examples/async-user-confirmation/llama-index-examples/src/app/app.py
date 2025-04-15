@@ -29,8 +29,8 @@ auth0_ai = Auth0AI()
 with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope="stock:trade",
     audience=os.getenv("AUDIENCE"),
-    binding_message=lambda ctx: f"Authorize the purchase of {ctx['qty']} {ctx['ticker']}",
-    user_id=lambda _ctx: session["user"]["userinfo"]["sub"]
+    binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
+    user_id=lambda *_, **__: session["user"]["userinfo"]["sub"]
 )
 
 tools = [with_async_user_confirmation(trade_tool)]
