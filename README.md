@@ -32,6 +32,8 @@ a person or organization. Common use cases include:
 ## Examples
 
 - [Authorization for RAG](/examples/authorization-for-rag/README.md): Examples about how to implement secure document retrieval with strict access control using Okta FGA.
+- [Authorization for Tools](/examples/authorization-for-tools/README.md): Examples about how to implement secure tool calling with strict access control using Okta FGA.
+- [Calling APIs](/examples/calling-apis/README.md): Examples about how to use secure standards to call APIs from tools with Auth0.
 - [Async User Confirmation](/examples/async-user-confirmation/README.md): Provides examples of handling asynchronous user confirmation workflows.
 
 ## Recommendations for VSCode Users
