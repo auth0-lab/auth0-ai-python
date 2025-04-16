@@ -3,11 +3,15 @@ from typing import Final, Type, TypeVar, Dict, Any
 Auth0InterruptType = TypeVar("T", bound="Auth0Interrupt")
 
 class Auth0Interrupt(Exception):
-    name: Final[str] = "AUTH0_AI_INTERRUPT"
+    _name: Final[str] = "AUTH0_AI_INTERRUPT"
 
     def __init__(self, message: str, code: str):
         super().__init__(message)
         self.code = code
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     def to_json(self) -> Dict[str, Any]:
         """
@@ -22,8 +26,14 @@ class Auth0Interrupt(Exception):
         """
         Checks if an interrupt is of a specific type asserting its data component.
         """
+        if isinstance(interrupt, dict):
+            return (
+                interrupt.get("name") == "AUTH0_AI_INTERRUPT"
+                and (not hasattr(cls, "code") or interrupt.get("code") == getattr(cls, "code", None))
+            )
+        
         return (
-            interrupt is not None and
-            interrupt.name == "AUTH0_AI_INTERRUPT" and
-            (not hasattr(cls, "code") or interrupt.get("code") == getattr(cls, "code", None))
+            isinstance(interrupt, Auth0Interrupt)
+            and interrupt.name == "AUTH0_AI_INTERRUPT"
+            and (not hasattr(cls, "code") or interrupt.code == getattr(cls, "code", None))
         )

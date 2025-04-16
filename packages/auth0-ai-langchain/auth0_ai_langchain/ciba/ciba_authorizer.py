@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Union
 from auth0_ai.authorizers.ciba import CIBAAuthorizerBase
-from auth0_ai.interrupts import AuthorizationPendingInterrupt, AuthorizationPollingInterrupt
+from auth0_ai.interrupts.ciba_interrupts import AuthorizationPendingInterrupt, AuthorizationPollingInterrupt
 from auth0_ai_langchain.utils.interrupt import to_graph_interrupt
 from langchain_core.tools import BaseTool, tool
 from langchain_core.runnables import ensure_config

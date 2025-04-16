@@ -9,11 +9,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-openfga-sdk = "^0.9.0"
-langchain = "^0.3.20"
-langgraph-sdk = "^0.1.55"
-langchain-core = "^0.3.43"
-langgraph = "^0.3.25"
+openfga-sdk = "^0.9.3"
+langchain = "^0.3.23"
+langgraph-sdk = "^0.1.61"
+langchain-core = "^0.3.51"
+langgraph = "^0.3.30"
 # auth0-ai = "^0.2.0"
 auth0-ai = { path = "../auth0-ai", develop = true }
 
