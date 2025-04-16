@@ -6,8 +6,8 @@ from langchain_core.messages import AIMessage, BaseMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph, add_messages
 from langgraph.prebuilt import ToolNode
-from tools.check_country_holiday import check_country_holiday_tool
-from tools.check_user_calendar import check_user_calendar_tool
+from src.agents.tools.check_country_holiday import check_country_holiday_tool
+from src.agents.tools.check_user_calendar import check_user_calendar_tool
 
 
 class State(TypedDict):
@@ -21,7 +21,8 @@ with_calender_free_busy_access = auth0_ai.with_federated_connection(
 )
 
 llm = ChatOpenAI(
-    model="gpt-4o").bind_tools([check_country_holiday_tool, check_user_calendar_tool])
+    model="gpt-4o"
+).bind_tools([check_country_holiday_tool, check_user_calendar_tool])
 
 
 async def call_llm(state: State):
