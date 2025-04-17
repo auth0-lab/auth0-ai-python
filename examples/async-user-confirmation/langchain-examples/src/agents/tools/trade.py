@@ -1,7 +1,6 @@
 import os
 import httpx
 from auth0_ai_langchain.ciba import get_ciba_credentials
-from langchain_core.runnables.config import RunnableConfig
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
 
@@ -9,8 +8,9 @@ class TradeSchema(BaseModel):
     ticker: str
     qty: int
 
-def trade_tool_function(ticker: str, qty: int, config: RunnableConfig) -> str:
+def trade_tool_function(ticker: str, qty: int) -> str:
     credentials = get_ciba_credentials()
+
     if not credentials:
         raise ValueError("Access token not found")
 

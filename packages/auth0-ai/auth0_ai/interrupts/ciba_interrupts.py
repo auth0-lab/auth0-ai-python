@@ -1,11 +1,10 @@
 from abc import ABC
-from typing import Any, Type, TypeVar
+from typing import Any, Type, TypeVar, get_type_hints
 from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
 from auth0_ai.authorizers.ciba import CIBAAuthorizationRequest
 
 class WithRequestData:
     def __init__(self, request: CIBAAuthorizationRequest):
-        super().__init__()
         self._request = request
 
     @property
@@ -23,16 +22,28 @@ class CIBAInterrupt(Auth0Interrupt, ABC):
         return (
             interrupt
             and Auth0Interrupt.is_interrupt(interrupt)
-            and isinstance(interrupt.get("code"), str)
-            and interrupt["code"].startswith("CIBA_")
+            and isinstance(interrupt["code"], str)
+            and (
+                (hasattr(cls, "code") and getattr(cls, "code") == interrupt["code"])
+                or
+                (not hasattr(cls, "code") and interrupt["code"].startswith("CIBA_"))
+            )
         )
 
     @classmethod
     def has_request_data(cls, interrupt: Any) -> bool:
-        return (
-        cls.is_interrupt(interrupt)
-        and isinstance(interrupt, WithRequestData)
-    )
+        if not cls.is_interrupt(interrupt):
+            return False
+
+        if not isinstance(interrupt, dict):
+            return False
+
+        request = interrupt.get("_request")
+        if not isinstance(request, dict):
+            return False
+
+        required_keys = set(get_type_hints(CIBAAuthorizationRequest).keys())
+        return required_keys <= request.keys()
 
 
 class AccessDeniedInterrupt(CIBAInterrupt, WithRequestData):
@@ -66,7 +77,7 @@ class AuthorizationPendingInterrupt(CIBAInterrupt, WithRequestData):
         WithRequestData.__init__(self, request)
 
 
-class AuthorizationPollingInterrupt(Auth0Interrupt, WithRequestData):
+class AuthorizationPollingInterrupt(CIBAInterrupt, WithRequestData):
     code: str = "CIBA_AUTHORIZATION_POLLING_ERROR"
 
     def __init__(self, message: str, request: CIBAAuthorizationRequest):
@@ -74,7 +85,7 @@ class AuthorizationPollingInterrupt(Auth0Interrupt, WithRequestData):
         WithRequestData.__init__(self, request)
 
 
-class InvalidGrantInterrupt(Auth0Interrupt, WithRequestData):
+class InvalidGrantInterrupt(CIBAInterrupt, WithRequestData):
     code: str = "CIBA_INVALID_GRANT"
 
     def __init__(self, message: str, request: CIBAAuthorizationRequest):

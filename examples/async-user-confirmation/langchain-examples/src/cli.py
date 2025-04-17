@@ -11,5 +11,8 @@ def start_api():
 def start_scheduler():
     subprocess.run(["python", "./src/services/scheduler.py"], check=True)
 
+def start_resumer():
+    subprocess.run(["python", "./src/services/resumer.py"], check=True)
+
 def start_langgraph_dev():
     subprocess.run(["langgraph", "dev", "--port", "54367", "--allow-blocking"], check=True)

@@ -14,11 +14,11 @@ pip install auth0-ai-langchain
 
 ## Async User Confirmation
 
-`Auth0AI` uses CIBA (Client Initiated Backchannel Authentication) to handle user confirmation asynchronously. This is useful when you need to confirm a user action before proceeding with a tool execution.
+`Auth0AI` uses CIBA (Client-Initiated Backchannel Authentication) to handle user confirmation asynchronously. This is useful when you need to confirm a user action before proceeding with a tool execution.
 
 Full Example of [Async User Confirmation](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/async-user-confirmation/langchain-examples).
 
-Define a tool with the proper authorizer specifying a function to resolve the user id:
+1. Define a tool with the proper authorizer specifying a function to resolve the user id:
 
 ```python
 from auth0_ai_langchain.auth0_ai import Auth0AI
@@ -51,6 +51,8 @@ trade_tool = with_async_user_confirmation(
     )
 )
 ```
+
+2. Handle interruptions properly. For example, if user is not enrolled to MFA, it will throw an interruption. See [Handling Interrupts](#handling-interrupts) section.
 
 ## Authorization for Tools
 
@@ -172,7 +174,7 @@ workflow = (
 )
 ```
 
-3. Handle interruptions properly. If the tool does not have access to user's Google Calendar, it will throw an interruption. See [Handling Interrupts](#handling-interrupts) section.
+3. Handle interruptions properly. For example, if the tool does not have access to user's Google Calendar, it will throw an interruption. See [Handling Interrupts](#handling-interrupts) section.
 
 ## RAG with FGA
 
@@ -259,6 +261,26 @@ Then you can resume the thread by doing this:
 
 ```python
 await client.runs.wait(thread_id, assistant_id)
+```
+
+For the specific case of **CIBA (Client-Initiated Backchannel Authorization)** you might attach a `GraphResumer` instance that watches for interrupted threads in the `"Authorization Pending"` state and attempts to resume them automatically, respecting Auth0's polling interval.
+
+```python
+import os
+from auth0_ai_langchain.ciba import GraphResumer
+from langgraph_sdk import get_client
+
+resumer = GraphResumer(
+    lang_graph=get_client(url=os.getenv("LANGGRAPH_API_URL")),
+    # optionally, you can filter by a specific graph:
+    filters={"graph_id": "conditional-trade"},
+)
+
+resumer \
+    .on_resume(lambda thread: print(f"Attempting to resume thread {thread['thread_id']} from interruption {thread['interruption_id']}")) \
+    .on_error(lambda err: print(f"Error in GraphResumer: {str(err)}"))
+
+resumer.start()
 ```
 
 ---

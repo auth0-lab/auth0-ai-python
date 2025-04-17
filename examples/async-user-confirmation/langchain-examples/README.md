@@ -56,13 +56,25 @@ LANGGRAPH_API_URL="http://localhost:54367"
     poetry run scheduler
     ```
 
+    > A demo scheduler that works similar to [LangGraph Cron Jobs](https://langchain-ai.github.io/langgraph/cloud/how-tos/cron_jobs/).
+
 4.  **Run LangGraph (dev mode)**
 
     ```sh
     poetry run langgraph_up
     ```
 
-5.  **Select "agent" graph, go to Manage Assistants and create a new one with the following configuration**
+    > The LangGraph server that runs the graphs.
+
+5.  **Run GraphResumer**
+
+    ```sh
+    poetry run resumer
+    ```
+
+    > A service that resumes CIBA-interrupted threads on the LangGraph server.
+
+6.  **Select "agent" graph, go to Manage Assistants and create a new one with the following configuration**
 
     ```js
     {
@@ -70,7 +82,7 @@ LANGGRAPH_API_URL="http://localhost:54367"
     }
     ```
 
-6.  **Submit a proper message to start the flow, for example:**
+7.  **Submit a proper message to start the flow, for example:**
 
     ```
     Buy 10 NVDA when P/E below 15

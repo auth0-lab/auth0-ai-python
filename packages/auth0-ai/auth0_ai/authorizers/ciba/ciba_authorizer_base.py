@@ -1,9 +1,13 @@
-from contextlib import asynccontextmanager
+import asyncio
 import contextvars
+import hashlib
 import inspect
+import json
 import os
 import time
-from typing import Any, Callable, Generic, Optional, TypedDict, Union
+from contextlib import asynccontextmanager
+from datetime import datetime
+from typing import Any, Callable, Dict, Generic, Optional, Sequence, TypedDict, Union
 from auth0 import Auth0Error
 from auth0.authentication.back_channel_login import BackChannelLogin
 from auth0.authentication.get_token import GetToken
@@ -12,10 +16,14 @@ from auth0_ai.authorizers.ciba.ciba_authorizer_params import CIBAAuthorizerParam
 from auth0_ai.authorizers.ciba.ciba_authorization_request import CIBAAuthorizationRequest
 from auth0_ai.authorizers.types import Auth0ClientParams, ToolInput
 from auth0_ai.interrupts.ciba_interrupts import AccessDeniedInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt, AuthorizationRequestExpiredInterrupt, InvalidGrantInterrupt, UserDoesNotHavePushNotificationsInterrupt
+from auth0_ai.stores import SubStore, InMemoryStore
+from auth0_ai.authorizers.context import ns_from_context, ContextGetter
 
-class AsyncStorageValue(TypedDict, total=False):
+class AsyncStorageValue(TypedDict):
     context: Any
     credentials: Optional[TokenResponse]
+    # The namespace in the Store for the CIBA authorization response.
+    auth_request_ns: Sequence[str];
 
 _local_storage: contextvars.ContextVar[Optional[AsyncStorageValue]] = contextvars.ContextVar("local_storage", default=None)
 
@@ -42,8 +50,14 @@ async def _run_with_local_storage(data: AsyncStorageValue):
         _local_storage.reset(token)
 
 def get_ciba_credentials() -> TokenResponse | None:
-    store = _get_local_storage()
-    return store.get("credentials")
+    local_store = _get_local_storage()
+    return local_store.get("credentials")
+
+def _ensure_openid_scope(scope: str) -> str:
+    scopes = scope.strip().split()
+    if "openid" not in scopes:
+        scopes.insert(0, "openid")
+    return " ".join(scopes)
 
 class CIBAAuthorizerBase(Generic[ToolInput]):
     def __init__(self, params: CIBAAuthorizerParams[ToolInput], auth0: Auth0ClientParams = None):
@@ -63,20 +77,27 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
 
         self.back_channel_login = BackChannelLogin(**auth0)
         self.get_token = GetToken(**auth0)
+        self.auth0 = auth0
         self.params = params
 
-    def _ensure_openid_scope(self, scope: str) -> str:
-        scopes = scope.strip().split()
-        if "openid" not in scopes:
-            scopes.insert(0, "openid")
-        return " ".join(scopes)
+        # TODO: consider moving this to Auth0AI classes
+        ciba_store = SubStore(params["store"] if "store" in params else InMemoryStore()).create_sub_store("AUTH0_AI_CIBA")
+
+        self.auth_request_store = SubStore[CIBAAuthorizationRequest](ciba_store, {
+            "get_ttl": lambda auth_request: auth_request["expires_in"] * 1000 if "expires_in" in auth_request else None
+        })
     
     def _handle_authorization_interrupts(self, err: Union[AuthorizationPendingInterrupt, AuthorizationPollingInterrupt]) -> None:
         raise err
-
-    async def _start(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> CIBAAuthorizationRequest:
+    
+    def _get_instance_id(self, authorize_params) -> str:
+        props = {"auth0": self.auth0, "params": authorize_params}
+        sh = json.dumps(props, sort_keys=True, separators=(",", ":"))
+        return hashlib.md5(sh.encode("utf-8")).hexdigest()
+    
+    async def _get_authorize_params(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> Dict[str, Any]:
         authorize_params = {
-            "scope": self._ensure_openid_scope(self.params.get("scope")),
+            "scope": _ensure_openid_scope(self.params.get("scope")),
             "audience": self.params.get("audience"),
             "request_expiry": self.params.get("request_expiry"),
         }
@@ -99,9 +120,13 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
             authorize_params["binding_message"] = await self.params.get("binding_message")(*args, **kwargs)
         else:
             authorize_params["binding_message"] = self.params.get("binding_message")(*args, **kwargs)
+
+        return authorize_params
+
+    async def _start(self, authorize_params) -> CIBAAuthorizationRequest:
+        requested_at = time.time()
         
         try:
-            requested_at = time.time()
             response = self.back_channel_login.back_channel_login(**authorize_params)
             return CIBAAuthorizationRequest(
                 id=response["auth_req_id"],
@@ -115,48 +140,104 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
             else:
                 raise
 
-    def _poll(self, authorization_request: CIBAAuthorizationRequest) -> TokenResponse:
-        start_time = time.time()
+    def _get_credentials_internal(self, auth_request: CIBAAuthorizationRequest) -> TokenResponse | None:
+        try:
+            # Calculate elapsed time in seconds
+            elapsed_seconds = datetime.now().timestamp() - auth_request["requested_at"]
 
-        while time.time() - start_time < authorization_request.get("expires_in"):
-            try:
-                response = self.get_token.backchannel_login(auth_req_id=authorization_request.get("id"))
-                return TokenResponse(
-                    access_token=response["access_token"],
-                    expires_in=response["expires_in"],
-                    scope=response.get("scope", "").split(),
-                    token_type=response.get("token_type"),
-                    id_token=response.get("id_token"),
-                    refresh_token=response.get("refresh_token"),
+            if elapsed_seconds >= auth_request["expires_in"]:
+                raise AuthorizationRequestExpiredInterrupt(
+                    "The authorization request has expired.",
+                    auth_request
                 )
-            except Auth0Error as e:
-                if e.error_code == "invalid_request":
-                    raise UserDoesNotHavePushNotificationsInterrupt(e.message)
-                elif e.error_code == "access_denied":
-                    raise AccessDeniedInterrupt(e.message, authorization_request)
-                elif e.error_code == "invalid_grant":
-                    raise InvalidGrantInterrupt(e.message, authorization_request)
-                elif e.error_code == "authorization_pending" or e.error_code == "slow_down":
-                    time.sleep(authorization_request.get("interval"))
-                else:
-                    raise
+
+            response = self.get_token.backchannel_login(auth_req_id=auth_request["id"])
+            return TokenResponse(
+                access_token=response["access_token"],
+                expires_in=response["expires_in"],
+                scope=response.get("scope", "").split(),
+                token_type=response.get("token_type"),
+                id_token=response.get("id_token"),
+                refresh_token=response.get("refresh_token"),
+            )
+
+        except Auth0Error as e:
+            if e.error_code == "authorization_pending":
+                raise AuthorizationPendingInterrupt(e.message, auth_request)
+
+            if e.error_code == "slow_down":
+                raise AuthorizationPollingInterrupt(e.message, auth_request)
+
+            if e.error_code == "invalid_grant":
+                raise InvalidGrantInterrupt(e.message, auth_request)
+
+            if e.error_code == "invalid_request":
+                raise UserDoesNotHavePushNotificationsInterrupt(e.message)
+
+            if e.error_code == "access_denied":
+                raise AccessDeniedInterrupt(e.message, auth_request)
+
+            raise
+
+    def _get_credentials(self, auth_request: CIBAAuthorizationRequest) -> TokenResponse | None:
+        return self._get_credentials_internal(auth_request)
+    
+    async def get_credentials_polling(self, auth_request: CIBAAuthorizationRequest) -> TokenResponse | None:
+        credentials: TokenResponse | None = None
+
+        while not credentials:
+            try:
+                credentials = self._get_credentials_internal(auth_request)
+            except (AuthorizationPendingInterrupt, AuthorizationPollingInterrupt) as err:
+                await asyncio.sleep(err.request["interval"])
+            except Exception:
+                raise
         
-        raise AuthorizationRequestExpiredInterrupt("The authorization request has expired.", authorization_request)
+        return credentials
+    
+    async def delete_auth_request(self):
+        local_store = _get_local_storage()
+        auth_request_ns = local_store["auth_request_ns"]
+        await self.auth_request_store.delete(auth_request_ns, "auth_request")
     
     def protect(
         self,
-        get_context: Callable[ToolInput, any],
+        get_context: ContextGetter[ToolInput],
         execute: Callable[ToolInput, any]
     ) -> Callable[ToolInput, any]:
         async def wrapped_execute(*args: ToolInput.args, **kwargs: ToolInput.kwargs):
-            store = {
-                "context": get_context(*args, **kwargs),
+            context = get_context(*args, **kwargs)
+            authorize_params = await self._get_authorize_params(*args, **kwargs)
+            instance_id = self._get_instance_id(authorize_params)
+            auth_request_ns = [
+                instance_id,
+                "AuthRequests",
+                *ns_from_context("tool-call", context),
+            ]
+
+            local_store = {
+                "context": context,
+                "auth_request_ns": auth_request_ns,
             }
 
-            async with _run_with_local_storage(store):
+            async with _run_with_local_storage(local_store):
                 try:
-                    authorization_request = await self._start(*args, **kwargs)
-                    credentials = self._poll(authorization_request)
+                    interrupt_mode = self.params.get("on_authorization_request", "interrupt") == "interrupt"
+                    if interrupt_mode:
+                        auth_request = await self.auth_request_store.get(auth_request_ns, "auth_request")
+                        if not auth_request:
+                            # initial request
+                            auth_request = await self._start(authorize_params)
+                            await self.auth_request_store.put(auth_request_ns, "auth_request", auth_request)
+                        
+                        credentials = self._get_credentials(auth_request)
+                    else:
+                        # block mode
+                        auth_request = await self._start(authorize_params)
+                        credentials = await self.get_credentials_polling(auth_request)
+
+                    await self.delete_auth_request()
+                    
                     _update_local_storage({"credentials": credentials})
 
                     if inspect.iscoroutinefunction(execute):

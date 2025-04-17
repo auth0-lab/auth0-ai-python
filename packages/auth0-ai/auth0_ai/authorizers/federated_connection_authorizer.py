@@ -11,7 +11,7 @@ from auth0_ai.credentials import TokenResponse
 from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
 from auth0_ai.interrupts.federated_connection_interrupt import FederatedConnectionError, FederatedConnectionInterrupt
 
-class AsyncStorageValue(TypedDict, total=False):
+class AsyncStorageValue(TypedDict):
     context: Any
     connection: str
     scopes: list[str]
@@ -70,6 +70,24 @@ class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
             TokenResponse | None
         ]] = None,
     ):
+        """
+        Parameters for the federated connection authorizer.
+
+        Args:
+            scopes: The scopes required in the access token of the federated connection provider. Can be:
+                - A static list of scopes
+                - A callable that receives the tool input and returns a list of scopes (sync or async)
+            connection: The connection name of the federated connection provider. Can be:
+                - A string
+                - A callable that receives the tool input and returns connection name (sync or async)
+            refresh_token: Optional. The Auth0 refresh token to exchange for an federated connection access token. Can be:
+                - A string or None
+                - A callable that receives the tool input and returns the user refresh token (sync or async)
+            access_token: Optional. The federated connection access token if available in the tool context. Can be:
+                - A `TokenResponse`
+                - A callable that receives the tool input and returns a `TokenResponse` (sync or async)
+        """
+
         def wrap(val, result_type):
             if isinstance(val, AuthorizerToolParameter):
                 return val

@@ -30,7 +30,10 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope="stock:trade",
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
-    user_id=lambda *_, **__: session["user"]["userinfo"]["sub"]
+    user_id=lambda *_, **__: session["user"]["userinfo"]["sub"],
+    # When this flag is set to `"block"`, the execution of the tool awaits until the user approves or rejects the request.
+    # Given the asynchronous nature of the CIBA flow, this mode is only useful during development.
+    on_authorization_request="block",
 )
 
 tools = [with_async_user_confirmation(trade_tool)]
