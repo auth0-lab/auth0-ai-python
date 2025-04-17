@@ -18,9 +18,8 @@ class CIBAAuthorizer(CIBAAuthorizerBase, ABC):
             tool_fn = self.protect(
                 lambda *_, **__: {
                     "thread_id": ensure_config().get("configurable", {}).get("thread_id"),
-                    "checkpoint_ns": ensure_config().get("configurable", {}).get("checkpoint_ns"),
-                    "run_id": ensure_config().get("configurable", {}).get("run_id"),
-                    "tool_call_id": ensure_config().get("configurable", {}).get("tool_call_id"), # TODO: review this
+                    "tool_call_id": "TODO", # FIXME: find a way to access to the tool_call_id
+                    "tool_name": t.name,
                 },
                 execute_fn
             )
