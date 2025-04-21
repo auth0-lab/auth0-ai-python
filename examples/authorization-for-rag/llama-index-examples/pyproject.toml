@@ -16,7 +16,7 @@ llama-index = "^0.12.6"
 termcolor = "^2.5.0"
 python-dotenv = "^1.0.1"
 auth0-ai-llamaindex = { path = "../../../packages/auth0-ai-llamaindex", develop = true }
-openfga-sdk = "^0.9.0"
+openfga-sdk = "^0.9.3"
 
 [build-system]
 requires = ["poetry-core"]
