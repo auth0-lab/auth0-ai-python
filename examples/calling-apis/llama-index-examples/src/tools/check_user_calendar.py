@@ -4,7 +4,7 @@ from typing import Annotated
 import requests
 from auth0_ai_llamaindex.federated_connections import (
     FederatedConnectionError,
-    get_access_token_for_connection,
+    get_credentials_for_connection,
 )
 from llama_index.core.tools import FunctionTool
 
@@ -16,7 +16,7 @@ def add_hours(dt: datetime, hours: int) -> str:
 def check_user_calendar_tool_function(
     dateTime: Annotated[str, "Date and time in ISO 8601 format."]
 ):
-    credentials = get_access_token_for_connection()
+    credentials = get_credentials_for_connection()
     if not credentials:
         raise ValueError(
             "Authorization required to access the Federated Connection API")

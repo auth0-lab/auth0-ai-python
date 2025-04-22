@@ -124,7 +124,7 @@ Define a tool with the proper authorizer specifying a function to resolve the us
 
 ```python
 from auth0_ai_llamaindex.auth0_ai import Auth0AI
-from auth0_ai_llamaindex.federated_connections import get_access_token_for_connection
+from auth0_ai_llamaindex.federated_connections import get_credentials_for_connection
 from llama_index.core.tools import FunctionTool
 
 auth0_ai = Auth0AI()
@@ -136,7 +136,7 @@ with_google_calendar_access = auth0_ai.with_federated_connection(
 )
 
 def tool_function(date: datetime):
-    credentials = get_access_token_for_connection()
+    credentials = get_credentials_for_connection()
     # Call Google API using credentials["access_token"]
 
 check_calendar_tool = with_google_calendar_access(

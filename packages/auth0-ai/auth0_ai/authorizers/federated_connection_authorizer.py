@@ -42,7 +42,7 @@ async def _run_with_local_storage(data: AsyncStorageValue):
     finally:
         _local_storage.reset(token)
 
-def get_access_token_for_connection() -> str | None:
+def get_credentials_for_connection() -> str | None:
     store = _get_local_storage()
     return store.get("credentials")
 
