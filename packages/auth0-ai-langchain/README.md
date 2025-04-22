@@ -130,7 +130,7 @@ Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/aut
 
 ```python
 from auth0_ai_langchain.auth0_ai import Auth0AI
-from auth0_ai_langchain.federated_connections import get_access_token_for_connection
+from auth0_ai_langchain.federated_connections import get_credentials_for_connection
 from langchain_core.tools import StructuredTool
 
 auth0_ai = Auth0AI()
@@ -141,7 +141,7 @@ with_google_calendar_access = auth0_ai.with_federated_connection(
 )
 
 def tool_function(date: datetime):
-    credentials = get_access_token_for_connection()
+    credentials = get_credentials_for_connection()
     # Call Google API using credentials["access_token"]
 
 check_calendar_tool = with_google_calendar_access(
