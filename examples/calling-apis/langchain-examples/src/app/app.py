@@ -1,19 +1,20 @@
 import os
+from typing import Optional
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi import FastAPI, Request, Response, HTTPException, Depends
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.requests import Request
+from auth_types import StartInteractiveLoginOptions
 
-from auth0_fastapi.config import Auth0Config
-from auth0_fastapi.auth.auth_client import AuthClient
 from auth0_fastapi.server.routes import router, register_auth_routes
 
 from langgraph_sdk import get_client
+from langgraph_sdk.schema import Command
 from langchain_core.messages import HumanMessage
 from auth0_ai_langchain.utils.interrupt import get_auth0_interrupts
+from src.auth0.auth import config, auth_client
 
 
 load_dotenv()
@@ -21,107 +22,166 @@ load_dotenv()
 app = FastAPI(
     title="Auth0 AI + LangChain - Chatbot Example: Calling API's on user's behalf")
 
-# 1) Add Session Middleware, needed if you're storing data in (or rely on) session cookies
 app.add_middleware(SessionMiddleware, secret_key=os.getenv(
     "APP_SECRET_KEY", "SOME_RANDOM_SECRET_KEY"))
-
-# 2) Create an Auth0Config with your Auth0 credentials & app settings
-config = Auth0Config(
-    domain=os.getenv("AUTH0_DOMAIN"),
-    client_id=os.getenv("AUTH0_CLIENT_ID"),
-    client_secret=os.getenv("AUTH0_CLIENT_SECRET"),
-    authorization_params={"scope": "openid profile email offline_access"},
-    app_base_url=os.getenv("APP_BASE_URL", "http://localhost:3000"),
-    secret=os.getenv("APP_SECRET_KEY", "SOME_RANDOM_SECRET_KEY"),
-)
-
-# 3) Instantiate the AuthClient
-auth_client = AuthClient(config)
 
 # Attach to the FastAPI app state so internal routes can access it
 app.state.config = config
 app.state.auth_client = auth_client
 
-# 4) Conditionally register routes
+# Conditionally register routes
 register_auth_routes(router, config)
 
-# 5) Include the SDK’s default routes
+# Include the SDK’s default routes
 app.include_router(router)
 
-# Set up templates directory
+# Set up templates directory with custom Jinja2 environment
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
+
+# Initialize LangGraph client
+langgraph_client = get_client(url=os.getenv(
+    "LANGGRAPH_API_URL", "http://localhost:54367"))
 
 
 @app.get("/")
 async def home(request: Request, response: Response):
     # Check if user is authenticated
-    user = await auth_client.client.get_user(store_options={"request": request, "response": response})
-
-    if not user:
+    try:
+        await auth_client.require_session(request, response)
+    except Exception as e:
         return RedirectResponse(url="/auth/login")
 
+    # Reset the chat session and redirect
+    chat_session = request.session
+    chat_session["thread_id"] = (await langgraph_client.threads.create())["thread_id"]
+
+    # improve with string interpolation
+    return RedirectResponse(url="/chat/" + chat_session["thread_id"])
+
+
+@app.get("/api/chat/resume")
+async def chat_resume(request: Request, response: Response, auth_session=Depends(auth_client.require_session)):
+    # Reset the chat session and redirect
+    chat_session = request.session
+
+    # Here I must resume tool calls
+    await langgraph_client.runs.wait(
+        chat_session["thread_id"],
+        "agent",
+        command=Command(resume=''),
+        config={"configurable": {
+            "_credentials": {"refresh_token": auth_session.get("refresh_token")}
+        }}
+    )
+
+    return RedirectResponse(url="/chat/" + chat_session["thread_id"])
+
+
+@app.get('/chat/{thread_id}')
+async def chat_thread(request: Request, thread_id: str, response: Response, auth_session=Depends(auth_client.require_session)):
+    chat_session = request.session
+
+    # Check if the thread_id is valid and matches the session
+    if ("thread_id" not in chat_session) or (chat_session["thread_id"] != thread_id):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or mismatched chat session. Please start a new chat."
+        )
+
+    user = auth_session.get("user")
+
+    thread = await langgraph_client.threads.get(chat_session["thread_id"])
+
+    messages = (thread["values"] if thread["values"]
+                else {}).get("messages", [])
+
+    # Limit the content that is sent to the client
+    messages = [
+        {
+            "type": message["type"],
+            "content": message["content"],
+            "id": message["id"]
+        }
+        for message in messages
+    ]
+
     # Render the chat page with the user information
-    request.session.pop("thread_id", None)
-    request.session.pop("messages", None)
-    return templates.TemplateResponse("index.html", {"request": request, "user": user})
+    # TODO: we should also send the interruptions, so that the chat UI state can re-render the Prompts
+    return templates.TemplateResponse("index.html", {"request": request, "messages": messages, "user": user})
 
 
-@app.post("/chat")
-async def chat(request: Request, response: Response):
-    # Check if user is authenticated
-    user = await auth_client.client.get_user(store_options={"request": request, "response": response})
-
-    if not user:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
+@app.post("/api/chat")
+async def chat_api(request: Request, auth_session=Depends(auth_client.require_session)):
     # Retrieve the chat session
-    session = request.session
+    chat_session = request.session
 
     # Initialize session messages if not present
-    if "messages" not in session:
-        session["messages"] = []
+    if "thread_id" not in chat_session:
+        return JSONResponse(content={"error": "Conversation has expired or doesn't exist. Please start a new chat."}, status_code=400)
 
     # Get the user's message from the request body
     body = await request.json()
     message = body.get("message")
     if not message:
         raise HTTPException(status_code=400, detail="Message is required")
-    session["messages"].append(message)
-
-    # Initialize LangGraph client
-    client = get_client(url=os.getenv(
-        "LANGGRAPH_API_URL", "http://localhost:54367"))
-
-    async def run_and_return():
-        # Create a thread if it doesn't exist in the session
-        if "thread_id" not in session:
-            session["thread_id"] = (await client.threads.create())["thread_id"]
-
-        # Wait for the LangGraph agent to process the input
-        return await client.runs.wait(
-            session["thread_id"],
-            "agent",
-            input={"messages": list(map(HumanMessage, session["messages"]))},
-            config={"configurable": {
-                "_credentials": {"refresh_token": user.get("refresh_token")}
-            }}
-        )
 
     try:
-        wait_result = await run_and_return()
+        wait_result = await langgraph_client.runs.wait(
+            chat_session["thread_id"],
+            "agent",
+            input={"messages": [HumanMessage(content=message)]},
+            config={"configurable": {
+                "_credentials": {"refresh_token": auth_session.get("refresh_token")}
+            }}
+        )
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
     # Retrieve thread and handle Auth0 interrupts
-    thread = await client.threads.get(session["thread_id"])
+    thread = await langgraph_client.threads.get(chat_session["thread_id"])
     auth0_interrupts = get_auth0_interrupts(thread)
 
     if auth0_interrupts:
-        return JSONResponse(content={"response": auth0_interrupts})
+        return JSONResponse(content={"response": auth0_interrupts[0]})
 
     # Return the last message from the LangGraph agent
     if wait_result and "messages" in wait_result:
-        last_message = wait_result["messages"][-1]["content"]
-        return JSONResponse(content={"response": last_message})
+        # reply with the last message
+        last_message = wait_result["messages"][-1]
+        return JSONResponse(content={"response": last_message["content"]})
 
     return JSONResponse(content={"error": "Unexpected error"}, status_code=500)
+
+
+@app.get('/auth/signin')
+async def login(request: Request, response: Response):
+    """
+    Endpoint to initiate the login process.
+    Optionally accepts a 'return_to' query parameter and passes it as part of the app state.
+    Redirects the user to the Auth0 authorization URL.
+    """
+    protected_keys = [
+        "client_id", "redirect_uri", "response_type", "code_challenge", "code_challenge_method", "state", "nonce"
+    ]
+    return_to: Optional[str] = request.query_params.get("returnTo")
+    app_state = {"returnTo": return_to} if return_to else None
+    authorization_params = (
+        {
+            key: value
+            for key, value in request.query_params.items()
+            if key not in protected_keys
+        }
+        if not config.pushed_authorization_requests else {}
+    )
+
+    auth_url = await auth_client.client.start_interactive_login(
+        options=StartInteractiveLoginOptions(
+            app_state=app_state,
+            authorization_params=authorization_params
+        ),
+        store_options={"request": request, "response": response}
+    )
+
+    auth_response = RedirectResponse(url=auth_url, headers=response.headers)
+    return auth_response
+    # return merge_set_cookie_headers(response, auth_response)

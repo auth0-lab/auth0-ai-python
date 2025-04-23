@@ -8,6 +8,8 @@ from auth0_ai_langchain.federated_connections import (
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
 
+from src.auth0.auth0_ai import with_calendar_free_busy_access
+
 
 class CheckUserCalendarSchema(BaseModel):
     date: datetime
@@ -33,7 +35,8 @@ def check_user_calendar_tool_function(date: datetime):
 
     response = requests.post(
         url,
-        headers={"Authorization": f"{credentials["token_type"]} {credentials["access_token"]}"},
+        headers={
+            "Authorization": f"{credentials["token_type"]} {credentials["access_token"]}"},
         json=body
     )
 
@@ -48,9 +51,9 @@ def check_user_calendar_tool_function(date: datetime):
     return {"available": len(busy_resp["calendars"]["primary"]["busy"]) == 0}
 
 
-check_user_calendar_tool = StructuredTool(
+check_user_calendar_tool = with_calendar_free_busy_access(StructuredTool(
     name="check_user_calendar",
     description="Use this function to check if the user is available on a certain date and time",
     args_schema=CheckUserCalendarSchema,
     func=check_user_calendar_tool_function,
-)
+))

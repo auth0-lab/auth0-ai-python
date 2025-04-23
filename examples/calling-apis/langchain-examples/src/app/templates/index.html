@@ -3,127 +3,422 @@
   <head>
     <meta charset="UTF-8" />
     <title>Chatbot Example</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        max-width: 600px;
-        margin: 40px auto;
-        padding: 20px;
-        background-color: #f9f9f9;
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script type="module" src="https://esm.sh/tsx"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19.1.0",
+          "react-dom/": "https://esm.sh/react-dom@19.1.0/"
+        }
+      }
+    </script>
+
+    <style type="text/tailwindcss">
+      :root {
+        --background: oklch(1 0 0);
+        --foreground: oklch(0.145 0 0);
+        --card: oklch(1 0 0);
+        --card-foreground: oklch(0.145 0 0);
+        --popover: oklch(1 0 0);
+        --popover-foreground: oklch(0.145 0 0);
+        --primary: oklch(0.205 0 0);
+        --primary-foreground: oklch(0.985 0 0);
+        --secondary: oklch(0.97 0 0);
+        --secondary-foreground: oklch(0.205 0 0);
+        --muted: oklch(0.97 0 0);
+        --muted-foreground: oklch(0.556 0 0);
+        --accent: oklch(0.97 0 0);
+        --accent-foreground: oklch(0.205 0 0);
+        --destructive: oklch(0.577 0.245 27.325);
+        --destructive-foreground: oklch(0.577 0.245 27.325);
+        --border: oklch(0.922 0 0);
+        --input: oklch(0.922 0 0);
+        --ring: oklch(0.708 0 0);
+        --chart-1: oklch(0.646 0.222 41.116);
+        --chart-2: oklch(0.6 0.118 184.704);
+        --chart-3: oklch(0.398 0.07 227.392);
+        --chart-4: oklch(0.828 0.189 84.429);
+        --chart-5: oklch(0.769 0.188 70.08);
+        --radius: 0.625rem;
+        --sidebar: oklch(0.985 0 0);
+        --sidebar-foreground: oklch(0.145 0 0);
+        --sidebar-primary: oklch(0.205 0 0);
+        --sidebar-primary-foreground: oklch(0.985 0 0);
+        --sidebar-accent: oklch(0.97 0 0);
+        --sidebar-accent-foreground: oklch(0.205 0 0);
+        --sidebar-border: oklch(0.922 0 0);
+        --sidebar-ring: oklch(0.708 0 0);
       }
 
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
+      .dark {
+        --background: oklch(0.145 0 0);
+        --foreground: oklch(0.985 0 0);
+        --card: oklch(0.145 0 0);
+        --card-foreground: oklch(0.985 0 0);
+        --popover: oklch(0.145 0 0);
+        --popover-foreground: oklch(0.985 0 0);
+        --primary: oklch(0.985 0 0);
+        --primary-foreground: oklch(0.205 0 0);
+        --secondary: oklch(0.269 0 0);
+        --secondary-foreground: oklch(0.985 0 0);
+        --muted: oklch(0.269 0 0);
+        --muted-foreground: oklch(0.708 0 0);
+        --accent: oklch(0.269 0 0);
+        --accent-foreground: oklch(0.985 0 0);
+        --destructive: oklch(0.396 0.141 25.723);
+        --destructive-foreground: oklch(0.637 0.237 25.331);
+        --border: oklch(0.269 0 0);
+        --input: oklch(0.269 0 0);
+        --ring: oklch(0.439 0 0);
+        --chart-1: oklch(0.488 0.243 264.376);
+        --chart-2: oklch(0.696 0.17 162.48);
+        --chart-3: oklch(0.769 0.188 70.08);
+        --chart-4: oklch(0.627 0.265 303.9);
+        --chart-5: oklch(0.645 0.246 16.439);
+        --sidebar: oklch(0.205 0 0);
+        --sidebar-foreground: oklch(0.985 0 0);
+        --sidebar-primary: oklch(0.488 0.243 264.376);
+        --sidebar-primary-foreground: oklch(0.985 0 0);
+        --sidebar-accent: oklch(0.269 0 0);
+        --sidebar-accent-foreground: oklch(0.985 0 0);
+        --sidebar-border: oklch(0.269 0 0);
+        --sidebar-ring: oklch(0.439 0 0);
       }
 
-      h2 {
-        margin: 0;
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-card-foreground: var(--card-foreground);
+        --color-popover: var(--popover);
+        --color-popover-foreground: var(--popover-foreground);
+        --color-primary: var(--primary);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-secondary: var(--secondary);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-destructive: var(--destructive);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-ring: var(--ring);
+        --color-chart-1: var(--chart-1);
+        --color-chart-2: var(--chart-2);
+        --color-chart-3: var(--chart-3);
+        --color-chart-4: var(--chart-4);
+        --color-chart-5: var(--chart-5);
+        --radius-sm: calc(var(--radius) - 4px);
+        --radius-md: calc(var(--radius) - 2px);
+        --radius-lg: var(--radius);
+        --radius-xl: calc(var(--radius) + 4px);
+        --color-sidebar: var(--sidebar);
+        --color-sidebar-foreground: var(--sidebar-foreground);
+        --color-sidebar-primary: var(--sidebar-primary);
+        --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+        --color-sidebar-accent: var(--sidebar-accent);
+        --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+        --color-sidebar-border: var(--sidebar-border);
+        --color-sidebar-ring: var(--sidebar-ring);
       }
 
-      #chatbox {
-        border: 1px solid #ccc;
-        padding: 10px;
-        height: 300px;
-        overflow-y: auto;
-        background: #fff;
-        margin-bottom: 15px;
-      }
-
-      .message {
-        margin: 8px 0;
-      }
-
-      .message.user {
-        text-align: right;
-        font-weight: bold;
-      }
-
-      .message.bot {
-        text-align: left;
-        color: #333;
-      }
-
-      form {
-        display: flex;
-        gap: 10px;
-      }
-
-      input[type="text"] {
-        flex: 1;
-        padding: 8px;
-      }
-
-      button {
-        padding: 8px 16px;
-        cursor: pointer;
-      }
-
-      a.logout {
-        text-decoration: none;
-        color: #fff;
-        background-color: #d9534f;
-        padding: 6px 12px;
-        border-radius: 4px;
+      @layer base {
+        * {
+          @apply border-border outline-ring/50;
+        }
+        body {
+          @apply bg-background text-foreground;
+        }
       }
     </style>
   </head>
-  <body>
-    <header>
-      <h2>Hello, {{ user.name }}!</h2>
-      <a class="logout" href="/auth/logout">Logout</a>
-    </header>
+  <body class="font-sans max-w-2xl mx-auto p-5 bg-slate-100 my-8">
+    <div id="app"></div>
 
-    <div id="chatbox"></div>
 
-    <form id="chat-form">
-      <input type="text" id="message" placeholder="Ask something..." required />
-      <button type="submit">Send</button>
-    </form>
+    <script id="user" type="application/json">
+      {{ user | tojson | safe }}
+    </script>
 
-    <script>
-      const form = document.getElementById("chat-form");
-      const chatbox = document.getElementById("chatbox");
+    <script id="messages" type="application/json">
+      {{ messages | tojson | safe }}
+    </script>
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const input = document.getElementById("message");
-        const message = input.value.trim();
-        if (!message) return;
+    <script type="text/javascript">
+      const user = JSON.parse(document.getElementById("user").textContent);
+      const messages = JSON.parse(document.getElementById("messages").textContent);
+    </script>
 
-        input.value = "";
+    <script type="text/babel">
+      window.PromptUserContainer = function PromptUserContainer({
+        title,
+        description,
+        action,
+        icon,
+        readOnly = false,
+        containerClassName,
+      }) {
+        return (
+          <fieldset
+            className={`border border-gray-300 rounded-lg items-center w-full justify-between p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-2 ${readOnly ? "disabled cursor-not-allowed" : ""} ${containerClassName}`}
+            disabled={readOnly}
+          >
+            <div className="w-full flex flex-col sm:flex-row justify-start items-center gap-4">
+              {icon}
+              <div className="flex flex-col gap-1 sm:gap-1.5 items-start w-full">
+                <h2 className="grow text-sm sm:text-base leading-6 font-semibold">
+                  {title}
+                </h2>
+                {description && (
+                  <p className="grow text-xs sm:text-sm leading-5 font-light text-gray-500">
+                    {description}
+                  </p>
+                )}
+              </div>
+            </div>
 
-        // Add user message
-        const userDiv = document.createElement("div");
-        userDiv.className = "message user";
-        userDiv.textContent = message;
-        chatbox.appendChild(userDiv);
+            {action && (
+              <div className="w-full sm:w-fit">
+                <button
+                  onClick={() => action.onClick()}
+                  className={`w-full sm:w-fit bg-gray-200 text-black whitespace-nowrap rounded-md text-sm font-normal focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-primary/90 hover:text-white py-2 px-4 transition-all duration-300 ${action.className}`}
+                >
+                  {action.label}
+                </button>
+              </div>
+            )}
+          </fieldset>
+        );
+      }
+    </script>
 
-        const loadingDiv = document.createElement("div");
-        loadingDiv.className = "message bot";
-        loadingDiv.textContent = "Waiting...";
-        chatbox.appendChild(loadingDiv);
-        chatbox.scrollTop = chatbox.scrollHeight;
+    <script type="text/babel">
+      import React, { useState, useContext } from "react";
 
-        try {
-          const res = await fetch("/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message }),
-          });
+      const ApplicationContext = React.createContext();
 
-          const data = await res.json();
+      const ContextProvider = ({ user: initialUser = {}, messages: initialMessages = [], children }) => {
+        const [user, setUser] = useState(initialUser);
+        const [messages, setMessages] = useState(initialMessages);
+        const [isSubmitting, setIsSubmitting] = useState(false);
+        const value = { user, messages, setUser, setMessages, isSubmitting, setIsSubmitting };
+        return (
+          <ApplicationContext.Provider value={value}>
+            {children}
+          </ApplicationContext.Provider>
+        );
+      }
 
-          loadingDiv.textContent =
-            data.response || `Failed to fetch response: ${data.error}`;
-        } catch (err) {
-          loadingDiv.textContent = `Failed to fetch response: ${err}`;
+      window.ContextProvider = ContextProvider;
+      window.useAppContext = () => {
+        const context = useContext(ApplicationContext);
+        if (!context) {
+          throw new Error("useAppContext must be used within a ContextProvider");
+        }
+        return context;
+      };
+    </script>
+
+    <script type="text/babel">
+      function Header() {
+        const { user } = useAppContext();
+        return (
+          <header class="flex justify-between items-center mb-5">
+            <h2 className="text-xl font-semibold m-0">Hello, {user.name}!</h2>
+            <a href="/auth/logout" className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-200">
+              Logout
+            </a>
+          </header>
+        );
+      }
+      window.Header = Header;
+    </script>
+
+    <script type="text/babel">
+      import { useRef, useEffect } from "react";
+
+      function ChatMessage({ content, type }) {
+        if (!content) {
+          return null;
         }
 
-        chatbox.scrollTop = chatbox.scrollHeight;
-      });
+        const classNames = {
+          ai: {
+            container: "flex justify-start",
+            content: "bg-gray-200 text-black px-4 py-2 rounded-xl w-fit max-w-lg"
+          },
+          human: {
+            container: "flex justify-end",
+            content: "bg-blue-500 text-white px-4 py-2 rounded-xl w-fit max-w-lg"
+          }
+        };
+
+        return (
+          <div className={classNames[type].container}>
+            <div className={classNames[type].content}>
+              {type === "ai" ? "AI: " : ""}
+              {content}
+            </div>
+          </div>
+        );
+      }
+      function ChatBox() {
+        const { messages, isSubmitting } = useAppContext();
+        const scrollContainerRef = useRef(null);
+
+        useEffect(() => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+          }
+        }, [messages, isSubmitting]);
+
+        return (
+          <div ref={scrollContainerRef} className="flex flex-col space-y-2 p-4 max-w-2xl mx-auto border border-gray-100 h-[70vh] overflow-y-auto bg-white mb-4 rounded-lg shadow-md">
+            {messages.filter(({ type }) => ["ai", "human", "interrupt"].includes(type)).map((message, index) => (
+              message.type === "interrupt"
+                ? <PromptUserContainer
+                    title={`Missing required permissions for ${message.interrupt.connection}`}
+                    description={message.content}
+                    action={({
+                      label: "Authorize",
+                      onClick: () => {
+                        const params = new URLSearchParams({
+                          connection: message.interrupt.connection,
+                          access_type: "offline",
+                          connection_scope: message.interrupt.required_scopes.join(),
+                          returnTo: "/api/chat/resume",
+                        });
+                        window.location.href = `/auth/signin?${params.toString()}`;
+                      }
+                    })}
+                  />
+                : <ChatMessage key={index} content={message.content} type={message.type} />
+            ))}
+            {isSubmitting && <ChatMessage content="Working..." type="ai" />}
+          </div>
+        );
+      }
+      window.ChatBox = ChatBox;
+    </script>
+
+    <script type="text/babel">
+      import { useState, useRef, useEffect } from "react";
+
+      function UserInput({ handleSubmit }) {
+        const [value, setValue] = useState("");
+        const { isSubmitting } = useAppContext();
+        const inputRef = useRef(null);
+
+
+        const onSubmit = (e) => {
+          e.preventDefault();
+          if (!value) return;
+          handleSubmit(value);
+          setValue("");
+        };
+
+        useEffect(() => {
+          if (inputRef.current && !isSubmitting) {
+            inputRef.current.focus();
+          }
+        }, [isSubmitting]);
+
+        return (
+          <form onSubmit={onSubmit}>
+            <fieldset disabled={isSubmitting} className="flex items-center border rounded-xl px-3 py-2 shadow-sm mt-4 bg-white disabled:opacity-60">
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder={isSubmitting ? "Sending..." : "Ask something..."}
+                className="flex-1 border-none outline-none p-2 bg-transparent text-gray-800 placeholder-gray-400 disabled:placeholder-gray-700 disabled:cursor-not-allowed"
+                value={value}
+                onChange={({ target: { value } }) => setValue(value)}
+                required={true}
+              />
+              <button class="ml-2 bg-neutral-600 hover:bg-neutral-700 text-white px-4 py-2 rounded-lg transition disabled:cursor-not-allowed">
+                Send
+              </button>
+            </fieldset>
+          </form>
+        );
+      }
+
+      window.UserInput = UserInput;
+    </script>
+
+    <script type="text/babel">
+      function App({ user, messages }) {
+        const { setMessages, setIsSubmitting } = useAppContext();
+        const handleSubmit = async (message) => {
+          setIsSubmitting(true);
+          setMessages((prevMessages) => [...prevMessages, { type: "human", content: message }]);
+
+          try {
+            const res = await fetch("/api/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              throw new Error(data.error || "Failed to fetch response");
+            }
+
+            const interrupt = data.response?.ns?.includes?.("auth0AI:AUTH0_AI_INTERRUPT:FEDERATED_CONNECTION_ERROR")
+              ? data.response.value
+              : null;
+
+            if (interrupt) {
+              setMessages(
+                (prevMessages) => ([
+                  ...prevMessages,
+                  { type: "interrupt", content: "Missing credentials to complete the request. Please follow the link below to authorize the action", interrupt }
+                ])
+              );
+              return;
+            }
+
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              { type: "ai", content: data.response || `Failed to fetch response: ${data.error}` }
+            ]);
+          } catch (err) {
+            console.log("GOT HERE", err);
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              { type: "ai", content: `Failed to fetch response: ${err.message}` }
+            ]);
+          } finally {
+            setIsSubmitting(false);
+          }
+        };
+
+        return (
+          <main>
+            <Header user={user} />
+            <ChatBox messages={messages} />
+            <UserInput handleSubmit={handleSubmit} />
+          </main>
+        );
+      }
+      window.App = App;
+    </script>
+
+    <script type="text/babel">
+      import React from "react";
+      import { createRoot } from "react-dom/client";
+
+      const root = createRoot(document.getElementById('app'));
+      root.render(
+        <ContextProvider user={user} messages={messages}>
+          <App user={user} messages={messages} />
+        </ContextProvider>
+      );
     </script>
   </body>
 </html>
