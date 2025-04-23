@@ -74,7 +74,7 @@ LANGGRAPH_API_URL="http://localhost:54367"
 
     > A service that resumes CIBA-interrupted threads on the LangGraph server.
 
-6.  **Select "agent" graph, go to Manage Assistants and create a new one with the following configuration**
+6.  **From LangChain Studio, select "agent" graph, go to Manage Assistants and create a new one with the following configuration**
 
     ```js
     {

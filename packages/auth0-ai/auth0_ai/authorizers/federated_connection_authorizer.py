@@ -1,15 +1,20 @@
 import asyncio
 import contextvars
+import hashlib
 import inspect
+import json
 import os
 from contextlib import asynccontextmanager
 from typing import Awaitable, Callable, Generic, Optional, Any, TypedDict, Union
 from auth0 import Auth0Error
 from auth0.authentication.get_token import GetToken
+from auth0_ai.authorizers.context import AuthContext, ContextGetter, ns_from_context
 from auth0_ai.authorizers.types import Auth0ClientParams, AuthorizerToolParameter, ToolInput
 from auth0_ai.credentials import TokenResponse
 from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
 from auth0_ai.interrupts.federated_connection_interrupt import FederatedConnectionError, FederatedConnectionInterrupt
+from auth0_ai.stores import Store, SubStore, InMemoryStore
+from auth0_ai.utils import omit
 
 class AsyncStorageValue(TypedDict):
     context: Any
@@ -49,16 +54,8 @@ def get_credentials_for_connection() -> TokenResponse | None:
 class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
     def __init__(
         self,
-        scopes: Union[
-            AuthorizerToolParameter[ToolInput, list[str]],
-            Callable[ToolInput, Union[list[str], Awaitable[list[str]]]],
-            list[str],
-        ],
-        connection: Union[
-            AuthorizerToolParameter[ToolInput, str],
-            Callable[ToolInput, Union[str, Awaitable[str]]],
-            str,
-        ],
+        scopes: list[str],
+        connection: str,
         refresh_token: Optional[Union[
             AuthorizerToolParameter[ToolInput, str | None],
             Callable[ToolInput, Union[str | None, Awaitable[str | None]]],
@@ -69,23 +66,27 @@ class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
             Callable[ToolInput, Union[TokenResponse | None, Awaitable[TokenResponse | None]]],
             TokenResponse | None
         ]] = None,
+        store: Optional[Store] = None,
+        credentials_context: Optional[AuthContext] = "thread"
     ):
         """
         Parameters for the federated connection authorizer.
 
         Args:
-            scopes: The scopes required in the access token of the federated connection provider. Can be:
-                - A static list of scopes
-                - A callable that receives the tool input and returns a list of scopes (sync or async)
-            connection: The connection name of the federated connection provider. Can be:
-                - A string
-                - A callable that receives the tool input and returns connection name (sync or async)
+            scopes: The scopes required in the access token of the federated connection provider.
+            connection: The connection name of the federated connection provider.
             refresh_token: Optional. The Auth0 refresh token to exchange for an federated connection access token. Can be:
                 - A string or None
                 - A callable that receives the tool input and returns the user refresh token (sync or async)
             access_token: Optional. The federated connection access token if available in the tool context. Can be:
                 - A `TokenResponse`
                 - A callable that receives the tool input and returns a `TokenResponse` (sync or async)
+            store: Optional. An store used to temporarly store the authorization response data while the user is completing the authorization in another device (default: InMemoryStore).
+            credentials_context: Optional. Defines the scope of credential sharing. Can be:
+                - "thread" (default): Credentials are shared across all tools using the same authorizer within the current thread.
+                - "agent": Credentials are shared globally across all threads and tools in the agent.
+                - "tool": Credentials are shared across multiple calls to the same tool within the same thread.
+                - "tool-call": Credentials are valid only for a single invocation of the tool.
         """
 
         def wrap(val, result_type):
@@ -93,18 +94,20 @@ class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
                 return val
             return AuthorizerToolParameter[ToolInput, result_type](val)
        
-        self.scopes = wrap(scopes, list[str])
-        self.connection = wrap(connection, str)
+        self.scopes = scopes
+        self.connection = connection
         self.refresh_token = wrap(refresh_token, str | None)
         self.access_token = wrap(access_token, TokenResponse | None)
+        self.store = store
+        self.credentials_context = credentials_context
 
 class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
     def __init__(
         self,
-        options: FederatedConnectionAuthorizerParams[ToolInput],
+        params: FederatedConnectionAuthorizerParams[ToolInput],
         config: Auth0ClientParams = None,
     ):
-        self.options = options
+        self.params = params
         auth0 = {
             "domain": (config or {}).get("domain", os.getenv("AUTH0_DOMAIN")),
             "client_id": (config or {}).get("client_id", os.getenv("AUTH0_CLIENT_ID")),
@@ -117,18 +120,36 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
         }
 
         # Remove keys with None values
-        auth0 = {k: v for k, v in auth0.items() if v is not None}
-        self.get_token = GetToken(**auth0)
+        self.auth0 = {k: v for k, v in auth0.items() if v is not None}
+        self.get_token = GetToken(**self.auth0)
+
+        # TODO: consider moving this to Auth0AI classes
+        sub_store = SubStore(params.store or InMemoryStore()).create_sub_store("AUTH0_AI_FEDERATED_CONNECTION")
+
+        instance_id = self._get_instance_id()
+
+        self.credentials_store = SubStore[TokenResponse](sub_store, {
+            "base_namespace": [instance_id, "credentials"],
+            "get_ttl": lambda credential: credential["expires_in"] * 1000 if "expires_in" in credential else None
+        })
 
         # Ensure either refreshToken or accessToken is provided
-        if options.refresh_token.value is None and options.access_token.value is None:
+        if params.refresh_token.value is None and params.access_token.value is None:
             raise ValueError("Either refresh_token or access_token must be provided to initialize the Authorizer.")
         
-        if options.refresh_token.value is not None and options.access_token.value is not None:
+        if params.refresh_token.value is not None and params.access_token.value is not None:
             raise ValueError("Only one of refresh_token or access_token can be provided to initialize the Authorizer.")
     
     def _handle_authorization_interrupts(self, err: Auth0Interrupt) -> None:
         raise err
+    
+    def _get_instance_id(self) -> str:
+        props = {
+            "auth0": omit(self.auth0, ["client_secret", "client_assertion_signing_key"]),
+            "params": omit(self.params, ["store", "refresh_token", "access_token"])
+        }
+        sh = json.dumps(props, sort_keys=True, separators=(",", ":"))
+        return hashlib.md5(sh.encode("utf-8")).hexdigest()
     
     def validate_token(self, token_response: Optional[TokenResponse] = None):
         store = _get_local_storage()
@@ -183,47 +204,57 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
             raise FederatedConnectionError(err.message) if 400 <= err.status_code <= 499 else err
     
     async def get_access_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> TokenResponse | None:
-        if callable(self.options.refresh_token.value) or asyncio.iscoroutinefunction(self.options.refresh_token.value):
+        if callable(self.params.refresh_token.value) or asyncio.iscoroutinefunction(self.params.refresh_token.value):
             token_response = await self.get_access_token_impl(*args, **kwargs)
         else:
-            token_response = await self.options.access_token.resolve(*args, **kwargs)
+            token_response = await self.params.access_token.resolve(*args, **kwargs)
         
         self.validate_token(token_response)
         return token_response
     
     async def get_refresh_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs):
-        return await self.options.refresh_token.resolve(*args, **kwargs)
+        return await self.params.refresh_token.resolve(*args, **kwargs)
     
     def protect(
         self,
-        get_context: Callable[ToolInput, any],
+        get_context: ContextGetter[ToolInput],
         execute: Callable[ToolInput, any]
     ) -> Callable[ToolInput, any]:
         async def wrapped_execute(*args: ToolInput.args, **kwargs: ToolInput.kwargs):
-            store = {
-                "context": get_context(*args, **kwargs),
-                "scopes": await self.options.scopes.resolve(*args, **kwargs),
-                "connection": await self.options.connection.resolve(*args, **kwargs)
+            context = get_context(*args, **kwargs)
+            local_store = {
+                "context": context,
+                "scopes": self.params.scopes,
+                "connection": self.params.connection
             }
 
-            async with _run_with_local_storage(store):
+            async with _run_with_local_storage(local_store):
+                credentials_ns = ns_from_context(self.params.credentials_context, context)
+
                 try:
-                    token_response = await self.get_access_token(*args, **kwargs)
-                    _update_local_storage({"credentials": token_response})
+                    credentials = await self.credentials_store.get(credentials_ns, "credential")
+                    
+                    if not credentials:
+                        credentials = await self.get_access_token(*args, **kwargs)
+                        await self.credentials_store.put(credentials_ns, "credential", credentials)
+                    
+                    _update_local_storage({"credentials": credentials})
 
                     if inspect.iscoroutinefunction(execute):
                         return await execute(*args, **kwargs)
                     else:
                         return execute(*args, **kwargs)
                 except FederatedConnectionError as err:
+                    self.credentials_store.delete(credentials_ns, "credential")
                     interrupt = FederatedConnectionInterrupt(
                         str(err),
-                        store["connection"],
-                        store["scopes"],
-                        store["scopes"]
+                        local_store["connection"],
+                        local_store["scopes"],
+                        local_store["scopes"]
                     )
                     return self._handle_authorization_interrupts(interrupt)
                 except Auth0Interrupt as err:
+                    self.credentials_store.delete(credentials_ns, "credential")
                     return self._handle_authorization_interrupts(err)
         
         return wrapped_execute

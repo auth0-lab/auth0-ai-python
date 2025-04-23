@@ -30,7 +30,8 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope="stock:trade",
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
-    user_id=lambda *_, **__: session["user"]["userinfo"]["sub"]
+    user_id=lambda *_, **__: session["user"]["userinfo"]["sub"],
+    # store=InMemoryStore() (optional)
 )
 
 def tool_function(ticker: str, qty: int) -> str:
@@ -133,6 +134,7 @@ with_google_calendar_access = auth0_ai.with_federated_connection(
     connection="google-oauth2",
     scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
     refresh_token=lambda *_args, **_kwargs: session["user"]["refresh_token"],
+    # store=InMemoryStore() (optional)
 )
 
 def tool_function(date: datetime):

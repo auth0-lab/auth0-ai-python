@@ -31,7 +31,9 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope="stock:trade",
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
-    user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id")
+    user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id"),
+    # optional:
+    # store=InMemoryStore()
 )
 
 def tool_function(ticker: str, qty: int) -> str:
@@ -122,7 +124,7 @@ buy_tool = StructuredTool(
 
 ## Calling APIs On User's Behalf
 
-The `Auth0AI.with_federated_connection` function exchanges user's refresh token taken from the runnable configuration (`config.configurable._credentials.refresh_token`) for a Federated Connection API token.
+The `Auth0AI.with_federated_connection` function exchanges user's refresh token taken, by default, from the runnable configuration (`config.configurable._credentials.refresh_token`) for a Federated Connection API token.
 
 Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/calling-apis/langchain-examples).
 
@@ -137,7 +139,10 @@ auth0_ai = Auth0AI()
 
 with_google_calendar_access = auth0_ai.with_federated_connection(
     connection="google-oauth2",
-    scopes=["https://www.googleapis.com/auth/calendar.freebusy"]
+    scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
+    # optional:
+    # refresh_token=lambda *_, **__: ensure_config().get("configurable", {}).get("_credentials", {}).get("refresh_token"),
+    # store=InMemoryStore(),
 )
 
 def tool_function(date: datetime):

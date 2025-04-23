@@ -7,13 +7,13 @@ from llama_index.core.tools import FunctionTool
 class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
     def __init__(
         self, 
-        options: FederatedConnectionAuthorizerParams,
+        params: FederatedConnectionAuthorizerParams,
         auth0: Auth0ClientParams = None,
     ):
-        if options.refresh_token.value is None:
-            raise ValueError('options.refresh_token must be provided.')
+        if params.refresh_token.value is None:
+            raise ValueError('params.refresh_token must be provided.')
 
-        super().__init__(options, auth0)
+        super().__init__(params, auth0)
     
     def authorizer(self):
         def wrapped_tool(t: FunctionTool) -> FunctionTool:

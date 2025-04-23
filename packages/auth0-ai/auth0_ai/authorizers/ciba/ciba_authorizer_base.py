@@ -18,6 +18,7 @@ from auth0_ai.authorizers.types import Auth0ClientParams, ToolInput
 from auth0_ai.interrupts.ciba_interrupts import AccessDeniedInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt, AuthorizationRequestExpiredInterrupt, InvalidGrantInterrupt, UserDoesNotHavePushNotificationsInterrupt
 from auth0_ai.stores import SubStore, InMemoryStore
 from auth0_ai.authorizers.context import ns_from_context, ContextGetter
+from auth0_ai.utils import omit
 
 class AsyncStorageValue(TypedDict):
     context: Any
@@ -86,12 +87,19 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
         self.auth_request_store = SubStore[CIBAAuthorizationRequest](ciba_store, {
             "get_ttl": lambda auth_request: auth_request["expires_in"] * 1000 if "expires_in" in auth_request else None
         })
+
+        self.credentials_store = SubStore[TokenResponse](ciba_store, {
+            "get_ttl": lambda credential: credential["expires_in"] * 1000 if "expires_in" in credential else None
+        })
     
     def _handle_authorization_interrupts(self, err: Union[AuthorizationPendingInterrupt, AuthorizationPollingInterrupt]) -> None:
         raise err
     
     def _get_instance_id(self, authorize_params) -> str:
-        props = {"auth0": self.auth0, "params": authorize_params}
+        props = {
+            "auth0": omit(self.auth0, ["client_secret", "client_assertion_signing_key"]),
+            "params": authorize_params
+        }
         sh = json.dumps(props, sort_keys=True, separators=(",", ":"))
         return hashlib.md5(sh.encode("utf-8")).hexdigest()
     
@@ -209,11 +217,8 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
             context = get_context(*args, **kwargs)
             authorize_params = await self._get_authorize_params(*args, **kwargs)
             instance_id = self._get_instance_id(authorize_params)
-            auth_request_ns = [
-                instance_id,
-                "AuthRequests",
-                *ns_from_context("tool-call", context),
-            ]
+            auth_request_ns = [instance_id, "auth_requests", *ns_from_context("tool-call", context)]
+            credentials_ns = [instance_id, "credentials", *ns_from_context(self.params.get("credentials_context", "tool-call"), context)]
 
             local_store = {
                 "context": context,
@@ -221,30 +226,39 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
             }
 
             async with _run_with_local_storage(local_store):
+                interrupt_mode = self.params.get("on_authorization_request", "interrupt") == "interrupt"
+
                 try:
-                    interrupt_mode = self.params.get("on_authorization_request", "interrupt") == "interrupt"
-                    if interrupt_mode:
-                        auth_request = await self.auth_request_store.get(auth_request_ns, "auth_request")
-                        if not auth_request:
-                            # initial request
+                    credentials = await self.credentials_store.get(credentials_ns, "credential")
+                    if not credentials:
+                        if interrupt_mode:
+                            auth_request = await self.auth_request_store.get(auth_request_ns, "auth_request")
+                            if not auth_request:
+                                # initial request
+                                auth_request = await self._start(authorize_params)
+                                await self.auth_request_store.put(auth_request_ns, "auth_request", auth_request)
+                            
+                            credentials = self._get_credentials(auth_request)
+                        else:
+                            # block mode
                             auth_request = await self._start(authorize_params)
-                            await self.auth_request_store.put(auth_request_ns, "auth_request", auth_request)
-                        
-                        credentials = self._get_credentials(auth_request)
-                    else:
-                        # block mode
-                        auth_request = await self._start(authorize_params)
-                        credentials = await self.get_credentials_polling(auth_request)
+                            credentials = await self.get_credentials_polling(auth_request)
 
-                    await self.delete_auth_request()
+                        await self.delete_auth_request()
                     
-                    _update_local_storage({"credentials": credentials})
-
-                    if inspect.iscoroutinefunction(execute):
-                        return await execute(*args, **kwargs)
-                    else:
-                        return execute(*args, **kwargs)
+                        if credentials is not None:
+                            await self.credentials_store.put(credentials_ns, "credential", credentials)
                 except (AuthorizationPendingInterrupt, AuthorizationPollingInterrupt) as interrupt:
                     return self._handle_authorization_interrupts(interrupt)
+                except Exception as err:
+                    await self.delete_auth_request()
+                    raise
+                
+                _update_local_storage({"credentials": credentials})
+
+                if inspect.iscoroutinefunction(execute):
+                    return await execute(*args, **kwargs)
+                else:
+                    return execute(*args, **kwargs)
         
         return wrapped_execute

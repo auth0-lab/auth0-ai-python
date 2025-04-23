@@ -1,4 +1,5 @@
 from typing import Awaitable, Callable, Generic, Literal, Optional, TypedDict, Union
+from auth0_ai.authorizers.context import AuthContext
 from auth0_ai.authorizers.types import ToolInput
 from auth0_ai.stores import Store
 
@@ -16,6 +17,11 @@ class CIBAAuthorizerParams(TypedDict, Generic[ToolInput]):
         on_authorization_request (string, optional): The behavior when the authorization request is made. Expected values:
             - "interrupt" (default): The tool execution is interrupted until the user completes the authorization.
             - "block": The tool execution is blocked until the user completes the authorization. This mode is only useful for development purposes and should not be used in production.
+        credentials_context (AuthContext, optional): Defines the scope of credential sharing:
+            - "tool-call" (default): Credentials are valid only for a single invocation of the tool.
+            - "agent": Credentials are shared globally across all threads and tools in the agent.
+            - "thread": Credentials are shared across all tools using the same authorizer within the current thread.
+            - "tool": Credentials are shared across multiple calls to the same tool within the same thread.
     """
     scopes: list[str]
     binding_message: Union[str, Callable[ToolInput, Awaitable[str]]]
@@ -24,4 +30,4 @@ class CIBAAuthorizerParams(TypedDict, Generic[ToolInput]):
     audience: Optional[str]
     request_expiry: Optional[int]
     on_authorization_request: Optional[Literal["block", "interrupt"]]
-
+    credentials_context: Optional[AuthContext]
