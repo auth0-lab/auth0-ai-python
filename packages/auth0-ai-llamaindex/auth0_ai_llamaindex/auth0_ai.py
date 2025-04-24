@@ -1,11 +1,11 @@
 from typing import Callable, Optional
-from llama_index.core.tools import BaseTool
+from llama_index.core.tools import FunctionTool
 from auth0_ai.authorizers.ciba import CIBAAuthorizerParams
 from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
 from auth0_ai_llamaindex.ciba.ciba_authorizer import CIBAAuthorizer
 from auth0_ai_llamaindex.federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
-
+from auth0_ai_llamaindex.context import set_ai_context
 
 class Auth0AI:
     """Provides decorators to secure LlamaIndex tools using Auth0 authorization flows.
@@ -21,7 +21,7 @@ class Auth0AI:
         """
         self.auth0 = auth0
 
-    def with_federated_connection(self, **params: FederatedConnectionAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
+    def with_federated_connection(self, **params: FederatedConnectionAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
         """Enables a tool to obtain an access token from a federated identity provider (e.g., Google, Azure AD).
 
         The token can then be used within the tool to call third-party APIs on behalf of the user.
@@ -30,7 +30,7 @@ class Auth0AI:
             **params: Parameters defined in `FederatedConnectionAuthorizerParams`.
 
         Returns:
-            Callable[[BaseTool], BaseTool]: A decorator to wrap a LlamaIndex tool.
+            Callable[[FunctionTool], FunctionTool]: A decorator to wrap a LlamaIndex tool.
 
         Example:
             ```python
@@ -63,7 +63,7 @@ class Auth0AI:
         authorizer = FederatedConnectionAuthorizer(FederatedConnectionAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 
-    def with_async_user_confirmation(self, **params: CIBAAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
+    def with_async_user_confirmation(self, **params: CIBAAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
         """Protects a tool with the CIBA (Client-Initiated Backchannel Authentication) flow.
 
         Requires user confirmation via a second device (e.g., phone)
@@ -73,7 +73,7 @@ class Auth0AI:
             **params: Parameters defined in `CIBAAuthorizerParams`.
 
         Returns:
-            Callable[[BaseTool], BaseTool]: A decorator to wrap a LlamaIndex tool.
+            Callable[[FunctionTool], FunctionTool]: A decorator to wrap a LlamaIndex tool.
 
         Example:
             ```python
@@ -110,3 +110,5 @@ class Auth0AI:
         """
         authorizer = CIBAAuthorizer(CIBAAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
+
+__all__ = ["Auth0AI", "set_ai_context"]

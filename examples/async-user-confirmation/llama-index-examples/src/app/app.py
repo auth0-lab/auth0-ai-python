@@ -1,8 +1,9 @@
 import os
+import uuid
 from datetime import datetime
 from urllib.parse import quote_plus, urlencode
 
-from auth0_ai_llamaindex.auth0_ai import Auth0AI
+from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
@@ -66,6 +67,9 @@ oauth.register(
 def home():
     if "user" not in session:
         return redirect("/login")
+    
+    thread_id = str(uuid.uuid4())
+    set_ai_context(thread_id)
 
     return render_template("index.html", user=session.get('user'))
 

@@ -1,7 +1,7 @@
-import inspect
 from abc import ABC
 from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerBase, FederatedConnectionAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
+from auth0_ai_llamaindex.utils.tool_wrapper import tool_wrapper
 from llama_index.core.tools import FunctionTool
 
 class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
@@ -16,22 +16,7 @@ class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
         super().__init__(params, auth0)
     
     def authorizer(self):
-        def wrapped_tool(t: FunctionTool) -> FunctionTool:
-            tool_fn = self.protect(
-                lambda *_args, **_kwargs: { # TODO: review this
-                    "thread_id": "",
-                    "tool_name": t.metadata.name,
-                    "tool_call_id": "",
-                },
-                t.acall if inspect.iscoroutinefunction(t.fn) else t.call
-            )
-
-            return FunctionTool(
-                fn=tool_fn,
-                async_fn=tool_fn,
-                metadata=t.metadata,
-                callback=t._callback,
-                async_callback=t._async_callback,
-            )
+        def wrap_tool(tool: FunctionTool) -> FunctionTool:
+            return tool_wrapper(tool, self.protect)
         
-        return wrapped_tool
+        return wrap_tool

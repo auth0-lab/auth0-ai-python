@@ -21,7 +21,7 @@ Full Example of [Async User Confirmation](https://github.com/auth0-lab/auth0-ai-
 Define a tool with the proper authorizer specifying a function to resolve the user id:
 
 ```python
-from auth0_ai_llamaindex.auth0_ai import Auth0AI
+from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
 from auth0_ai_llamaindex.ciba import get_ciba_credentials
 from llama_index.core.tools import FunctionTool
 
@@ -53,6 +53,9 @@ trade_tool = with_async_user_confirmation(
         # ...
     )
 )
+
+# Set the thread ID to associate with the retrieved credentials
+set_ai_context("<thread-id>")
 ```
 
 ## Authorization for Tools
@@ -120,7 +123,7 @@ Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/aut
 Define a tool with the proper authorizer specifying a function to resolve the user's refresh token:
 
 ```python
-from auth0_ai_llamaindex.auth0_ai import Auth0AI
+from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
 from auth0_ai_llamaindex.federated_connections import get_credentials_for_connection
 from llama_index.core.tools import FunctionTool
 
@@ -147,6 +150,9 @@ check_calendar_tool = with_google_calendar_access(
         # ...
     )
 )
+
+# Set the thread ID to associate with the retrieved credentials
+set_ai_context("<thread-id>")
 ```
 
 ## RAG with FGA

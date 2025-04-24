@@ -16,7 +16,7 @@ flask = { extras = ["async"], version = "^3.1.0" }
 requests = "^2.32.3"
 authlib = "^1.5.1"
 hypercorn = "^0.17.3"
-llama-index = "^0.12.27"
+llama-index = "^0.12.33"
 llama-index-agent-openai = "^0.4.6"
 auth0-ai-llamaindex = { path = "../../../packages/auth0-ai-llamaindex", develop = true }
 
