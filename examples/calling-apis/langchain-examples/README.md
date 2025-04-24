@@ -23,7 +23,7 @@
 
 ### Setup
 
-Create a `.env` file using the format below:
+Copy the file `.env.example` to `.env` and fill in the required values:
 
 ```sh
 # Auth0

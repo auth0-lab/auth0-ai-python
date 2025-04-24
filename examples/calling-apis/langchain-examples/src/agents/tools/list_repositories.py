@@ -12,6 +12,9 @@ class ListRepositoriesSchema(BaseModel):
 
 def list_repositories_tool_function():
     credentials = get_credentials_for_connection()
+    if not credentials:
+        raise ValueError(
+            "Authorization required to access the Federated Connection API")
 
     # GitHub SDK
     try:

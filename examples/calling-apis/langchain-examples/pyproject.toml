@@ -13,19 +13,18 @@ start = "scripts.start:main"
 [tool.poetry.dependencies]
 python = "^3.11"
 python-dotenv = "^1.0.1"
-langchain-core = "^0.3.51"
+langchain-core = "^0.3.55"
 langchain-openai = "^0.3.12"
 auth0-ai-langchain = { path = "../../../packages/auth0-ai-langchain", develop = true }
-langgraph = "^0.3.30"
-langgraph-cli = "^0.2.3"
-langgraph-api = "^0.1.5"
+langgraph = "^0.3.34"
+langgraph-cli = "^0.2.7"
+langgraph-api = "^0.1.12"
 langgraph-runtime-inmem = "^0.0.4"
 requests = "^2.32.3"
 hypercorn = "^0.17.3"
 auth0-fastapi = "^1.0.0b2"
 fastapi = "^0.115.12"
 jinja2 = "^3.1.6"
-aiohttp = ">=3.9.3"
 pygithub = "^2.6.1"
 
 [build-system]

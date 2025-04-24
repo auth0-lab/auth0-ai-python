@@ -1,11 +1,9 @@
 from typing import Annotated, Sequence, TypedDict
 
-from langchain.storage import InMemoryStore
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph, add_messages
 from langgraph.prebuilt import ToolNode
-from langgraph.checkpoint.memory import MemorySaver
 from src.agents.tools.check_user_calendar import check_user_calendar_tool
 from src.agents.tools.list_repositories import list_github_repositories_tool
 
@@ -39,12 +37,7 @@ state_graph = (
     .add_node(
         "tools",
         ToolNode(
-            [
-                # A tool with federated connection api access
-                check_user_calendar_tool,
-                list_github_repositories_tool,
-                # ... any other tool without federated connection api access
-            ],
+            [check_user_calendar_tool, list_github_repositories_tool],
             # The error handler should be disabled to allow interruptions to be triggered from within tools.
             handle_tool_errors=False
         )
@@ -54,5 +47,4 @@ state_graph = (
     .add_conditional_edges("call_llm", route_after_llm, [END, "tools"])
 )
 
-checkpointer = MemorySaver()
 graph = state_graph.compile()

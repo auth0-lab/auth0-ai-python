@@ -48,7 +48,7 @@ async def home(request: Request, response: Response):
     # Check if user is authenticated
     try:
         await auth_client.require_session(request, response)
-    except Exception as e:
+    except Exception:
         return RedirectResponse(url="/auth/login")
 
     # Reset the chat session and redirect
@@ -59,7 +59,7 @@ async def home(request: Request, response: Response):
     return RedirectResponse(url="/chat/" + chat_session["thread_id"])
 
 
-@app.get("/api/chat/resume")
+@app.get("/chat/resume")
 async def chat_resume(request: Request, response: Response, auth_session=Depends(auth_client.require_session)):
     # Reset the chat session and redirect
     chat_session = request.session
@@ -153,13 +153,10 @@ async def chat_api(request: Request, auth_session=Depends(auth_client.require_se
     return JSONResponse(content={"error": "Unexpected error"}, status_code=500)
 
 
+# TODO: Remove this endpoint once `auth0_fastapi` SDK supports
+# forwarding the necessary auth_params from `/auth/login` endpoint.
 @app.get('/auth/signin')
 async def login(request: Request, response: Response):
-    """
-    Endpoint to initiate the login process.
-    Optionally accepts a 'return_to' query parameter and passes it as part of the app state.
-    Redirects the user to the Auth0 authorization URL.
-    """
     protected_keys = [
         "client_id", "redirect_uri", "response_type", "code_challenge", "code_challenge_method", "state", "nonce"
     ]
@@ -182,6 +179,4 @@ async def login(request: Request, response: Response):
         store_options={"request": request, "response": response}
     )
 
-    auth_response = RedirectResponse(url=auth_url, headers=response.headers)
-    return auth_response
-    # return merge_set_cookie_headers(response, auth_response)
+    return RedirectResponse(url=auth_url, headers=response.headers)

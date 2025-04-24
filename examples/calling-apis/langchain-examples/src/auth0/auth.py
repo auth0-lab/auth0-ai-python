@@ -16,5 +16,5 @@ config = Auth0Config(
     mount_connect_routes=True
 )
 
-# 3) Instantiate the AuthClient
+# Instantiate the AuthClient
 auth_client = AuthClient(config)

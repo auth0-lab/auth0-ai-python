@@ -289,7 +289,7 @@
                           connection: message.interrupt.connection,
                           access_type: "offline",
                           connection_scope: message.interrupt.required_scopes.join(),
-                          returnTo: "/api/chat/resume",
+                          returnTo: "/chat/resume",
                         });
                         window.location.href = `/auth/signin?${params.toString()}`;
                       }

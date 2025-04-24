@@ -1,8 +1,6 @@
 {
   "poetryMonorepo.appendExtraPaths": true,
   "python.analysis.extraPaths": [
-    "examples/calling-apis/langchain-examples/src",
-    "examples/authorization-for-rag/langchain-examples/langchain_rag",
     "examples/async-user-confirmation/langchain-examples/src",
     "examples/async-user-confirmation/llama-index-examples/src",
     "examples/async-user-confirmation/sample-api",
