@@ -26,13 +26,15 @@ from auth0_ai_langchain.ciba import get_ciba_credentials
 from langchain_core.runnables import ensure_config
 from langchain_core.tools import StructuredTool
 
+# If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`
 auth0_ai = Auth0AI()
+
 with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope="stock:trade",
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
     user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id"),
-    # optional:
+    # Optional:
     # store=InMemoryStore()
 )
 
@@ -67,15 +69,8 @@ Full example of [Authorization for Tools](https://github.com/auth0-lab/auth0-ai-
 ```python
 from auth0_ai_langchain.fga import FGAAuthorizer
 
+# If not provided, FGA settings will be read from env variables: `FGA_STORE_ID`, `FGA_CLIENT_ID`, `FGA_CLIENT_SECRET`, etc.
 fga = FGAAuthorizer.create()
-```
-
-**Note**: Here, you can configure and specify your FGA credentials. By `default`, they are read from environment variables:
-
-```sh
-FGA_STORE_ID="<fga-store-id>"
-FGA_CLIENT_ID="<fga-client-id>"
-FGA_CLIENT_SECRET="<fga-client-secret>"
 ```
 
 2. Define the FGA query (`build_query`) and, optionally, the `on_unauthorized` handler:
@@ -135,12 +130,13 @@ from auth0_ai_langchain.auth0_ai import Auth0AI
 from auth0_ai_langchain.federated_connections import get_credentials_for_connection
 from langchain_core.tools import StructuredTool
 
+# If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`
 auth0_ai = Auth0AI()
 
 with_google_calendar_access = auth0_ai.with_federated_connection(
     connection="google-oauth2",
     scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
-    # optional:
+    # Optional:
     # refresh_token=lambda *_, **__: ensure_config().get("configurable", {}).get("_credentials", {}).get("refresh_token"),
     # store=InMemoryStore(),
 )
@@ -209,7 +205,8 @@ vector_store = VectorStoreIndex.from_documents(documents)
 # Create a retriever:
 base_retriever = vector_store.as_retriever()
 
-# Create the FGA retriever wrapper:
+# Create the FGA retriever wrapper.
+# If not provided, FGA settings will be read from env variables: `FGA_STORE_ID`, `FGA_CLIENT_ID`, `FGA_CLIENT_SECRET`, etc.
 retriever = FGARetriever(
     base_retriever,
     build_query=lambda node: ClientCheckRequest(
