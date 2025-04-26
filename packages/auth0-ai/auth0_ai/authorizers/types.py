@@ -1,9 +1,5 @@
 import asyncio
-from typing import Generic, TypedDict, Optional, Any, Union, Tuple, Callable, TypeVar, Awaitable, ParamSpec
-
-class AuthParams(TypedDict):
-  access_token: Optional[str]
-  claims: Optional[Any]
+from typing import Generic, TypedDict, Optional, Union, Tuple, Callable, TypeVar, Awaitable, ParamSpec
 
 class Auth0ClientParams(TypedDict):
     """

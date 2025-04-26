@@ -21,16 +21,20 @@ Full Example of [Async User Confirmation](https://github.com/auth0-lab/auth0-ai-
 Define a tool with the proper authorizer specifying a function to resolve the user id:
 
 ```python
-from auth0_ai_llamaindex.auth0_ai import Auth0AI
+from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
 from auth0_ai_llamaindex.ciba import get_ciba_credentials
 from llama_index.core.tools import FunctionTool
 
+# If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`
 auth0_ai = Auth0AI()
+
 with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope="stock:trade",
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
-    user_id=lambda *_, **__: session["user"]["userinfo"]["sub"]
+    user_id=lambda *_, **__: session["user"]["userinfo"]["sub"],
+    # Optional:
+    # store=InMemoryStore()
 )
 
 def tool_function(ticker: str, qty: int) -> str:
@@ -49,6 +53,9 @@ trade_tool = with_async_user_confirmation(
         # ...
     )
 )
+
+# Set the thread ID to associate with the retrieved credentials
+set_ai_context("<thread-id>")
 ```
 
 ## Authorization for Tools
@@ -62,15 +69,8 @@ Full Example of [Authorization for Tools](https://github.com/auth0-lab/auth0-ai-
 ```python
 from auth0_ai_llamaindex.fga import FGAAuthorizer
 
+# If not provided, FGA settings will be read from env variables: `FGA_STORE_ID`, `FGA_CLIENT_ID`, `FGA_CLIENT_SECRET`, etc.
 fga = FGAAuthorizer.create()
-```
-
-**Note**: Here, you can configure and specify your FGA credentials. By `default`, they are read from environment variables:
-
-```sh
-FGA_STORE_ID="<fga-store-id>"
-FGA_CLIENT_ID="<fga-client-id>"
-FGA_CLIENT_SECRET="<fga-client-secret>"
 ```
 
 2. Define the FGA query (`build_query`) and, optionally, the `on_unauthorized` handler:
@@ -123,16 +123,19 @@ Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/aut
 Define a tool with the proper authorizer specifying a function to resolve the user's refresh token:
 
 ```python
-from auth0_ai_llamaindex.auth0_ai import Auth0AI
+from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
 from auth0_ai_llamaindex.federated_connections import get_credentials_for_connection
 from llama_index.core.tools import FunctionTool
 
+# If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`
 auth0_ai = Auth0AI()
 
 with_google_calendar_access = auth0_ai.with_federated_connection(
     connection="google-oauth2",
     scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
     refresh_token=lambda *_args, **_kwargs: session["user"]["refresh_token"],
+    # Optional:
+    # store=InMemoryStore()
 )
 
 def tool_function(date: datetime):
@@ -147,6 +150,9 @@ check_calendar_tool = with_google_calendar_access(
         # ...
     )
 )
+
+# Set the thread ID to associate with the retrieved credentials
+set_ai_context("<thread-id>")
 ```
 
 ## RAG with FGA
@@ -174,7 +180,8 @@ vector_store = VectorStoreIndex.from_documents(documents)
 # Create a retriever:
 base_retriever = vector_store.as_retriever()
 
-# Create the FGA retriever wrapper:
+# Create the FGA retriever wrapper.
+# If not provided, FGA settings will be read from env variables: `FGA_STORE_ID`, `FGA_CLIENT_ID`, `FGA_CLIENT_SECRET`, etc.
 retriever = FGARetriever(
     base_retriever,
     build_query=lambda node: ClientCheckRequest(
