@@ -6,6 +6,7 @@ from langgraph.graph import END, START, StateGraph, add_messages
 from langgraph.prebuilt import ToolNode
 from src.agents.tools.check_user_calendar import check_user_calendar_tool
 from src.agents.tools.list_repositories import list_github_repositories_tool
+from src.agents.tools.list_channels import list_slack_channels_tool
 
 
 class State(TypedDict):
@@ -14,7 +15,7 @@ class State(TypedDict):
 
 llm = ChatOpenAI(
     model="gpt-4o"
-).bind_tools([check_user_calendar_tool, list_github_repositories_tool])
+).bind_tools([check_user_calendar_tool, list_github_repositories_tool, list_slack_channels_tool])
 
 
 async def call_llm(state: State):
@@ -37,7 +38,8 @@ state_graph = (
     .add_node(
         "tools",
         ToolNode(
-            [check_user_calendar_tool, list_github_repositories_tool],
+            [check_user_calendar_tool, list_github_repositories_tool,
+                list_slack_channels_tool],
             # The error handler should be disabled to allow interruptions to be triggered from within tools.
             handle_tool_errors=False
         )

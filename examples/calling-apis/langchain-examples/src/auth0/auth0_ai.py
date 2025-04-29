@@ -13,7 +13,7 @@ with_calendar_free_busy_access = auth0_ai.with_federated_connection(
 
 with_slack_access = auth0_ai.with_federated_connection(
     connection="sign-in-with-slack",
-    scopes=["channels:read", "chat:write"]
+    scopes=["channels:read"]
 )
 
 with_github_access = auth0_ai.with_federated_connection(

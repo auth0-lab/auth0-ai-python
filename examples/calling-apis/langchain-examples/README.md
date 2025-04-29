@@ -4,22 +4,30 @@
 
 ### Prerequisites
 
-- An OpenAI account and API key create one [here](https://platform.openai.com).
-  - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
+- An OpenAI account and API key. You can create one [here](https://platform.openai.com).
+  - [Use this page for instructions on how to find your OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key)
 - [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/)
-- A [Google OAuth 2.0 Client](https://console.cloud.google.com/apis/credentials) configured with access to the `https://www.googleapis.com/auth/calendar.freebusy` scope (Google Calendar API).
-- An [Auth0](https://manage.auth0.com/) account with the following configuration:
-  - **Google connection** set up with:
-    - The client ID and secret from the previously created Google client.
-    - The following settings:
-      - **Offline access** enabled.
-      - **https://www.googleapis.com/auth/calendar.freebusy** scope granted.
-      - **Token Vault** enabled.
-  - **Regular Web Application** set up with:
-    - **Allowed Callback URLs**: `http://localhost:3000/login/callback`
-    - **Allowed Logout URLs**: `http://localhost:3000/`
-    - **Connections**: The previously created **Google connection**.
-    - **Advanced Settings -> Grant Types**: **Token Exchange (Federated Connection)** and **Refresh Token**.
+- An **[Auth0](https://auth0.com)** account and the following settings and resources configured:
+  - An application to initiate the authorization flow:
+    - **Application Type**: `Regular Web Application`
+    - **Allowed Callback URLs**: `http://localhost:3000/auth/callback`
+    - **Allowed Logout URLs**: `http://localhost:3000`
+    - **Advanced Settings -> Grant Types**: `Refresh Token` and `Token Exchange (Federated Connection)` (or `urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token`)
+  - Either **Google**, **Slack** or **Github** social connections enabled for the application:
+    - **Google connection** set up instructions:
+      - Create a [Google OAuth 2.0 Client](https://console.cloud.google.com/apis/credentials) configured with access to the `https://www.googleapis.com/auth/calendar.freebusy` scope (Google Calendar API).
+      - On Auth0 Dashboard, set up the client ID and secret from the previously created Google client.
+      - Enable following settings:
+        - **Offline access** enabled.
+        - **https://www.googleapis.com/auth/calendar.freebusy** scope granted.
+        - **Token Vault** enabled.
+    - **Slack connection** set up instructions:
+      - Create a [Slack App](https://api.slack.com/apps) and follow the [Auth0's Signin with Slack](https://marketplace.auth0.com/integrations/sign-in-with-slack) `installation` instructions to set up the connection.
+      - On Slack's OAuth & Permission settings, make sure to add the `channels:read` scope to the User Token scopes.
+    - **Github connection** set up instructions:
+      - Register a new app in [GitHub Developer Settings: OAuth Apps](https://github.com/settings/developers#oauth-apps) and follow the [Auth0's Github social connection](https://marketplace.auth0.com/integrations/github-social-connection) `installation` instructions to set up the connection.
+      - On Auth0 Dashboard, set up the client ID and secret from the previously created Github App.
+
 
 ### Setup
 

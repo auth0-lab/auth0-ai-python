@@ -6,9 +6,9 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from starlette.middleware.sessions import SessionMiddleware
-from auth_types import StartInteractiveLoginOptions
 
 from auth0_fastapi.server.routes import router, register_auth_routes
+from auth0_fastapi.auth.auth_client import StartInteractiveLoginOptions
 
 from langgraph_sdk import get_client
 from langgraph_sdk.schema import Command
@@ -63,6 +63,11 @@ async def home(request: Request, response: Response):
 async def chat_resume(request: Request, response: Response, auth_session=Depends(auth_client.require_session)):
     # Reset the chat session and redirect
     chat_session = request.session
+
+    # Check if there is any thread_id in the session
+    # otherwise redirect to home
+    if not chat_session.get("thread_id"):
+        return RedirectResponse(url="/")
 
     thread = await langgraph_client.threads.get(chat_session["thread_id"])
     auth0_interrupts = get_auth0_interrupts(thread)

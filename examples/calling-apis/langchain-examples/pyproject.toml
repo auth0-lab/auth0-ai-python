@@ -26,6 +26,7 @@ auth0-fastapi = "^1.0.0b2"
 fastapi = "^0.115.12"
 jinja2 = "^3.1.6"
 pygithub = "^2.6.1"
+slack-sdk = "^3.35.0"
 
 [build-system]
 requires = ["poetry-core"]
