@@ -4,15 +4,19 @@
     <meta charset="UTF-8" />
     <title>Chatbot Example</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script type="module" src="https://esm.sh/tsx"></script>
     <script type="importmap">
       {
         "imports": {
-          "react": "https://esm.sh/react@19.1.0",
-          "react-dom/": "https://esm.sh/react-dom@19.1.0/"
+          "react": "https://esm.sh/react@19.1.0?dev",
+          "react-dom": "https://esm.sh/react-dom@19.1.0?dev",
+          "react-dom/": "https://esm.sh/react-dom@19.1.0&dev/",
+          "@auth0/ai-components/": "https://esm.sh/@auth0/ai-components/",
+          "@auth0/ai/": "https://esm.sh/@auth0/ai/"
         }
       }
     </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- <script type="module" src="https://esm.sh/tsx"></script> -->
 
     <style type="text/tailwindcss">
       :root {
@@ -147,64 +151,32 @@
       {{ messages | tojson | safe }}
     </script>
 
-    <script type="text/javascript">
-      const user = JSON.parse(document.getElementById("user").textContent);
-      const messages = JSON.parse(document.getElementById("messages").textContent);
+    <script id="interrupt" type="application/json">
+      {{ interrupt | tojson | safe }}
     </script>
 
-    <script type="text/babel">
-      window.PromptUserContainer = function PromptUserContainer({
-        title,
-        description,
-        action,
-        icon,
-        readOnly = false,
-        containerClassName,
-      }) {
-        return (
-          <fieldset
-            className={`border border-gray-300 rounded-lg items-center w-full justify-between p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-2 ${readOnly ? "disabled cursor-not-allowed" : ""} ${containerClassName}`}
-            disabled={readOnly}
-          >
-            <div className="w-full flex flex-col sm:flex-row justify-start items-center gap-4">
-              {icon}
-              <div className="flex flex-col gap-1 sm:gap-1.5 items-start w-full">
-                <h2 className="grow text-sm sm:text-base leading-6 font-semibold">
-                  {title}
-                </h2>
-                {description && (
-                  <p className="grow text-xs sm:text-sm leading-5 font-light text-gray-500">
-                    {description}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {action && (
-              <div className="w-full sm:w-fit">
-                <button
-                  onClick={() => action.onClick()}
-                  className={`w-full sm:w-fit bg-gray-200 text-black whitespace-nowrap rounded-md text-sm font-normal focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-primary/90 hover:text-white py-2 px-4 transition-all duration-300 ${action.className}`}
-                >
-                  {action.label}
-                </button>
-              </div>
-            )}
-          </fieldset>
-        );
-      }
+    <script type="module">
+      /** Ensure that scripts are loaded prior execution where imported downstream */
+      import { EnsureAPIAccess } from "@auth0/ai-components/templates/FederatedConnections/index.tsx";
+      import { FederatedConnectionInterrupt } from "@auth0/ai/interrupts";
     </script>
 
-    <script type="text/babel">
+    <script type="text/babel" data-type="module">
       import React, { useState, useContext } from "react";
-
       const ApplicationContext = React.createContext();
 
-      const ContextProvider = ({ user: initialUser = {}, messages: initialMessages = [], children }) => {
+      export const ContextProvider = ({ user: initialUser = {}, messages: initialMessages = [], interrupt: initialInterrupt, children }) => {
         const [user, setUser] = useState(initialUser);
         const [messages, setMessages] = useState(initialMessages);
+        const [interrupt, setInterrupt] = useState(initialInterrupt);
         const [isSubmitting, setIsSubmitting] = useState(false);
-        const value = { user, messages, setUser, setMessages, isSubmitting, setIsSubmitting };
+        const value = {
+          // values
+          ...{ user, messages, interrupt, isSubmitting },
+          // setters
+          ...{ setUser, setMessages, setInterrupt, setIsSubmitting}
+        };
+
         return (
           <ApplicationContext.Provider value={value}>
             {children}
@@ -222,11 +194,13 @@
       };
     </script>
 
-    <script type="text/babel">
+    <script type="text/babel" data-type="module">
+      import React from "react";
+
       function Header() {
         const { user } = useAppContext();
         return (
-          <header class="flex justify-between items-center mb-5">
+          <header className="flex justify-between items-center mb-5">
             <h2 className="text-xl font-semibold m-0">Hello, {user.name}!</h2>
             <a href="/auth/logout" className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-200">
               Logout
@@ -237,8 +211,9 @@
       window.Header = Header;
     </script>
 
-    <script type="text/babel">
-      import { useRef, useEffect } from "react";
+    <script type="text/babel" data-type="module">
+      import React, { useRef, useEffect } from "react";
+      import { EnsureAPIAccess } from "@auth0/ai-components/templates/FederatedConnections/index.tsx";
 
       function ChatMessage({ content, type }) {
         if (!content) {
@@ -265,48 +240,48 @@
           </div>
         );
       }
+
+      function InterruptMessage({ interrupt }) {
+        if (!interrupt?.value) {
+          return null;
+        }
+
+        const { connection, required_scopes: requiredScopes } = interrupt.value;
+        return (
+          <EnsureAPIAccess
+            mode="redirect"
+            interrupt={({ connection, requiredScopes })}
+            connectWidget={({ title: interrupt.value?.message, description: "Description..." })}
+            auth={({ authorizePath: "/auth/signin", returnTo: "/chat/resume" })}
+          />
+        );
+      }
+
       function ChatBox() {
-        const { messages, isSubmitting } = useAppContext();
+        const { messages, interrupt, isSubmitting } = useAppContext();
         const scrollContainerRef = useRef(null);
 
         useEffect(() => {
           if (scrollContainerRef.current) {
             scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
           }
-        }, [messages, isSubmitting]);
+        }, [messages, interrupt, isSubmitting]);
 
         return (
           <div ref={scrollContainerRef} className="flex flex-col space-y-2 p-4 max-w-2xl mx-auto border border-gray-100 h-[70vh] overflow-y-auto bg-white mb-4 rounded-lg shadow-md">
-            {messages.filter(({ type }) => ["ai", "human", "interrupt"].includes(type)).map((message, index) => (
-              message.type === "interrupt"
-                ? <PromptUserContainer
-                    title={`Missing required permissions for ${message.interrupt.connection}`}
-                    description={message.content}
-                    action={({
-                      label: "Authorize",
-                      onClick: () => {
-                        const params = new URLSearchParams({
-                          connection: message.interrupt.connection,
-                          access_type: "offline",
-                          connection_scope: message.interrupt.required_scopes.join(),
-                          returnTo: "/chat/resume",
-                        });
-                        window.location.href = `/auth/signin?${params.toString()}`;
-                      }
-                    })}
-                  />
-                : <ChatMessage key={index} content={message.content} type={message.type} />
+            {messages.filter(({ type }) => ["ai", "human"].includes(type)).map((message, index) => (
+              <ChatMessage key={index} content={message.content} type={message.type} />
             ))}
             {isSubmitting && <ChatMessage content="Working..." type="ai" />}
+            <InterruptMessage interrupt={interrupt} />
           </div>
         );
       }
       window.ChatBox = ChatBox;
     </script>
 
-    <script type="text/babel">
-      import { useState, useRef, useEffect } from "react";
-
+    <script type="text/babel" data-type="module">
+      import React, { useState, useRef, useEffect } from "react";
       function UserInput({ handleSubmit }) {
         const [value, setValue] = useState("");
         const { isSubmitting } = useAppContext();
@@ -338,7 +313,7 @@
                 onChange={({ target: { value } }) => setValue(value)}
                 required={true}
               />
-              <button class="ml-2 bg-neutral-600 hover:bg-neutral-700 text-white px-4 py-2 rounded-lg transition disabled:cursor-not-allowed">
+              <button className="ml-2 bg-neutral-600 hover:bg-neutral-700 text-white px-4 py-2 rounded-lg transition disabled:cursor-not-allowed">
                 Send
               </button>
             </fieldset>
@@ -349,9 +324,12 @@
       window.UserInput = UserInput;
     </script>
 
-    <script type="text/babel">
-      function App({ user, messages }) {
-        const { setMessages, setIsSubmitting } = useAppContext();
+    <script type="text/babel" data-type="module">
+      import React from "react";
+      import { FederatedConnectionInterrupt } from "@auth0/ai/interrupts";
+
+      export function App() {
+        const { setMessages, setInterrupt, setIsSubmitting } = useAppContext();
         const handleSubmit = async (message) => {
           setIsSubmitting(true);
           setMessages((prevMessages) => [...prevMessages, { type: "human", content: message }]);
@@ -369,18 +347,8 @@
               throw new Error(data.error || "Failed to fetch response");
             }
 
-            const interrupt = data.response?.ns?.includes?.("auth0AI:AUTH0_AI_INTERRUPT:FEDERATED_CONNECTION_ERROR")
-              ? data.response.value
-              : null;
-
-            if (interrupt) {
-              setMessages(
-                (prevMessages) => ([
-                  ...prevMessages,
-                  { type: "interrupt", content: "Missing credentials to complete the request. Please follow the link below to authorize the action", interrupt }
-                ])
-              );
-              return;
+            if (FederatedConnectionInterrupt.isInterrupt(data?.response?.value)) {
+              return setInterrupt(data.response);
             }
 
             setMessages((prevMessages) => [
@@ -388,7 +356,6 @@
               { type: "ai", content: data.response || `Failed to fetch response: ${data.error}` }
             ]);
           } catch (err) {
-            console.log("GOT HERE", err);
             setMessages((prevMessages) => [
               ...prevMessages,
               { type: "ai", content: `Failed to fetch response: ${err.message}` }
@@ -401,7 +368,7 @@
         return (
           <main>
             <Header user={user} />
-            <ChatBox messages={messages} />
+            <ChatBox />
             <UserInput handleSubmit={handleSubmit} />
           </main>
         );
@@ -409,14 +376,18 @@
       window.App = App;
     </script>
 
-    <script type="text/babel">
+    <script type="text/babel" data-type="module">
       import React from "react";
       import { createRoot } from "react-dom/client";
 
+      const user = JSON.parse(document.getElementById("user").textContent);
+      const messages = JSON.parse(document.getElementById("messages").textContent);
+      const interrupt = JSON.parse(document.getElementById("interrupt").textContent);
+
       const root = createRoot(document.getElementById('app'));
       root.render(
-        <ContextProvider user={user} messages={messages}>
-          <App user={user} messages={messages} />
+        <ContextProvider user={user} messages={messages} interrupt={interrupt}>
+          <App />
         </ContextProvider>
       );
     </script>

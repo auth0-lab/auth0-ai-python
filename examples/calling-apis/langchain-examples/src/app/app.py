@@ -64,15 +64,19 @@ async def chat_resume(request: Request, response: Response, auth_session=Depends
     # Reset the chat session and redirect
     chat_session = request.session
 
-    # Here I must resume tool calls
-    await langgraph_client.runs.wait(
-        chat_session["thread_id"],
-        "agent",
-        command=Command(resume=''),
-        config={"configurable": {
-            "_credentials": {"refresh_token": auth_session.get("refresh_token")}
-        }}
-    )
+    thread = await langgraph_client.threads.get(chat_session["thread_id"])
+    auth0_interrupts = get_auth0_interrupts(thread)
+
+    if auth0_interrupts:
+        # Here I must resume tool calls
+        await langgraph_client.runs.wait(
+            chat_session["thread_id"],
+            "agent",
+            command=Command(resume=''),
+            config={"configurable": {
+                "_credentials": {"refresh_token": auth_session.get("refresh_token")}
+            }}
+        )
 
     return RedirectResponse(url="/chat/" + chat_session["thread_id"])
 
@@ -92,8 +96,9 @@ async def chat_thread(request: Request, thread_id: str, response: Response, auth
 
     thread = await langgraph_client.threads.get(chat_session["thread_id"])
 
-    messages = (thread["values"] if thread["values"]
-                else {}).get("messages", [])
+    auth0_interrupts = get_auth0_interrupts(thread)
+    thread_messages = (thread["values"] if thread["values"]
+                       else {}).get("messages", [])
 
     # Limit the content that is sent to the client
     messages = [
@@ -102,12 +107,12 @@ async def chat_thread(request: Request, thread_id: str, response: Response, auth
             "content": message["content"],
             "id": message["id"]
         }
-        for message in messages
+        for message in thread_messages
     ]
+    interrupt = auth0_interrupts[0] if auth0_interrupts else None
 
     # Render the chat page with the user information
-    # TODO: we should also send the interruptions, so that the chat UI state can re-render the Prompts
-    return templates.TemplateResponse("index.html", {"request": request, "messages": messages, "user": user})
+    return templates.TemplateResponse("index.html", {"request": request, "messages": messages, "user": user, "interrupt": interrupt})
 
 
 @app.post("/api/chat")
