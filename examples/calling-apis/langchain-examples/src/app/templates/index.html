@@ -8,10 +8,20 @@
       {
         "imports": {
           "react": "https://esm.sh/react@19.1.0?dev",
+          "react/": "https://esm.sh/react@19.1.0&dev/",
           "react-dom": "https://esm.sh/react-dom@19.1.0?dev",
           "react-dom/": "https://esm.sh/react-dom@19.1.0&dev/",
           "@auth0/ai-components/": "https://esm.sh/@auth0/ai-components/",
-          "@auth0/ai/": "https://esm.sh/@auth0/ai/"
+          "@auth0/ai/": "https://esm.sh/@auth0/ai/",
+          "@auth0-lab/ui-components/registry/components/user-button.tsx": "https://esm.sh/gh/auth0-lab/a0-components@1f303e5/registry/components/user-button.tsx?dev&bundle=false&external=@/components,@/lib,react,react-dom"
+        },
+        "scopes": {
+          "https://esm.sh/gh/auth0-lab/a0-components@1f303e5/": {
+            "@/components/ui/avatar": "https://esm.sh/gh/auth0-lab/a0-components@1f303e5/components/ui/avatar.tsx?dev&bundle=false&external=react,react-dom,@/components,@/lib",
+            "@/components/ui/button": "https://esm.sh/gh/auth0-lab/a0-components@1f303e5/components/ui/button.tsx?dev&bundle=false&external=react,react-dom,@/components,@/lib",
+            "@/components/ui/dropdown-menu": "https://esm.sh/gh/auth0-lab/a0-components@1f303e5/components/ui/dropdown-menu.tsx?dev&bundle=false&external=react,react-dom,@/components,@/lib",
+            "@/lib/utils": "https://esm.sh/gh/auth0-lab/a0-components@1f303e5/lib/utils.ts?dev&bundle=false"
+          }
         }
       }
     </script>
@@ -157,6 +167,11 @@
       /** Ensure that scripts are loaded prior execution where imported downstream */
       import { EnsureAPIAccess } from "@auth0/ai-components/templates/FederatedConnections/index.tsx";
       import { FederatedConnectionInterrupt } from "@auth0/ai/interrupts";
+      import UserButon from "@auth0-lab/ui-components/registry/components/user-button.tsx";
+
+      window.EnsureAPIAccess = EnsureAPIAccess;
+      window.FederatedConnectionInterrupt = FederatedConnectionInterrupt;
+      window.UserButton = UserButon;
     </script>
 
     <script type="text/babel" data-type="module">
@@ -200,12 +215,7 @@
         return (
           <header className="w-full max-w-7xl h-20 mx-auto flex items-center justify-between border-b border-gray-200 px-4 xl:px-0">
             <h2 className="font-semibold text-xl">Auth0 AI | Demo</h2>
-            <div className="flex flex-col text-left">
-              <span className="text-xl font-semibold m-0">Hello, {user.name}!</span>
-              <a href="/auth/logout" className="bg-red-500 hover:bg-red-600 p-1 px-2 text-white w-fit self-end font-semibold rounded-lg shadow-md transition duration-200">
-                Logout
-              </a>
-            </div>
+            <UserButton user={user} logoutUrl="/auth/logout" />
           </header>
         );
       }
@@ -214,7 +224,6 @@
 
     <script type="text/babel" data-type="module">
       import React, { useRef, useEffect } from "react";
-      import { EnsureAPIAccess } from "@auth0/ai-components/templates/FederatedConnections/index.tsx";
 
       function ChatMessage({ content, type }) {
         if (!content) {
@@ -327,7 +336,6 @@
 
     <script type="text/babel" data-type="module">
       import React from "react";
-      import { FederatedConnectionInterrupt } from "@auth0/ai/interrupts";
 
       export function App() {
         const { setMessages, setInterrupt, setIsSubmitting } = useAppContext();
