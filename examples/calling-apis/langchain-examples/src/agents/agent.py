@@ -1,27 +1,21 @@
 from typing import Annotated, Sequence, TypedDict
 
-from auth0_ai_langchain.auth0_ai import Auth0AI
-from langchain.storage import InMemoryStore
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph, add_messages
 from langgraph.prebuilt import ToolNode
-from tools.check_country_holiday import check_country_holiday_tool
-from tools.check_user_calendar import check_user_calendar_tool
+from src.agents.tools.check_user_calendar import check_user_calendar_tool
+from src.agents.tools.list_repositories import list_github_repositories_tool
+from src.agents.tools.list_channels import list_slack_channels_tool
 
 
 class State(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
 
 
-auth0_ai = Auth0AI()
-with_calender_free_busy_access = auth0_ai.with_federated_connection(
-    connection="google-oauth2",
-    scopes=["https://www.googleapis.com/auth/calendar.freebusy"]
-)
-
 llm = ChatOpenAI(
-    model="gpt-4o").bind_tools([check_country_holiday_tool, check_user_calendar_tool])
+    model="gpt-4o"
+).bind_tools([check_user_calendar_tool, list_github_repositories_tool, list_slack_channels_tool])
 
 
 async def call_llm(state: State):
@@ -44,12 +38,8 @@ state_graph = (
     .add_node(
         "tools",
         ToolNode(
-            [
-                # A tool with federated connection api access
-                with_calender_free_busy_access(check_user_calendar_tool),
-                # A tool without federated connection api access
-                check_country_holiday_tool,
-            ],
+            [check_user_calendar_tool, list_github_repositories_tool,
+                list_slack_channels_tool],
             # The error handler should be disabled to allow interruptions to be triggered from within tools.
             handle_tool_errors=False
         )
@@ -59,4 +49,4 @@ state_graph = (
     .add_conditional_edges("call_llm", route_after_llm, [END, "tools"])
 )
 
-graph = state_graph.compile(store=InMemoryStore())
+graph = state_graph.compile()
