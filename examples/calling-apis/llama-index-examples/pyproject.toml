@@ -14,11 +14,14 @@ python = "^3.11"
 python-dotenv = "^1.0.1"
 flask = { extras = ["async"], version = "^3.1.0" }
 requests = "^2.32.3"
-authlib = "^1.5.1"
 hypercorn = "^0.17.3"
 llama-index = "^0.12.33"
 llama-index-agent-openai = "^0.4.6"
+auth0-server-python = "^1.0.0b4"
 auth0-ai-llamaindex = { path = "../../../packages/auth0-ai-llamaindex", develop = true }
+slack-sdk = "^3.35.0"
+pygithub = "^2.6.1"
+asgiref = "^3.8.1"
 
 [build-system]
 requires = ["poetry-core"]
