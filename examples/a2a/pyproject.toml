@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "a2a-auth-sample"
+version = "0.0.1"
+description = "Auth0 + Google A2A & ADK sample."
+authors = ["Auth0 <support@auth0.com>"]
+readme = "README.md"
+packages = [
+    { include = "common" },
+    { include = "bank_agent" },
+    { include = "hr_agent" },
+    { include = "hr_api" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11.12"
+flask = {extras = ["async"], version = "^3.1.0"}
+requests = "^2.32.3"
+python-dotenv = "^1.1.0"
+auth0-python = "^4.9.0"
+auth0-api-python = "^1.0.0b3"
+google-adk = "^0.4.0"
+google-genai = "^1.13.0"
+auth0-ai-langchain = "1.0.0b1"
+langchain-google-genai = "^2.1.4"
+langgraph = "^0.4.3"
+jwcrypto = "^1.5.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

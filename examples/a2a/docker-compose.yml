@@ -1,0 +1,20 @@
+services:
+  hr-agent:
+    build:
+      context: .
+      dockerfile: hr_agent/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${HR_AGENT_PORT}:${HR_AGENT_PORT}"
+    container_name: hr-agent
+
+  hr-api:
+    build:
+      context: .
+      dockerfile: hr_api/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${HR_API_PORT}:${HR_API_PORT}"
+    container_name: hr-api
