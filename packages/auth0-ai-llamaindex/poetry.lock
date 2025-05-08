@@ -186,21 +186,19 @@ tests-mypy = ["mypy (>=1.11.1) ; platform_python_implementation == \"CPython\" a
 
 [[package]]
 name = "auth0-ai"
-version = "0.2.0"
+version = "1.0.0b1"
 description = "This package provides base abstractions for authentication and authorization in AI applications."
 optional = false
-python-versions = "^3.11"
+python-versions = "<4.0,>=3.11"
 groups = ["main"]
-files = []
-develop = true
+files = [
+    {file = "auth0_ai-1.0.0b1-py3-none-any.whl", hash = "sha256:c0c2e7f3b535291ce6f85b86ba85dee86cf76108d737bcb8cec62c348bde9127"},
+    {file = "auth0_ai-1.0.0b1.tar.gz", hash = "sha256:89504bf1689583cac9e27e0237d77577471d9220c2520e24a4fba35b4f07719c"},
+]
 
 [package.dependencies]
-auth0-python = "^4.9.0"
-openfga-sdk = "^0.9.3"
-
-[package.source]
-type = "directory"
-url = "../auth0-ai"
+auth0-python = ">=4.9.0,<5.0.0"
+openfga-sdk = ">=0.9.4,<0.10.0"
 
 [[package]]
 name = "auth0-python"
@@ -1308,27 +1306,27 @@ python-dotenv = ">=1.0.1,<2.0.0"
 
 [[package]]
 name = "llama-index"
-version = "0.12.33"
+version = "0.12.34"
 description = "Interface between LLMs and your data"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "llama_index-0.12.33-py3-none-any.whl", hash = "sha256:300261e64174afe355afcf06037c5c38c4a5b17caf75db66664cd9c7a5b9dd17"},
-    {file = "llama_index-0.12.33.tar.gz", hash = "sha256:038da75552784f0e22379b6a816f36f74b31b28c6cbca063222c5f4225a2b497"},
+    {file = "llama_index-0.12.34-py3-none-any.whl", hash = "sha256:da76964c15e283e91b10e0dfa8121a4d133bbe9a63cc84641628a332df346e66"},
+    {file = "llama_index-0.12.34.tar.gz", hash = "sha256:6a94ca245606c9a8f98e7c36bd3269176bf3e3430066876e7739a8cdd3df1ffe"},
 ]
 
 [package.dependencies]
-llama-index-agent-openai = ">=0.4.0,<0.5.0"
-llama-index-cli = ">=0.4.1,<0.5.0"
-llama-index-core = ">=0.12.33,<0.13.0"
-llama-index-embeddings-openai = ">=0.3.0,<0.4.0"
+llama-index-agent-openai = ">=0.4.0,<0.5"
+llama-index-cli = ">=0.4.1,<0.5"
+llama-index-core = ">=0.12.34,<0.13"
+llama-index-embeddings-openai = ">=0.3.0,<0.4"
 llama-index-indices-managed-llama-cloud = ">=0.4.0"
-llama-index-llms-openai = ">=0.3.0,<0.4.0"
-llama-index-multi-modal-llms-openai = ">=0.4.0,<0.5.0"
-llama-index-program-openai = ">=0.3.0,<0.4.0"
-llama-index-question-gen-openai = ">=0.3.0,<0.4.0"
-llama-index-readers-file = ">=0.4.0,<0.5.0"
+llama-index-llms-openai = ">=0.3.0,<0.4"
+llama-index-multi-modal-llms-openai = ">=0.4.0,<0.5"
+llama-index-program-openai = ">=0.3.0,<0.4"
+llama-index-question-gen-openai = ">=0.3.0,<0.4"
+llama-index-readers-file = ">=0.4.0,<0.5"
 llama-index-readers-llama-parse = ">=0.4.0"
 nltk = ">3.8.1"
 
@@ -1368,37 +1366,37 @@ llama-index-llms-openai = ">=0.3.0,<0.4.0"
 
 [[package]]
 name = "llama-index-core"
-version = "0.12.33.post1"
+version = "0.12.34.post1"
 description = "Interface between LLMs and your data"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "llama_index_core-0.12.33.post1-py3-none-any.whl", hash = "sha256:2c4a316a1ae9ec86c817d44961d1058691632acb3a7021e6af56fcfb8735fd3d"},
-    {file = "llama_index_core-0.12.33.post1.tar.gz", hash = "sha256:d257f6f594dfd9cf6435af02761a3d21f1427df5347f0e5e9fffe4024db6a724"},
+    {file = "llama_index_core-0.12.34.post1-py3-none-any.whl", hash = "sha256:2b8262b5ec6537d979e7fb1b3c0e56747055ae7321b8dcb184ef43eee1df6396"},
+    {file = "llama_index_core-0.12.34.post1.tar.gz", hash = "sha256:1673566b134c75e99f5f64e9ec8ca979078bee2e70efa40fd009562b68c18307"},
 ]
 
 [package.dependencies]
-aiohttp = ">=3.8.6,<4.0.0"
-banks = ">=2.0.0,<3.0.0"
+aiohttp = ">=3.8.6,<4"
+banks = ">=2.0.0,<3"
 dataclasses-json = "*"
 deprecated = ">=1.2.9.3"
-dirtyjson = ">=1.0.8,<2.0.0"
-filetype = ">=1.2.0,<2.0.0"
+dirtyjson = ">=1.0.8,<2"
+filetype = ">=1.2.0,<2"
 fsspec = ">=2023.5.0"
 httpx = "*"
-nest-asyncio = ">=1.5.8,<2.0.0"
+nest-asyncio = ">=1.5.8,<2"
 networkx = ">=3.0"
 nltk = ">3.8.1"
 numpy = "*"
 pillow = ">=9.0.0"
 pydantic = ">=2.8.0"
-PyYAML = ">=6.0.1"
+pyyaml = ">=6.0.1"
 requests = ">=2.31.0"
-SQLAlchemy = {version = ">=1.4.49", extras = ["asyncio"]}
+sqlalchemy = {version = ">=1.4.49", extras = ["asyncio"]}
 tenacity = ">=8.2.0,<8.4.0 || >8.4.0,<10.0.0"
 tiktoken = ">=0.7.0"
-tqdm = ">=4.66.1,<5.0.0"
+tqdm = ">=4.66.1,<5"
 typing-extensions = ">=4.5.0"
 typing-inspect = ">=0.8.0"
 wrapt = "*"
@@ -2007,14 +2005,14 @@ voice-helpers = ["numpy (>=2.0.2)", "sounddevice (>=0.5.1)"]
 
 [[package]]
 name = "openfga-sdk"
-version = "0.9.3"
+version = "0.9.4"
 description = "A high performance and flexible authorization/permission engine built for developers and inspired by Google Zanzibar."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "openfga_sdk-0.9.3-py3-none-any.whl", hash = "sha256:3896c6f3b67e4ef287cba935bef60a2a74f7fa1bea0d497721affc7b7b33819b"},
-    {file = "openfga_sdk-0.9.3.tar.gz", hash = "sha256:7bedc39f5573b631d244798d5075c476e9d15594ed662fae979bad220f1d2ba1"},
+    {file = "openfga_sdk-0.9.4-py3-none-any.whl", hash = "sha256:f2a46df39876f0d964bc861d4141d0c2ef04a26181bf14366a7fac19ba46dcad"},
+    {file = "openfga_sdk-0.9.4.tar.gz", hash = "sha256:e3eec930b14d6a520001e78426b776be529e0605ab1282a312e3e559001a25df"},
 ]
 
 [package.dependencies]
@@ -2023,7 +2021,7 @@ build = ">=1.2.1,<2"
 opentelemetry-api = ">=1.25.0,<2"
 python-dateutil = ">=2.9.0,<3"
 setuptools = ">=69.1.1"
-urllib3 = ">=2.2.2,<3"
+urllib3 = ">=1.26.19,<3"
 
 [[package]]
 name = "opentelemetry-api"
@@ -3544,4 +3542,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "cd91fed123ec4bd98b91af5b91ab4067a362ed8a0638171406c5b717aa20d82e"
+content-hash = "21e3b741cb9940f953f84d7b09aa620699ecaacd871c5ef02142b7e5fbe1f4f4"
