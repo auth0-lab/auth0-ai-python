@@ -1,12 +1,10 @@
+import requests
 from datetime import datetime, timedelta
 from typing import Annotated
-
-import requests
-from auth0_ai_llamaindex.federated_connections import (
-    FederatedConnectionError,
-    get_credentials_for_connection,
-)
 from llama_index.core.tools import FunctionTool
+
+from auth0_ai_llamaindex.federated_connections import FederatedConnectionError, get_credentials_for_connection
+from src.auth0.auth0_ai import with_calendar_free_busy_access
 
 
 def add_hours(dt: datetime, hours: int) -> str:
@@ -31,7 +29,8 @@ def check_user_calendar_tool_function(
 
     response = requests.post(
         url,
-        headers={"Authorization": f"{credentials["token_type"]} {credentials["access_token"]}"},
+        headers={
+            "Authorization": f"{credentials["token_type"]} {credentials["access_token"]}"},
         json=body
     )
 
@@ -46,8 +45,8 @@ def check_user_calendar_tool_function(
     return {"available": len(busy_resp["calendars"]["primary"]["busy"]) == 0}
 
 
-check_user_calendar_tool = FunctionTool.from_defaults(
+check_user_calendar_tool = with_calendar_free_busy_access(FunctionTool.from_defaults(
     name="check_user_calendar",
     description="Use this function to check if the user is available on a certain date and time",
     fn=check_user_calendar_tool_function,
-)
+))
