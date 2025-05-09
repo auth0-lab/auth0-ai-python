@@ -30,32 +30,40 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     audience=os.getenv('HR_API_AUTH0_AUDIENCE'),
     binding_message='Please authorize the sharing of your employee details.',
     # user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id"),
-    user_id=lambda *_, **__: 'auth0|6810f0706577ed4aea3861c9', # TODO: find a way to get user id
+    user_id=lambda user_id, **__: user_id
 )
 
 get_token = GetToken(domain=os.getenv("HR_AUTH0_DOMAIN"), client_id=os.getenv("HR_AGENT_AUTH0_CLIENT_ID"), client_secret=os.getenv("HR_AGENT_AUTH0_CLIENT_SECRET"))
 
-def get_user_id_by_email(email: str) -> str | None:
+@tool
+def get_employee_id_by_email(work_email: str) -> str | None:
+    """Return the employee ID by email.
+
+    Args:
+        work_email (str): The employee's work email.
+
+    Returns:
+        Optional[str]: The employee ID if it exists, otherwise None.
+    """
     user = Auth0(
         domain=get_token.domain,
         token=get_token.client_credentials(f"https://{os.getenv('HR_AUTH0_DOMAIN')}/api/v2/")["access_token"]
-    ).users_by_email.search_users_by_email(email=email, fields=["user_id"])[0]
+    ).users_by_email.search_users_by_email(email=work_email, fields=["user_id"])[0]
     return user["user_id"] if user else None
 
 @tool
-def is_active_employee(first_name: str, last_name: str, work_email: str) -> dict[str, Any]:
+def is_active_employee(first_name: str, last_name: str, user_id: str) -> dict[str, Any]:
     """Confirm whether a person is an active employee of the company.
 
     Args:
-        first_name (str): The employer first name.
-        last_name (str): The employer last name.
-        work_email (str): The employer work email.
+        first_name (str): The employee's first name.
+        last_name (str): The employee's last name.
+        work_email (str): The employee's work email.
 
     Returns:
-        A dictionary containing the employment status, or an error message if the request fails.
+        dict: A dictionary containing the employment status, or an error message if the request fails.
     """
     try:
-        user_id = get_user_id_by_email(work_email)
         credentials = get_ciba_credentials()
         response = requests.get(f"{os.getenv('HR_API_BASE_URL')}/employees/{user_id}", headers={
             "Authorization": f"{credentials['token_type']} {credentials['access_token']}",
@@ -97,6 +105,7 @@ class HRAgent:
         self.model = ChatGoogleGenerativeAI(model='gemini-2.0-flash')
         self.tools = ToolNode(
             [
+                get_employee_id_by_email,
                 with_async_user_confirmation(is_active_employee),
             ],
             handle_tool_errors=False
