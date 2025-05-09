@@ -164,9 +164,12 @@ def task_callback(task: TaskCallbackArg, agent_card: AgentCard):
 root_agent = HostAgent(
     task_callback=task_callback,
     remote_agent_addresses=[
-        os.getenv('HR_AGENT_BASE_URL'), # Staff0's HR Agent
+        os.getenv('HR_AGENT_BASE_URL'), # Staff0's HR Agent (TODO: specify M2M client id and secret)
     ],
     name='bank_agent',
     instruction=agent_instruction,
-    description='This agent helps users open accounts step by step. Also, it is responsible for selecting a remote agent to validate the user\'s employment status and coordinate its work.'
+    description=(
+        'This agent helps users open accounts step by step.'
+        'Also, it is responsible for selecting a remote agent to validate the user\'s employment status and coordinate its work.'
+    )
 ).create_agent()

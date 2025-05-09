@@ -29,7 +29,6 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope='stock:trade',
     audience=os.getenv('HR_API_AUTH0_AUDIENCE'),
     binding_message='Please authorize the sharing of your employee details.',
-    # user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id"),
     user_id=lambda user_id, **__: user_id
 )
 
