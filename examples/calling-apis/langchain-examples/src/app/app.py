@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response, HTTPException, Depends
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -8,7 +7,6 @@ from pathlib import Path
 from starlette.middleware.sessions import SessionMiddleware
 
 from auth0_fastapi.server.routes import router, register_auth_routes
-from auth0_fastapi.auth.auth_client import StartInteractiveLoginOptions
 
 from langgraph_sdk import get_client
 from langgraph_sdk.schema import Command
@@ -161,32 +159,3 @@ async def chat_api(request: Request, auth_session=Depends(auth_client.require_se
         return JSONResponse(content={"response": last_message["content"]})
 
     return JSONResponse(content={"error": "Unexpected error"}, status_code=500)
-
-
-# TODO: Remove this endpoint once `auth0_fastapi` SDK supports
-# forwarding the necessary auth_params from `/auth/login` endpoint.
-@app.get('/auth/signin')
-async def login(request: Request, response: Response):
-    protected_keys = [
-        "client_id", "redirect_uri", "response_type", "code_challenge", "code_challenge_method", "state", "nonce"
-    ]
-    return_to: Optional[str] = request.query_params.get("returnTo")
-    app_state = {"returnTo": return_to} if return_to else None
-    authorization_params = (
-        {
-            key: value
-            for key, value in request.query_params.items()
-            if key not in protected_keys
-        }
-        if not config.pushed_authorization_requests else {}
-    )
-
-    auth_url = await auth_client.client.start_interactive_login(
-        options=StartInteractiveLoginOptions(
-            app_state=app_state,
-            authorization_params=authorization_params
-        ),
-        store_options={"request": request, "response": response}
-    )
-
-    return RedirectResponse(url=auth_url, headers=response.headers)

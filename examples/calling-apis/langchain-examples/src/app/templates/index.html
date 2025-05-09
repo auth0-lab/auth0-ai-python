@@ -262,7 +262,7 @@
             mode="redirect"
             interrupt={({ connection, requiredScopes })}
             connectWidget={({ title: interrupt.value?.message, description: "Description..." })}
-            auth={({ authorizePath: "/auth/signin", returnTo: "/chat/resume" })}
+            auth={({ returnTo: "/chat/resume" })}
           />
         );
       }
