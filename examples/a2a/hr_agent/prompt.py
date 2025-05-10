@@ -10,3 +10,9 @@ Set response status to input_required if the user needs to authorize the request
 Set response status to error if there is an error while processing the request.
 Set response status to completed if the request is complete.
 """
+
+response_format_instruction = """
+Select status as completed if the request is complete
+Select status as input_required if the input is a pending action from user
+Set response status to error if the input indicates an error
+"""

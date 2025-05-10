@@ -5,13 +5,14 @@ import click
 from dotenv import load_dotenv
 load_dotenv()
 
-from hr_agent.agent import HRAgent
+from hr_agent.agent import HRAgentClient
 from hr_agent.task_manager import AgentTaskManager
 from common.server import A2AServer
 from common.types import (
     AgentCapabilities,
     AgentCard,
     AgentSkill,
+    AgentAuthentication,
     MissingAPIKeyError,
 )
 
@@ -29,8 +30,8 @@ def main(host, port):
             description='This agent handles external verification requests about Staff0 employees made by third parties.',
             url=f'http://{host}:{port}/',
             version='1.0.0',
-            defaultInputModes=HRAgent.SUPPORTED_CONTENT_TYPES,
-            defaultOutputModes=HRAgent.SUPPORTED_CONTENT_TYPES,
+            defaultInputModes=HRAgentClient.SUPPORTED_CONTENT_TYPES,
+            defaultOutputModes=HRAgentClient.SUPPORTED_CONTENT_TYPES,
             capabilities=AgentCapabilities(streaming=True),
             skills=[
                 AgentSkill(
@@ -43,12 +44,15 @@ def main(host, port):
                     ],
                 )
             ],
-            # authentication= TODO
+            authentication=AgentAuthentication(
+                schemes=['Bearer'],
+                credentials=f'https://{os.getenv("HR_AUTH0_DOMAIN")}/oauth/token'
+            )
         )
 
         server = A2AServer(
             agent_card=agent_card,
-            task_manager=AgentTaskManager(agent=HRAgent()),
+            task_manager=AgentTaskManager(agent=HRAgentClient()),
             host=host,
             port=port,
         )

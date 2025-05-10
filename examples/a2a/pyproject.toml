@@ -24,6 +24,9 @@ auth0-ai-langchain = "1.0.0b1"
 langchain-google-genai = "^2.1.4"
 langgraph = "^0.4.3"
 jwcrypto = "^1.5.6"
+langgraph-sdk = "^0.1.66"
+langgraph-cli = "^0.2.8"
+langgraph-api = "^0.2.19"
 
 [build-system]
 requires = ["poetry-core"]

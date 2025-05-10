@@ -4,22 +4,25 @@ from pydantic import BaseModel
 import requests
 import logging
 
-from auth0_ai_langchain.auth0_ai import Auth0AI
 from auth0.authentication.get_token import GetToken
 from auth0.management import Auth0
 
-from hr_agent.prompt import agent_instruction
+from hr_agent.prompt import agent_instruction, response_format_instruction
+
+from auth0_ai_langchain.auth0_ai import Auth0AI
 from auth0_ai_langchain.ciba import get_ciba_credentials
 
+from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
-
+from langgraph_sdk import get_client
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 logger = logging.getLogger()
+
+agent_name = 'hr_agent'
 
 auth0_ai = Auth0AI(auth0={
     "domain": os.getenv("HR_AUTH0_DOMAIN"), "client_id": os.getenv("HR_AGENT_AUTH0_CLIENT_ID"), "client_secret": os.getenv("HR_AGENT_AUTH0_CLIENT_SECRET")
@@ -95,41 +98,66 @@ class ResponseFormat(BaseModel):
     status: Literal['input_required', 'completed', 'error'] = 'input_required'
     message: str
 
-class HRAgent:
-    """An agent that handles HR related operations."""
-
+class HRAgentClient:
     SUPPORTED_CONTENT_TYPES = ['text', 'text/plain']
 
-    def __init__(self):
-        self.model = ChatGoogleGenerativeAI(model='gemini-2.0-flash')
-        self.tools = ToolNode(
-            [
-                get_employee_id_by_email,
-                with_async_user_confirmation(is_active_employee),
-            ],
-            handle_tool_errors=False
-        )
+    async def _get_agent_response(self, config: RunnableConfig):
+        client = get_client(url=os.getenv("HR_AGENT_LANGGRAPH_BASE_URL"))
 
-        self.graph = create_react_agent(
-            self.model,
-            tools=self.tools,
-            checkpointer=MemorySaver(),
-            prompt=agent_instruction,
-            response_format=ResponseFormat,
-            debug=True,
-        )
+        current_state = await client.threads.get_state(config["configurable"]["thread_id"])
+        # current_state = self.graph.get_state(config)
 
+        # interrupts = current_state.interrupts
+        interrupts = current_state['tasks'][0].get('interrupts', []) if current_state['tasks'] else []
+        if len(interrupts) > 0:
+            return {
+                'is_task_complete': False,
+                'require_user_input': True,
+                'content': interrupts[0]["value"]["message"],
+                # 'content': interrupts[0].value["message"],
+            }
 
-    async def invoke(self, query, session_id) -> str:
-        config = {'configurable': {'thread_id': session_id}}
-        await self.graph.ainvoke({'messages': [('user', query)]}, config)
-        return self.get_agent_response(config)
+        structured_response = current_state.values.get('structured_response')
+        if structured_response and isinstance(
+            structured_response, ResponseFormat
+        ):
+            if structured_response.status in {'input_required', 'error'}:
+                return {
+                    'is_task_complete': False,
+                    'require_user_input': True,
+                    'content': structured_response.message,
+                }
+            if structured_response.status == 'completed':
+                return {
+                    'is_task_complete': True,
+                    'require_user_input': False,
+                    'content': structured_response.message,
+                }
 
-    async def stream(self, query, session_id) -> AsyncIterable[dict[str, Any]]:
-        inputs = {'messages': [('user', query)]}
-        config = {'configurable': {'thread_id': session_id}}
+        return {
+            'is_task_complete': False,
+            'require_user_input': True,
+            'content': 'We are unable to process your request at the moment. Please try again.',
+        }
 
-        async for item in self.graph.astream(inputs, config, stream_mode='values'):
+    async def invoke(self, query: str, session_id: str) -> str:
+        client = get_client(url=os.getenv("HR_AGENT_LANGGRAPH_BASE_URL"))
+        input: dict[str, Any] = {'messages': [('user', query)]}
+        config: RunnableConfig = {'configurable': {'thread_id': session_id}}
+
+        thread = await client.threads.create(thread_id=session_id, if_exists='do_nothing')
+        await client.runs.create(thread_id=thread["thread_id"], assistant_id=agent_name, input=input)
+        # await self.graph.ainvoke(input, config)
+        return await self._get_agent_response(config)
+
+    async def stream(self, query: str, session_id: str) -> AsyncIterable[dict[str, Any]]:
+        client = get_client(url=os.getenv("HR_AGENT_LANGGRAPH_BASE_URL"))
+        input: dict[str, Any] = {'messages': [('user', query)]}
+        config: RunnableConfig = {'configurable': {'thread_id': session_id}}
+        
+        thread = await client.threads.create(thread_id=session_id, if_exists='do_nothing')
+        async for item in client.runs.stream(thread["thread_id"], agent_name, input=input, stream_mode="values"):
+        # async for item in self.graph.astream(inputs, config, stream_mode='values'):
             message = item['messages'][-1] if 'messages' in item else None
             if message:
                 if (
@@ -149,41 +177,20 @@ class HRAgent:
                         'content': 'Processing the employment details..',
                     }
 
-        yield self.get_agent_response(config)
+        yield await self._get_agent_response(config)
 
-    def get_agent_response(self, config):
-        current_state = self.graph.get_state(config)
-        
-        interrupts = current_state.interrupts
-        if len(interrupts) > 0:
-            return {
-                'is_task_complete': False,
-                'require_user_input': True,
-                'content': interrupts[0].value["message"],
-            }
-
-        structured_response = current_state.values.get('structured_response')
-        if structured_response and isinstance(
-            structured_response, ResponseFormat
-        ):
-            if (
-                structured_response.status == 'input_required'
-                or structured_response.status == 'error'
-            ):
-                return {
-                    'is_task_complete': False,
-                    'require_user_input': True,
-                    'content': structured_response.message,
-                }
-            if structured_response.status == 'completed':
-                return {
-                    'is_task_complete': True,
-                    'require_user_input': False,
-                    'content': structured_response.message,
-                }
-
-        return {
-            'is_task_complete': False,
-            'require_user_input': True,
-            'content': 'We are unable to process your request at the moment. Please try again.',
-        }
+graph = create_react_agent(
+    ChatGoogleGenerativeAI(model='gemini-2.0-flash'),
+    tools=ToolNode(
+        [
+            get_employee_id_by_email,
+            with_async_user_confirmation(is_active_employee),
+        ],
+        handle_tool_errors=False
+    ),
+    name=agent_name,
+    prompt=agent_instruction,
+    response_format=(response_format_instruction, ResponseFormat),
+    #checkpointer=MemorySaver(),
+    debug=True,
+)

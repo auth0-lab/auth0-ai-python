@@ -4,7 +4,7 @@ import logging
 
 from collections.abc import AsyncIterable
 
-from hr_agent.agent import HRAgent
+from hr_agent.agent import HRAgentClient
 from common.server import utils
 from common.server.task_manager import InMemoryTaskManager
 from common.types import (
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 class AgentTaskManager(InMemoryTaskManager):
     def __init__(
         self,
-        agent: HRAgent,
+        agent: HRAgentClient,
         notification_sender_auth: PushNotificationSenderAuth = None,
     ):
         super().__init__()
@@ -108,12 +108,12 @@ class AgentTaskManager(InMemoryTaskManager):
         task_send_params: TaskSendParams = request.params
         if not utils.are_modalities_compatible(
             task_send_params.acceptedOutputModes,
-            HRAgent.SUPPORTED_CONTENT_TYPES,
+            HRAgentClient.SUPPORTED_CONTENT_TYPES,
         ):
             logger.warning(
                 'Unsupported output mode. Received %s, Support %s',
                 task_send_params.acceptedOutputModes,
-                HRAgent.SUPPORTED_CONTENT_TYPES,
+                HRAgentClient.SUPPORTED_CONTENT_TYPES,
             )
             return utils.new_incompatible_types_error(request.id)
 
