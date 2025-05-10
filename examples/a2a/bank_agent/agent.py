@@ -1,9 +1,11 @@
+import asyncio
 import os
 
 from bank_agent.host_agent import HostAgent
 from bank_agent.prompt import agent_instruction
 from bank_agent.remote_agent_connection import TaskCallbackArg
-from common.types import AgentCard, Message, Task, TaskArtifactUpdateEvent, TaskState, TaskStatus, TaskStatusUpdateEvent
+
+from a2a.types import AgentCard, Artifact, Message, Task, TaskArtifactUpdateEvent, TaskState, TaskStatus, TaskStatusUpdateEvent
 
 # TODO: move task_callback stuff to a different file/class
 _tasks: list[Task] = []
@@ -15,22 +17,22 @@ _artifact_chunks = {}
 def add_task(task: Task):
     _tasks.append(task)
 
-def add_or_get_task(task: TaskCallbackArg):
+def add_or_get_task(task: TaskStatusUpdateEvent | TaskArtifactUpdateEvent):
     current_task = next(
-        filter(lambda x: x.id == task.id, _tasks), None
+        filter(lambda x: x.id == task.taskId, _tasks), None
     )
     if not current_task:
         conversation_id = None
         if task.metadata and 'conversation_id' in task.metadata:
             conversation_id = task.metadata['conversation_id']
         current_task = Task(
-            id=task.id,
+            id=task.taskId,
+            contextId=conversation_id,
             status=TaskStatus(
-                state=TaskState.SUBMITTED
-            ),  # initialize with submitted
+                state=TaskState.submitted, # initialize with submitted
+            ),
             metadata=task.metadata,
             artifacts=[],
-            sessionId=conversation_id,
         )
         add_task(current_task)
         return current_task
@@ -97,9 +99,9 @@ def process_artifact_event(
     current_task: Task, task_update_event: TaskArtifactUpdateEvent
 ):
     artifact = task_update_event.artifact
-    if not artifact.append:
+    if not task_update_event.append:
         # received the first chunk or entire payload for an artifact
-        if artifact.lastChunk is None or artifact.lastChunk:
+        if task_update_event.lastChunk is None or task_update_event.lastChunk:
             # lastChunk bit is missing or is set to true, so this is the entire payload
             # add this to artifacts
             if not current_task.artifacts:
@@ -107,21 +109,21 @@ def process_artifact_event(
             current_task.artifacts.append(artifact)
         else:
             # this is a chunk of an artifact, stash it in temp store for assembling
-            if task_update_event.id not in _artifact_chunks:
-                _artifact_chunks[task_update_event.id] = {}
-            _artifact_chunks[task_update_event.id][artifact.index] = (
+            if task_update_event.taskId not in _artifact_chunks:
+                _artifact_chunks[task_update_event.taskId] = {}
+            _artifact_chunks[task_update_event.taskId][artifact.artifactId] = (
                 artifact
             )
     else:
         # we received an append chunk, add to the existing temp artifact
-        current_temp_artifact = _artifact_chunks[task_update_event.id][
-            artifact.index
+        current_temp_artifact: Artifact = _artifact_chunks[task_update_event.taskId][
+            artifact.artifactId
         ]
         # TODO handle if current_temp_artifact is missing
         current_temp_artifact.parts.extend(artifact.parts)
-        if artifact.lastChunk:
+        if task_update_event.lastChunk:
             current_task.artifacts.append(current_temp_artifact)
-            del _artifact_chunks[task_update_event.id][artifact.index]
+            del _artifact_chunks[task_update_event.taskId][artifact.artifactId]
 
 def get_message_id(m: Message | None) -> str | None:
     if not m or not m.metadata or 'message_id' not in m.metadata:
@@ -161,8 +163,19 @@ def task_callback(task: TaskCallbackArg, agent_card: AgentCard):
     update_task(task)
     return task
 
-root_agent = HostAgent(
-    task_callback=task_callback,
+def _run_async(coro):
+    try:
+        loop = asyncio.get_running_loop()
+        if loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            return loop.run_until_complete(coro)
+    except RuntimeError:
+        pass
+
+    return asyncio.run(coro)
+
+agent_instance = HostAgent(
     remote_agent_addresses=[
         os.getenv('HR_AGENT_BASE_URL'), # Staff0's HR Agent (TODO: specify M2M client id and secret)
     ],
@@ -171,5 +184,8 @@ root_agent = HostAgent(
     description=(
         'This agent helps users open accounts step by step.'
         'Also, it is responsible for selecting a remote agent to validate the user\'s employment status and coordinate its work.'
-    )
-).create_agent()
+    ),
+    task_callback=task_callback,
+)
+
+root_agent = _run_async(agent_instance.create_agent())

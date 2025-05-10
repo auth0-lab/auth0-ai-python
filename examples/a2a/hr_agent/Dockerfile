@@ -8,6 +8,7 @@ COPY ../pyproject.toml ../poetry.lock ./
 RUN poetry config virtualenvs.create false && poetry install --no-root
 
 COPY hr_agent ./hr_agent
+COPY a2a ./a2a
 COPY common ./common
 
 ENV PORT=8080

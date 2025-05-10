@@ -1,18 +1,17 @@
 import uuid
-
+import httpx
 from collections.abc import Callable
 
-from common.client import A2AClient
-from common.types import (
+from a2a.client import A2AClient
+from a2a.types import (
     AgentCard,
     Task,
     TaskArtifactUpdateEvent,
-    TaskSendParams,
-    TaskState,
-    TaskStatus,
+    MessageSendParams,
     TaskStatusUpdateEvent,
+    TaskStatus,
+    TaskState,
 )
-
 
 TaskCallbackArg = Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent
 TaskUpdateCallback = Callable[[TaskCallbackArg, AgentCard], Task]
@@ -21,8 +20,8 @@ TaskUpdateCallback = Callable[[TaskCallbackArg, AgentCard], Task]
 class RemoteAgentConnections:
     """A class to hold the connections to the remote agents."""
 
-    def __init__(self, agent_card: AgentCard):
-        self.agent_client = A2AClient(agent_card)
+    def __init__(self, agent_card: AgentCard, httpx_client: httpx.AsyncClient):
+        self.agent_client = A2AClient(agent_card=agent_card, httpx_client=httpx_client)
         self.card = agent_card
 
         self.conversation_name = None
@@ -34,7 +33,7 @@ class RemoteAgentConnections:
 
     async def send_task(
         self,
-        request: TaskSendParams,
+        request: MessageSendParams,
         task_callback: TaskUpdateCallback | None,
     ) -> Task | None:
         if self.card.capabilities.streaming:
@@ -42,53 +41,54 @@ class RemoteAgentConnections:
             if task_callback:
                 task_callback(
                     Task(
-                        id=request.id,
-                        sessionId=request.sessionId,
+                        id=request.message.taskId,
+                        contextId=request.message.contextId,
                         status=TaskStatus(
-                            state=TaskState.SUBMITTED,
+                            state=TaskState.submitted,
                             message=request.message,
                         ),
                         history=[request.message],
                     ),
                     self.card,
                 )
-            async for response in self.agent_client.send_task_streaming(
-                request.model_dump()
+            async for response in self.agent_client.send_message_streaming(
+                request.model_dump(),
+                request.message.taskId,
             ):
-                merge_metadata(response.result, request)
+                merge_metadata(response.root.result, request)
                 # For task status updates, we need to propagate metadata and provide
                 # a unique message id.
                 if (
-                    hasattr(response.result, 'status')
-                    and hasattr(response.result.status, 'message')
-                    and response.result.status.message
+                    hasattr(response.root.result, 'status')
+                    and hasattr(response.root.result.status, 'message')
+                    and response.root.result.status.message
                 ):
                     merge_metadata(
-                        response.result.status.message, request.message
+                        response.root.result.status.message, request.message
                     )
-                    m = response.result.status.message
+                    m = response.root.result.status.message
                     if not m.metadata:
                         m.metadata = {}
                     if 'message_id' in m.metadata:
                         m.metadata['last_message_id'] = m.metadata['message_id']
                     m.metadata['message_id'] = str(uuid.uuid4())
                 if task_callback:
-                    task = task_callback(response.result, self.card)
-                if hasattr(response.result, 'final') and response.result.final:
+                    task = task_callback(response.root.result, self.card)
+                if hasattr(response.root.result, 'final') and response.root.result.final:
                     break
             return task
         # Non-streaming
-        response = await self.agent_client.send_task(request.model_dump())
-        merge_metadata(response.result, request)
+        response = await self.agent_client.send_message(request.model_dump(), request.message.taskId)
+        merge_metadata(response.root.result, request)
         # For task status updates, we need to propagate metadata and provide
         # a unique message id.
         if (
-            hasattr(response.result, 'status')
-            and hasattr(response.result.status, 'message')
-            and response.result.status.message
+            hasattr(response.root.result, 'status')
+            and hasattr(response.root.result.status, 'message')
+            and response.root.result.status.message
         ):
-            merge_metadata(response.result.status.message, request.message)
-            m = response.result.status.message
+            merge_metadata(response.root.result.status.message, request.message)
+            m = response.root.result.status.message
             if not m.metadata:
                 m.metadata = {}
             if 'message_id' in m.metadata:
@@ -96,8 +96,8 @@ class RemoteAgentConnections:
             m.metadata['message_id'] = str(uuid.uuid4())
 
         if task_callback:
-            task_callback(response.result, self.card)
-        return response.result
+            task_callback(response.root.result, self.card)
+        return response.root.result
 
 
 def merge_metadata(target, source):

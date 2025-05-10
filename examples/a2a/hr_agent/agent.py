@@ -1,13 +1,10 @@
 from typing import Any, AsyncIterable, Literal
 import os
 from pydantic import BaseModel
-import requests
-import logging
+import httpx
 
 from auth0.authentication.get_token import GetToken
 from auth0.management import Auth0
-
-from hr_agent.prompt import agent_instruction, response_format_instruction
 
 from auth0_ai_langchain.auth0_ai import Auth0AI
 from auth0_ai_langchain.ciba import get_ciba_credentials
@@ -20,9 +17,6 @@ from langgraph.prebuilt import create_react_agent
 from langgraph_sdk import get_client
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-logger = logging.getLogger()
-
-agent_name = 'hr_agent'
 
 auth0_ai = Auth0AI(auth0={
     "domain": os.getenv("HR_AUTH0_DOMAIN"), "client_id": os.getenv("HR_AGENT_AUTH0_CLIENT_ID"), "client_secret": os.getenv("HR_AGENT_AUTH0_CLIENT_SECRET")
@@ -32,7 +26,8 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope='stock:trade',
     audience=os.getenv('HR_API_AUTH0_AUDIENCE'),
     binding_message='Please authorize the sharing of your employee details.',
-    user_id=lambda user_id, **__: user_id
+    user_id=lambda user_id, **__: user_id,
+    on_authorization_request='block',
 )
 
 get_token = GetToken(domain=os.getenv("HR_AUTH0_DOMAIN"), client_id=os.getenv("HR_AGENT_AUTH0_CLIENT_ID"), client_secret=os.getenv("HR_AGENT_AUTH0_CLIENT_SECRET"))
@@ -54,7 +49,7 @@ def get_employee_id_by_email(work_email: str) -> str | None:
     return user["user_id"] if user else None
 
 @tool
-def is_active_employee(first_name: str, last_name: str, user_id: str) -> dict[str, Any]:
+async def is_active_employee(first_name: str, last_name: str, user_id: str) -> dict[str, Any]:
     """Confirm whether a person is an active employee of the company.
 
     Args:
@@ -67,7 +62,7 @@ def is_active_employee(first_name: str, last_name: str, user_id: str) -> dict[st
     """
     try:
         credentials = get_ciba_credentials()
-        response = requests.get(f"{os.getenv('HR_API_BASE_URL')}/employees/{user_id}", headers={
+        response = await httpx.AsyncClient().get(f"{os.getenv('HR_API_BASE_URL')}/employees/{user_id}", headers={
             "Authorization": f"{credentials['token_type']} {credentials['access_token']}",
             "Content-Type": "application/json"
         })
@@ -86,10 +81,9 @@ def is_active_employee(first_name: str, last_name: str, user_id: str) -> dict[st
             return {'active': True}
         else:
             response.raise_for_status()
-    except requests.HTTPError as e:
+    except httpx.HTTPError as e:
         return {'error': f'API request failed: {e}'}
     except Exception as e:
-        logger.error(f'Error from is_active_employee tool: {e}')
         return {'error': 'Unexpected response from API.'}
 
 class ResponseFormat(BaseModel):
@@ -98,8 +92,29 @@ class ResponseFormat(BaseModel):
     status: Literal['input_required', 'completed', 'error'] = 'input_required'
     message: str
 
-class HRAgentClient:
+class HRAgent:
     SUPPORTED_CONTENT_TYPES = ['text', 'text/plain']
+
+    AGENT_NAME: str = 'hr_agent'
+
+    SYSTEM_INSTRUCTION: str = """
+    You are an agent who handles external verification requests about Staff0 employees made by third parties.
+
+    Do not attempt to answer unrelated questions or use tools for other purposes.
+
+    If you are asked about a person's employee status using their employee ID, use the `is_active_employee` tool.
+    If they provide a work email instead, first call the `get_employee_id_by_email` tool to get the employee ID, and then use `is_active_employee`.
+
+    Set response status to input_required if the user needs to authorize the request.
+    Set response status to error if there is an error while processing the request.
+    Set response status to completed if the request is complete.
+    """
+
+    RESPONSE_FORMAT_INSTRUCTION: str = """
+    Select status as completed if the request is complete
+    Select status as input_required if the input is a pending action from user
+    Set response status to error if the input indicates an error
+    """
 
     async def _get_agent_response(self, config: RunnableConfig):
         client = get_client(url=os.getenv("HR_AGENT_LANGGRAPH_BASE_URL"))
@@ -117,21 +132,21 @@ class HRAgentClient:
                 # 'content': interrupts[0].value["message"],
             }
 
-        structured_response = current_state.values.get('structured_response')
-        if structured_response and isinstance(
-            structured_response, ResponseFormat
-        ):
-            if structured_response.status in {'input_required', 'error'}:
+        structured_response = current_state["values"].get("structured_response")
+        if structured_response and 'status' in structured_response and 'message' in structured_response:
+        # structured_response = current_state.values.get('structured_response')
+        # if structured_response and isinstance(structured_response, ResponseFormat):
+            if structured_response['status'] in {'input_required', 'error'}:
                 return {
                     'is_task_complete': False,
                     'require_user_input': True,
-                    'content': structured_response.message,
+                    'content': structured_response['message'],
                 }
-            if structured_response.status == 'completed':
+            if structured_response['status'] == 'completed':
                 return {
                     'is_task_complete': True,
                     'require_user_input': False,
-                    'content': structured_response.message,
+                    'content': structured_response['message'],
                 }
 
         return {
@@ -146,7 +161,7 @@ class HRAgentClient:
         config: RunnableConfig = {'configurable': {'thread_id': session_id}}
 
         thread = await client.threads.create(thread_id=session_id, if_exists='do_nothing')
-        await client.runs.create(thread_id=thread["thread_id"], assistant_id=agent_name, input=input)
+        await client.runs.create(thread_id=thread["thread_id"], assistant_id=self.AGENT_NAME, input=input)
         # await self.graph.ainvoke(input, config)
         return await self._get_agent_response(config)
 
@@ -156,7 +171,7 @@ class HRAgentClient:
         config: RunnableConfig = {'configurable': {'thread_id': session_id}}
         
         thread = await client.threads.create(thread_id=session_id, if_exists='do_nothing')
-        async for item in client.runs.stream(thread["thread_id"], agent_name, input=input, stream_mode="values"):
+        async for item in client.runs.stream(thread["thread_id"], self.AGENT_NAME, input=input, stream_mode="values"):
         # async for item in self.graph.astream(inputs, config, stream_mode='values'):
             message = item['messages'][-1] if 'messages' in item else None
             if message:
@@ -188,9 +203,9 @@ graph = create_react_agent(
         ],
         handle_tool_errors=False
     ),
-    name=agent_name,
-    prompt=agent_instruction,
-    response_format=(response_format_instruction, ResponseFormat),
+    name=HRAgent.AGENT_NAME,
+    prompt=HRAgent.SYSTEM_INSTRUCTION,
+    response_format=(HRAgent.RESPONSE_FORMAT_INSTRUCTION, ResponseFormat),
     #checkpointer=MemorySaver(),
     debug=True,
 )

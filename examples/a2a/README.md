@@ -52,13 +52,19 @@ Copy the `.env.example` file to `.env` and fill in the required variables.
 poetry install
 ```
 
-2.  **Run HR Agent, HR API and Bank Agent**
+2.  **Deploy HR Agent in LangGraph Server**
+
+```shell
+poetry run langgraph dev --port 54367 --allow-blocking
+```
+
+3.  **Run HR Agent A2A Server, HR API and Bank Agent**
 
 ```shell
 make run
 ```
 
-3.  **Open the Bank Agent Chatbot by navigating to [http://localhost:8000/dev-ui?app=bank_agent](http://localhost:8000/dev-ui?app=bank_agent)**
+4.  **Open the Bank Agent Chatbot by navigating to [http://localhost:8000/dev-ui?app=bank_agent](http://localhost:8000/dev-ui?app=bank_agent)**
 
 ## How it works
 

@@ -5,6 +5,7 @@ description = "Auth0 + Google A2A & ADK sample."
 authors = ["Auth0 <support@auth0.com>"]
 readme = "README.md"
 packages = [
+    { include = "a2a" },
     { include = "common" },
     { include = "bank_agent" },
     { include = "hr_agent" },
@@ -14,7 +15,6 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.11.12"
 flask = {extras = ["async"], version = "^3.1.0"}
-requests = "^2.32.3"
 python-dotenv = "^1.1.0"
 auth0-python = "^4.9.0"
 auth0-api-python = "^1.0.0b3"
@@ -27,6 +27,9 @@ jwcrypto = "^1.5.6"
 langgraph-sdk = "^0.1.66"
 langgraph-cli = "^0.2.8"
 langgraph-api = "^0.2.19"
+httpx-sse = "^0.4.0"
+httpx = "^0.28.1"
+nest-asyncio = "^1.6.0"
 
 [build-system]
 requires = ["poetry-core"]
