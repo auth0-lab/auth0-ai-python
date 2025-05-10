@@ -25,6 +25,7 @@ Developers are using LLMs to build generative AI applications that deliver power
 - [Authorization for Tools](/examples/authorization-for-tools/README.md): Examples of implementing secure tool calling with strict access control using Okta FGA.
 - [Calling APIs](/examples/calling-apis/README.md): Examples of using secure standards to call third-party APIs from tools with Auth0.
 - [Async User Confirmation](/examples/async-user-confirmation/README.md): Examples of handling asynchronous user confirmation workflows.
+- [Agent 2 Agent](/examples/a2a/README.md): Example of integrating Auth0 into a Google Agent2Agent (A2A) protocol scenario.
 
 ## Recommendations for VSCode Users
 

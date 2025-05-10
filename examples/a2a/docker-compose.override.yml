@@ -1,0 +1,18 @@
+services:
+  hr-agent:
+    volumes:
+      - ./hr_agent:/app/hr_agent
+      - ./common:/app/common
+      - ./.env:/app/.env
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
+
+  hr-api:
+    volumes:
+      - ./hr_api:/app/hr_api
+      - ./common:/app/common
+      - ./.env:/app/.env
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
