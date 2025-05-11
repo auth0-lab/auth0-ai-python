@@ -3,11 +3,23 @@ services:
     build:
       context: .
       dockerfile: hr_agent/Dockerfile
+    command: ["python", "-m", "hr_agent"]
     env_file:
       - .env
     ports:
       - "${HR_AGENT_PORT}:${HR_AGENT_PORT}"
     container_name: hr-agent
+
+  hr-agent-ciba-resumer:
+    build:
+      context: .
+      dockerfile: hr_agent/Dockerfile
+    command: ["python", "hr_agent/ciba_resumer.py"]
+    env_file:
+      - .env
+    container_name: hr-agent-ciba-resumer
+    depends_on:
+      - hr-agent
 
   hr-api:
     build:

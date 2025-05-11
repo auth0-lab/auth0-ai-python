@@ -27,10 +27,13 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     audience=os.getenv('HR_API_AUTH0_AUDIENCE'),
     binding_message='Please authorize the sharing of your employee details.',
     user_id=lambda user_id, **__: user_id,
-    on_authorization_request='block',
+    # on_authorization_request='block',
 )
 
 get_token = GetToken(domain=os.getenv("HR_AUTH0_DOMAIN"), client_id=os.getenv("HR_AGENT_AUTH0_CLIENT_ID"), client_secret=os.getenv("HR_AGENT_AUTH0_CLIENT_SECRET"))
+
+def get_langgraph_client():
+    return get_client(url=os.getenv("HR_AGENT_LANGGRAPH_BASE_URL"))
 
 @tool
 def get_employee_id_by_email(work_email: str) -> str | None:
@@ -117,8 +120,7 @@ class HRAgent:
     """
 
     async def _get_agent_response(self, config: RunnableConfig):
-        client = get_client(url=os.getenv("HR_AGENT_LANGGRAPH_BASE_URL"))
-
+        client = get_langgraph_client()
         current_state = await client.threads.get_state(config["configurable"]["thread_id"])
         # current_state = self.graph.get_state(config)
 
@@ -156,7 +158,7 @@ class HRAgent:
         }
 
     async def invoke(self, query: str, session_id: str) -> str:
-        client = get_client(url=os.getenv("HR_AGENT_LANGGRAPH_BASE_URL"))
+        client = get_langgraph_client()
         input: dict[str, Any] = {'messages': [('user', query)]}
         config: RunnableConfig = {'configurable': {'thread_id': session_id}}
 
@@ -166,7 +168,7 @@ class HRAgent:
         return await self._get_agent_response(config)
 
     async def stream(self, query: str, session_id: str) -> AsyncIterable[dict[str, Any]]:
-        client = get_client(url=os.getenv("HR_AGENT_LANGGRAPH_BASE_URL"))
+        client = get_langgraph_client()
         input: dict[str, Any] = {'messages': [('user', query)]}
         config: RunnableConfig = {'configurable': {'thread_id': session_id}}
         

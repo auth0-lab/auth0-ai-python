@@ -15,5 +15,3 @@ ENV PORT=8080
 ENV PYTHONPATH=/app
 
 EXPOSE 8080
-
-CMD ["python", "-m", "hr_agent"]
