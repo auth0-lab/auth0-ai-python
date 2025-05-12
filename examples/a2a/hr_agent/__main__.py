@@ -6,7 +6,8 @@ load_dotenv()
 
 from hr_agent.agent import HRAgent
 from hr_agent.agent_executor import HRAgentExecutor
-from a2a.server import A2AServer, InMemoryTaskStore, DefaultA2ARequestHandler
+from a2a.server import A2AServer
+from a2a.server.request_handlers import DefaultA2ARequestHandler
 from a2a.types import (
     AgentCapabilities,
     AgentCard,
@@ -18,15 +19,13 @@ from a2a.types import (
 @click.option('--host', default='0.0.0.0')
 @click.option('--port', default=int(os.getenv("HR_AGENT_PORT", 8080)))
 def main(host: str, port: int):
-    task_store = InMemoryTaskStore()
-
     request_handler = DefaultA2ARequestHandler(
-        agent_executor=HRAgentExecutor(task_store=task_store),
-        task_store=task_store,
+        agent_executor=HRAgentExecutor(),
     )
 
     server = A2AServer(
-        agent_card=get_agent_card(host, port), request_handler=request_handler
+        agent_card=get_agent_card(host, port),
+        request_handler=request_handler
     )
 
     server.start(host=host, port=port)

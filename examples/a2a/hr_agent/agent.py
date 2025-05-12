@@ -26,7 +26,7 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scope='stock:trade',
     audience=os.getenv('HR_API_AUTH0_AUDIENCE'),
     binding_message='Please authorize the sharing of your employee details.',
-    user_id=lambda user_id, **__: user_id,
+    user_id=lambda employee_id, **__: employee_id,
     # on_authorization_request='block',
 )
 
@@ -36,36 +36,40 @@ def get_langgraph_client():
     return get_client(url=os.getenv("HR_AGENT_LANGGRAPH_BASE_URL"))
 
 @tool
-def get_employee_id_by_email(work_email: str) -> str | None:
+def get_employee_id_by_email(work_email: str) -> dict[str, Any] | None:
     """Return the employee ID by email.
 
     Args:
         work_email (str): The employee's work email.
 
     Returns:
-        Optional[str]: The employee ID if it exists, otherwise None.
+        dict: A dictionary containing the employee ID if it exists, otherwise None.
     """
-    user = Auth0(
-        domain=get_token.domain,
-        token=get_token.client_credentials(f"https://{os.getenv('HR_AUTH0_DOMAIN')}/api/v2/")["access_token"]
-    ).users_by_email.search_users_by_email(email=work_email, fields=["user_id"])[0]
-    return user["user_id"] if user else None
+    try:
+        user = Auth0(
+            domain=get_token.domain,
+            token=get_token.client_credentials(f"https://{os.getenv('HR_AUTH0_DOMAIN')}/api/v2/")["access_token"]
+        ).users_by_email.search_users_by_email(email=work_email, fields=["user_id"])[0]
+
+        return {"employee_id": user["user_id"]} if user else None
+    except Exception as e:
+        return {'error': 'Unexpected response from API.'}
 
 @tool
-async def is_active_employee(first_name: str, last_name: str, user_id: str) -> dict[str, Any]:
+async def is_active_employee(first_name: str, last_name: str, employee_id: str) -> dict[str, Any]:
     """Confirm whether a person is an active employee of the company.
 
     Args:
         first_name (str): The employee's first name.
         last_name (str): The employee's last name.
-        work_email (str): The employee's work email.
+        employee_id (str): The employee's identification.
 
     Returns:
         dict: A dictionary containing the employment status, or an error message if the request fails.
     """
     try:
         credentials = get_ciba_credentials()
-        response = await httpx.AsyncClient().get(f"{os.getenv('HR_API_BASE_URL')}/employees/{user_id}", headers={
+        response = await httpx.AsyncClient().get(f"{os.getenv('HR_API_BASE_URL')}/employees/{employee_id}", headers={
             "Authorization": f"{credentials['token_type']} {credentials['access_token']}",
             "Content-Type": "application/json"
         })
@@ -107,10 +111,6 @@ class HRAgent:
 
     If you are asked about a person's employee status using their employee ID, use the `is_active_employee` tool.
     If they provide a work email instead, first call the `get_employee_id_by_email` tool to get the employee ID, and then use `is_active_employee`.
-
-    Set response status to input_required if the user needs to authorize the request.
-    Set response status to error if there is an error while processing the request.
-    Set response status to completed if the request is complete.
     """
 
     RESPONSE_FORMAT_INSTRUCTION: str = """
@@ -122,22 +122,18 @@ class HRAgent:
     async def _get_agent_response(self, config: RunnableConfig):
         client = get_langgraph_client()
         current_state = await client.threads.get_state(config["configurable"]["thread_id"])
-        # current_state = self.graph.get_state(config)
 
-        # interrupts = current_state.interrupts
         interrupts = current_state['tasks'][0].get('interrupts', []) if current_state['tasks'] else []
         if len(interrupts) > 0:
+            # TODO: is_task_complete and require_user_input should be set based on interrupt type
             return {
                 'is_task_complete': False,
                 'require_user_input': True,
                 'content': interrupts[0]["value"]["message"],
-                # 'content': interrupts[0].value["message"],
             }
 
         structured_response = current_state["values"].get("structured_response")
         if structured_response and 'status' in structured_response and 'message' in structured_response:
-        # structured_response = current_state.values.get('structured_response')
-        # if structured_response and isinstance(structured_response, ResponseFormat):
             if structured_response['status'] in {'input_required', 'error'}:
                 return {
                     'is_task_complete': False,
@@ -157,14 +153,12 @@ class HRAgent:
             'content': 'We are unable to process your request at the moment. Please try again.',
         }
 
-    async def invoke(self, query: str, session_id: str) -> str:
+    async def invoke(self, query: str, session_id: str) -> dict[str, Any]:
         client = get_langgraph_client()
         input: dict[str, Any] = {'messages': [('user', query)]}
         config: RunnableConfig = {'configurable': {'thread_id': session_id}}
 
-        thread = await client.threads.create(thread_id=session_id, if_exists='do_nothing')
-        await client.runs.create(thread_id=thread["thread_id"], assistant_id=self.AGENT_NAME, input=input)
-        # await self.graph.ainvoke(input, config)
+        await client.runs.create(session_id, assistant_id=self.AGENT_NAME, input=input, if_not_exists='create')
         return await self._get_agent_response(config)
 
     async def stream(self, query: str, session_id: str) -> AsyncIterable[dict[str, Any]]:
@@ -172,10 +166,8 @@ class HRAgent:
         input: dict[str, Any] = {'messages': [('user', query)]}
         config: RunnableConfig = {'configurable': {'thread_id': session_id}}
         
-        thread = await client.threads.create(thread_id=session_id, if_exists='do_nothing')
-        async for item in client.runs.stream(thread["thread_id"], self.AGENT_NAME, input=input, stream_mode="values"):
-        # async for item in self.graph.astream(inputs, config, stream_mode='values'):
-            message = item['messages'][-1] if 'messages' in item else None
+        async for item in client.runs.stream(session_id, self.AGENT_NAME, input=input, stream_mode=['values'], if_not_exists='create'):
+            message = item.data['messages'][-1] if 'messages' in item.data else None
             if message:
                 if (
                     isinstance(message, AIMessage)
@@ -208,6 +200,5 @@ graph = create_react_agent(
     name=HRAgent.AGENT_NAME,
     prompt=HRAgent.SYSTEM_INSTRUCTION,
     response_format=(HRAgent.RESPONSE_FORMAT_INSTRUCTION, ResponseFormat),
-    #checkpointer=MemorySaver(),
     debug=True,
 )

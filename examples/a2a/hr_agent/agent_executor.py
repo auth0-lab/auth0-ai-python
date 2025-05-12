@@ -1,48 +1,41 @@
-from collections.abc import AsyncGenerator
 from typing import Any
+from typing_extensions import override
 
 from hr_agent.agent import HRAgent
-from a2a.server import AgentExecutor, TaskStore
-from a2a.types import (
-    CancelTaskRequest,
-    CancelTaskResponse,
-    JSONRPCErrorResponse,
-    MessageSendParams,
-    SendMessageRequest,
-    SendMessageResponse,
-    SendMessageStreamingRequest,
-    SendMessageStreamingResponse,
-    SendMessageStreamingSuccessResponse,
-    SendMessageSuccessResponse,
-    Task,
-    TaskNotCancelableError,
-    TaskResubscriptionRequest,
-    TextPart,
-    UnsupportedOperationError,
-)
-
-from common.a2a_helpers import (
-    create_task_obj,
+from hr_agent.helpers import (
     process_streaming_agent_response,
     update_task_with_agent_response,
 )
 
+from a2a.server.agent_execution import BaseAgentExecutor
+from a2a.server.events.event_queue import EventQueue
+from a2a.utils import create_task_obj
+from a2a.types import (
+    MessageSendParams,
+    SendMessageRequest,
+    SendStreamingMessageRequest,
+    Task,
+    TextPart,
+)
 
-class HRAgentExecutor(AgentExecutor):
-    def __init__(self, task_store: TaskStore):
+
+class HRAgentExecutor(BaseAgentExecutor):
+    def __init__(self):
         self.agent = HRAgent()
-        self.task_store = task_store
 
+    @override
     async def on_message_send(
-        self, request: SendMessageRequest, task: Task | None
-    ) -> SendMessageResponse:
+        self,
+        request: SendMessageRequest,
+        event_queue: EventQueue,
+        task: Task | None,
+    ) -> None:
         """Handler for 'message/send' requests."""
         params: MessageSendParams = request.params
         query = self._get_user_query(params)
 
         if not task:
             task = create_task_obj(params)
-            await self.task_store.save(task)
 
         # invoke the underlying agent
         agent_response: dict[str, Any] = self.agent.invoke(
@@ -50,20 +43,23 @@ class HRAgentExecutor(AgentExecutor):
         )
 
         update_task_with_agent_response(task, agent_response)
-        return SendMessageResponse(
-            root=SendMessageSuccessResponse(id=request.id, result=task)
-        )
+        event_queue.enqueue_event(task)
 
-    async def on_message_stream(  # type: ignore
-        self, request: SendMessageStreamingRequest, task: Task | None
-    ) -> AsyncGenerator[SendMessageStreamingResponse, None]:
-        """Handler for 'message/sendStream' requests."""
+    @override
+    async def on_message_stream(
+        self,
+        request: SendStreamingMessageRequest,
+        event_queue: EventQueue,
+        task: Task | None,
+    ) -> None:
+        """Handler for 'message/stream' requests."""
         params: MessageSendParams = request.params
         query = self._get_user_query(params)
 
         if not task:
             task = create_task_obj(params)
-            await self.task_store.save(task)
+            # emit the initial task so it is persisted to TaskStore
+            event_queue.enqueue_event(task)
 
         # kickoff the streaming agent and process responses
         async for item in self.agent.stream(query, task.contextId):
@@ -72,37 +68,9 @@ class HRAgentExecutor(AgentExecutor):
             )
 
             if task_artifact_update_event:
-                yield SendMessageStreamingResponse(
-                    root=SendMessageStreamingSuccessResponse(
-                        id=request.id, result=task_artifact_update_event
-                    )
-                )
+                event_queue.enqueue_event(task_artifact_update_event)
 
-            yield SendMessageStreamingResponse(
-                root=SendMessageStreamingSuccessResponse(
-                    id=request.id, result=task_status_event
-                )
-            )
-
-    async def on_cancel(
-        self, request: CancelTaskRequest, task: Task
-    ) -> CancelTaskResponse:
-        """Handler for 'tasks/cancel' requests."""
-        return CancelTaskResponse(
-            root=JSONRPCErrorResponse(
-                id=request.id, error=TaskNotCancelableError()
-            )
-        )
-
-    async def on_resubscribe(  # type: ignore
-        self, request: TaskResubscriptionRequest, task: Task
-    ) -> AsyncGenerator[SendMessageStreamingResponse, None]:
-        """Handler for 'tasks/resubscribe' requests."""
-        yield SendMessageStreamingResponse(
-            root=JSONRPCErrorResponse(
-                id=request.id, error=UnsupportedOperationError()
-            )
-        )
+            event_queue.enqueue_event(task_status_event)
 
     def _get_user_query(self, task_send_params: MessageSendParams) -> str:
         """Helper to get user query from task send params."""
