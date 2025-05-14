@@ -10,7 +10,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from src.agents.clients.scheduler import SchedulerClient
-from tools.trade import trade_tool
+from src.agents.tools.trade import trade_tool
 
 class ConditionalTrade(TypedDict):
     ticker: str

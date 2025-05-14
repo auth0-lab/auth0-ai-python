@@ -20,13 +20,13 @@ httpx = "^0.28.1"
 python-dotenv = "^1.0.1"
 pydantic = "^2.10.6"
 nanoid = "^2.0.0"
-langchain-openai = "^0.3.16"
 langchain = "^0.3.25"
 langchain-core = "^0.3.59"
+langchain-openai = "^0.3.16"
 langgraph = "^0.4.3"
 langgraph-cli = "^0.2.8"
-langgraph-api = "^0.2.17"
-langgraph-runtime-inmem = "^0.0.9"
+langgraph-api = "^0.2.19"
+langgraph-runtime-inmem = "^0.0.10"
 auth0-ai-langchain = { path = "../../../packages/auth0-ai-langchain", develop = true }
 
 [build-system]

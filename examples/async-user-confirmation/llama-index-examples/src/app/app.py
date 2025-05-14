@@ -1,117 +1,67 @@
 import os
 import uuid
-from datetime import datetime
-from urllib.parse import quote_plus, urlencode
-
-from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
-from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
-from llama_index.agent.openai import OpenAIAgent
 
-from ..tools.trade import trade_tool
+from auth0_ai_llamaindex.auth0_ai import set_ai_context
+
+from ..agents.agent import get_agent
+from ..agents.memory import get_memory
+from ..auth0.routes import login_bp
+
 
 load_dotenv()
 
-agents = {}
-system_prompt = f"""You are a specialized stock trading assistant designed to
-guide users through the process of buying stocks step by step.
-
-**Important Constraints**:
-- You cannot discuss, buy, or sell any stocks outside this limited list, whether real or fictional.
-- You and the user can discuss the prices of these stocks, adjust stock amounts, and place buy orders through the UI.
-
-**Additional Guidelines**:
-- Today’s date for reference: {datetime.now().isoformat()}
-- You may perform calculations as needed and engage in general discussion with the user.
-"""
-
-auth0_ai = Auth0AI()
-with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
-    scope="stock:trade",
-    audience=os.getenv("AUDIENCE"),
-    binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
-    user_id=lambda *_, **__: session["user"]["userinfo"]["sub"],
-    # When this flag is set to `"block"`, the execution of the tool awaits until the user approves or rejects the request.
-    # Given the asynchronous nature of the CIBA flow, this mode is only useful during development.
-    on_authorization_request="block",
-)
-
-tools = [with_async_user_confirmation(trade_tool)]
-
-
-def get_agent():
-    user_id = session["user"]["userinfo"]["sub"]
-    if user_id not in agents:
-        agents[user_id] = OpenAIAgent.from_tools(
-            tools=tools, model="gpt-4o", system_prompt=system_prompt, verbose=True)
-    return agents[user_id]
-
-
 app = Flask(__name__)
-app.secret_key = os.getenv("APP_SECRET_KEY", "YOUR_SECRET_KEY")
+app.secret_key = os.getenv("APP_SECRET_KEY", "SOME_RANDOM_SECRET_KEY")
 
-oauth = OAuth(app)
-oauth.register(
-    "auth0",
-    client_id=os.getenv("AUTH0_CLIENT_ID"),
-    client_secret=os.getenv("AUTH0_CLIENT_SECRET"),
-    client_kwargs={
-        "scope": "openid profile",
-    },
-    server_metadata_url=f'https://{os.getenv("AUTH0_DOMAIN")}/.well-known/openid-configuration'
-)
+app.register_blueprint(login_bp)
 
 
 @app.route("/")
-def home():
+async def home():
     if "user" not in session:
-        return redirect("/login")
-    
-    thread_id = str(uuid.uuid4())
-    set_ai_context(thread_id)
+        return redirect(url_for("auth0.login", _external=True))
 
-    return render_template("index.html", user=session.get('user'))
+    session["thread_id"] = str(uuid.uuid4())
+    return redirect(url_for("chat", thread_id=session["thread_id"], _external=True))
 
 
-@app.route("/chat", methods=["POST"])
-async def chat():
+@app.route("/chat/<thread_id>")
+async def chat(thread_id: str):
+    if "user" not in session:
+        return "please login", 401
+
+    if ("thread_id" not in session) or (session["thread_id"] != thread_id):
+        return "Invalid or mismatched chat session. Please start a new chat.", 400
+
+    user_id = session["user"]["sub"]
+
+    memory = await get_memory(user_id, thread_id)
+
+    messages = [
+        {
+            "role": m.role,
+            "content": m.content
+        } for m in memory.get_all()
+    ]
+
+    return render_template("index.html", user=session["user"], messages=messages, interrupt=None)
+
+
+@app.route("/api/chat", methods=["POST"])
+async def api_chat():
     if "user" not in session:
         return jsonify({"error": "unauthorized"}), 401
 
+    user_id = session["user"]["sub"]
+    thread_id = session["thread_id"]
+    set_ai_context(thread_id)
+
     try:
         message = request.json.get("message")
-        response = await get_agent().achat(message)
+        agent = await get_agent(user_id, thread_id)
+        response = await agent.achat(message)
         return jsonify({"response": str(response)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-@app.route("/login")
-def login():
-    return oauth.auth0.authorize_redirect(
-        redirect_uri=url_for("login_callback", _external=True)
-    )
-
-
-@app.route("/login/callback", methods=["GET", "POST"])
-def login_callback():
-    token = oauth.auth0.authorize_access_token()
-    session["user"] = token
-    return redirect("/")
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(
-        "https://" + os.getenv("AUTH0_DOMAIN")
-        + "/v2/logout?"
-        + urlencode(
-            {
-                "returnTo": url_for("home", _external=True),
-                "client_id": os.getenv("AUTH0_CLIENT_ID"),
-            },
-            quote_via=quote_plus,
-        )
-    )

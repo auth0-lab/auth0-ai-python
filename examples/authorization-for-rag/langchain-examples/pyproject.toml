@@ -12,14 +12,14 @@ start = "langchain_rag.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-langchain = "^0.3.11"
-langchain-openai = "^0.2.12"
 faiss-cpu = "^1.9.0.post1"
 python-dotenv = "^1.0.1"
-langchain-community = "^0.3.11"
-auth0-ai-langchain = { path = "../../../packages/auth0-ai-langchain", develop = true }
 openfga-sdk = "^0.9.3"
 termcolor = "^2.5.0"
+langchain = "^0.3.11"
+langchain-openai = "^0.2.12"
+langchain-community = "^0.3.11"
+auth0-ai-langchain = { path = "../../../packages/auth0-ai-langchain", develop = true }
 
 [build-system]
 requires = ["poetry-core"]
