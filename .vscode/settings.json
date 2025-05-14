@@ -1,18 +1,16 @@
 {
   "poetryMonorepo.appendExtraPaths": true,
   "python.analysis.extraPaths": [
+    "examples/async-user-confirmation/langchain-examples",
+    "examples/async-user-confirmation/llama-index-examples",
+    "examples/async-user-confirmation/sample-api",
+    "examples/authorization-for-tools/langchain-examples",
+    "examples/authorization-for-tools/llama-index-examples",
     "examples/calling-apis/langchain-examples",
     "examples/calling-apis/llama-index-examples",
-    "examples/async-user-confirmation/langchain-examples/src",
-    "examples/async-user-confirmation/llama-index-examples/src",
-    "examples/async-user-confirmation/sample-api",
-    "examples/authorization-for-rag/langchain-examples/langchain_rag",
-    "examples/authorization-for-rag/llama-index-examples/llama_index_rag",
-    "examples/authorization-for-tools/langchain-examples/src",
-    "examples/authorization-for-tools/llama-index-examples/src",
-    "packages/auth0-ai/auth0_ai/auth0_ai",
     "packages/auth0-ai-langchain/auth0_ai_langchain/auth0_ai_langchain",
-    "packages/auth0-ai-llamaindex/auth0_ai_llamaindex/auth0_ai_llamaindex"
+    "packages/auth0-ai-llamaindex/auth0_ai_llamaindex/auth0_ai_llamaindex",
+    "packages/auth0-ai/auth0_ai/auth0_ai"
   ],
   "python.testing.pytestArgs": [
     "packages/auth0-ai-langchain/tests",

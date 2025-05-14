@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from enum import Enum
 from langchain_core.tools import StructuredTool
 from langchain_core.runnables.config import RunnableConfig
-from clients.scheduler import SchedulerClient
+from src.agents.clients.scheduler import SchedulerClient
 
 class MetricEnum(str, Enum):
     PE = "P/E"

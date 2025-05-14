@@ -1,12 +1,10 @@
 import os
 import uuid
+from dotenv import load_dotenv
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
 from auth0_ai_llamaindex.auth0_ai import set_ai_context
 from auth0_ai_llamaindex.federated_connections import FederatedConnectionInterrupt
-
-# from authlib.integrations.flask_client import OAuth
-from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
 from ..agents.agent import get_agent
 from ..agents.memory import get_memory
