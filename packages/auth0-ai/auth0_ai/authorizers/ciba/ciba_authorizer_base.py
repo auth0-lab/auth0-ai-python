@@ -91,10 +91,10 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
         self.credentials_store = SubStore[TokenResponse](ciba_store, {
             "get_ttl": lambda credential: credential["expires_in"] * 1000 if "expires_in" in credential else None
         })
-    
+
     def _handle_authorization_interrupts(self, err: Union[AuthorizationPendingInterrupt, AuthorizationPollingInterrupt]) -> None:
         raise err
-    
+
     def _get_instance_id(self, authorize_params) -> str:
         props = {
             "auth0": omit(self.auth0, ["client_secret", "client_assertion_signing_key"]),
@@ -102,7 +102,7 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
         }
         sh = json.dumps(props, sort_keys=True, separators=(",", ":"))
         return hashlib.md5(sh.encode("utf-8")).hexdigest()
-    
+
     async def _get_authorize_params(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> Dict[str, Any]:
         authorize_params = {
             "scope": _ensure_openid_scope(self.params.get("scope")),
@@ -129,11 +129,18 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
         else:
             authorize_params["binding_message"] = self.params.get("binding_message")(*args, **kwargs)
 
+        if isinstance(self.params.get("authorization_details"), list):
+            authorize_params["authorization_details"] = json.dumps(self.params.get("authorization_details"))
+        elif inspect.iscoroutinefunction(self.params.get("authorization_details")):
+            authorize_params["authorization_details"] = json.dumps(await self.params.get("authorization_details")(*args, **kwargs))
+        elif callable(self.params.get("authorization_details")):
+            authorize_params["authorization_details"] = json.dumps(self.params.get("authorization_details")(*args, **kwargs))
+
         return authorize_params
 
     async def _start(self, authorize_params) -> CIBAAuthorizationRequest:
         requested_at = time.time()
-        
+
         try:
             response = self.back_channel_login.back_channel_login(**authorize_params)
             return CIBAAuthorizationRequest(
@@ -189,7 +196,7 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
 
     def _get_credentials(self, auth_request: CIBAAuthorizationRequest) -> TokenResponse | None:
         return self._get_credentials_internal(auth_request)
-    
+
     async def get_credentials_polling(self, auth_request: CIBAAuthorizationRequest) -> TokenResponse | None:
         credentials: TokenResponse | None = None
 
@@ -200,14 +207,14 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
                 await asyncio.sleep(err.request["interval"])
             except Exception:
                 raise
-        
+
         return credentials
-    
+
     async def delete_auth_request(self):
         local_store = _get_local_storage()
         auth_request_ns = local_store["auth_request_ns"]
         await self.auth_request_store.delete(auth_request_ns, "auth_request")
-    
+
     def protect(
         self,
         get_context: ContextGetter[ToolInput],
@@ -237,7 +244,7 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
                                 # initial request
                                 auth_request = await self._start(authorize_params)
                                 await self.auth_request_store.put(auth_request_ns, "auth_request", auth_request)
-                            
+
                             credentials = self._get_credentials(auth_request)
                         else:
                             # block mode
@@ -245,7 +252,7 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
                             credentials = await self.get_credentials_polling(auth_request)
 
                         await self.delete_auth_request()
-                    
+
                         if credentials is not None:
                             await self.credentials_store.put(credentials_ns, "credential", credentials)
                 except (AuthorizationPendingInterrupt, AuthorizationPollingInterrupt) as interrupt:
@@ -253,12 +260,12 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
                 except Exception as err:
                     await self.delete_auth_request()
                     raise
-                
+
                 _update_local_storage({"credentials": credentials})
 
                 if inspect.iscoroutinefunction(execute):
                     return await execute(*args, **kwargs)
                 else:
                     return execute(*args, **kwargs)
-        
+
         return wrapped_execute
