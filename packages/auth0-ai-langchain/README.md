@@ -58,6 +58,36 @@ trade_tool = with_async_user_confirmation(
 
 2. Handle interruptions properly. For example, if user is not enrolled to MFA, it will throw an interruption. See [Handling Interrupts](#handling-interrupts) section.
 
+### CIBA with RAR (Rich Authorization Requests)
+`Auth0AI` supports RAR (Rich Authorization Requests) for CIBA. This allows you to provide additional authorization parameters to be displayed during the user confirmation request.
+
+When defining the tool authorizer, you can specify the `authorization_details` parameter to include detailed information about the authorization being requested:
+
+```python
+with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+    scopes=["stock:trade"],
+    audience=os.getenv("AUDIENCE"),
+    binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
+    authorization_details=lambda ticker, qty: [
+        {
+            "type": "trade_authorization",
+            "qty": qty,
+            "ticker": ticker,
+            "action": "buy"
+        }
+    ],
+    user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id"),
+    # Optional:
+    # store=InMemoryStore()
+)
+```
+
+To use RAR with CIBA, you need to [set up authorization details](https://auth0.com/docs/get-started/apis/configure-rich-authorization-requests) in your Auth0 tenant. This includes defining the authorization request parameters and their types. Additionally, the [Guardian SDK](https://auth0.com/docs/secure/multi-factor-authentication/auth0-guardian) is required to handle these authorization details in your authorizer app.
+
+For more information on setting up RAR with CIBA, refer to:
+- [Configure Rich Authorization Requests (RAR)](https://auth0.com/docs/get-started/apis/configure-rich-authorization-requests)
+- [User Authorization with CIBA](https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-initiated-backchannel-authentication-flow/user-authorization-with-ciba)
+
 ## Authorization for Tools
 
 The `FGAAuthorizer` can leverage Okta FGA to authorize tools executions. The `FGAAuthorizer.create` function can be used to create an authorizer that checks permissions before executing the tool.
