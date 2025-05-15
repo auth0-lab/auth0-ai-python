@@ -9,7 +9,7 @@ class CIBAAuthorizerParams(TypedDict, Generic[ToolInput]):
     Authorize Options to start CIBA flow.
 
     Attributes:
-        scope (list[str]): The scopes to request authorization for.
+        scopes (list[str]): The scopes to request authorization for.
         binding_message (Union[str, Callable[..., str], Callable[..., Awaitable[str]]]): A human-readable string to display to the user, or a function that resolves it.
         user_id (Union[str, Callable[..., str], Callable[..., Awaitable[str]]]): The user id string, or a function that resolves it.
         authorization_details (Union[list[dict], Callable[..., list[dict]], Callable[..., Awaitable[list[dict]]]], optional):The authorization requirements list (e.g., [{ type: "custom_type", param: "example", ...}]), or a function that resolves it. More info: https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-initiated-backchannel-authentication-flow/user-authorization-with-ciba

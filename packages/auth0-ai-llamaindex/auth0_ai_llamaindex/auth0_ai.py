@@ -7,6 +7,7 @@ from auth0_ai_llamaindex.ciba.ciba_authorizer import CIBAAuthorizer
 from auth0_ai_llamaindex.federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
 from auth0_ai_llamaindex.context import set_ai_context
 
+
 class Auth0AI:
     """Provides decorators to secure LlamaIndex tools using Auth0 authorization flows.
     """
@@ -60,7 +61,8 @@ class Auth0AI:
             )
             ```
         """
-        authorizer = FederatedConnectionAuthorizer(FederatedConnectionAuthorizerParams(**params), self.auth0)
+        authorizer = FederatedConnectionAuthorizer(
+            FederatedConnectionAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 
     def with_async_user_confirmation(self, **params: CIBAAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
@@ -85,7 +87,7 @@ class Auth0AI:
             auth0_ai = Auth0AI()
 
             with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
-                scope="stock:trade",
+                scopes=["stock:trade"],
                 audience=os.getenv("AUDIENCE"),
                 binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
                 user_id=lambda *_, **__: session["user"]["userinfo"]["sub"]
@@ -110,5 +112,6 @@ class Auth0AI:
         """
         authorizer = CIBAAuthorizer(CIBAAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
+
 
 __all__ = ["Auth0AI", "set_ai_context"]

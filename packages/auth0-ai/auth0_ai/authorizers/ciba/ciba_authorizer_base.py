@@ -54,8 +54,7 @@ def get_ciba_credentials() -> TokenResponse | None:
     local_store = _get_local_storage()
     return local_store.get("credentials")
 
-def _ensure_openid_scope(scope: str) -> str:
-    scopes = scope.strip().split()
+def _ensure_openid_scope(scopes: list[str]) -> str:
     if "openid" not in scopes:
         scopes.insert(0, "openid")
     return " ".join(scopes)
@@ -105,7 +104,7 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
 
     async def _get_authorize_params(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> Dict[str, Any]:
         authorize_params = {
-            "scope": _ensure_openid_scope(self.params.get("scope")),
+            "scope": _ensure_openid_scope(self.params.get("scopes")),
             "audience": self.params.get("audience"),
             "request_expiry": self.params.get("request_expiry"),
         }

@@ -30,7 +30,7 @@ from langchain_core.tools import StructuredTool
 auth0_ai = Auth0AI()
 
 with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
-    scope="stock:trade",
+    scopes=["stock:trade"],
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
     user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id"),
