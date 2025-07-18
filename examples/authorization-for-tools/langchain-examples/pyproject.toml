@@ -13,18 +13,18 @@ start = "src.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-python-dotenv = "^1.0.1"
+python-dotenv = "^1.1.1"
 questionary = "^2.1.0"
-langchain-core = "^0.3.59"
-langchain-openai = "^0.3.16"
-langgraph = "^0.4.3"
-langgraph-cli = "^0.2.8"
-langgraph-api = "^0.2.19"
-langgraph-runtime-inmem = "^0.0.11"
+langchain-core = "^0.3.69"
+langchain-openai = "^0.3.28"
+langgraph = "^0.5.3"
+langgraph-cli = "^0.3.5"
+langgraph-api = "^0.2.96"
+langgraph-runtime-inmem = "^0.6.0"
 auth0-ai-langchain = { path = "../../../packages/auth0-ai-langchain", develop = true }
 
 [tool.poetry.group.dev.dependencies]
-openfga-sdk = "^0.9.1"
+openfga-sdk = "^0.9.5"
 
 [build-system]
 requires = ["poetry-core"]
