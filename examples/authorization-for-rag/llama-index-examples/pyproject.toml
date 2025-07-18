@@ -12,11 +12,11 @@ start = "llama_index_rag.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-llama-index = "^0.12.6"
+llama-index = "^0.12.49"
 termcolor = "^2.5.0"
-python-dotenv = "^1.0.1"
+python-dotenv = "^1.1.1"
 auth0-ai-llamaindex = { path = "../../../packages/auth0-ai-llamaindex", develop = true }
-openfga-sdk = "^0.9.3"
+openfga-sdk = "^0.9.5"
 
 [build-system]
 requires = ["poetry-core"]
