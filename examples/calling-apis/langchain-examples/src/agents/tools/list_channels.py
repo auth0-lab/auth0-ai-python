@@ -1,4 +1,3 @@
-import datetime
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from pydantic import BaseModel
@@ -11,7 +10,7 @@ class EmptySchema(BaseModel):
     pass
 
 
-def list_channels_tool_function(date: datetime):
+def list_channels_tool_function():
     # Get the access token from Auth0 AI
     credentials = get_credentials_for_connection()
 

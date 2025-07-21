@@ -5,7 +5,7 @@ from flask import Flask, jsonify, redirect, render_template, request, session, u
 
 from auth0_ai_llamaindex.auth0_ai import set_ai_context
 
-from ..agents.agent import get_agent
+from ..agents.agent import agent
 from ..agents.memory import get_memory
 from ..auth0.routes import login_bp
 
@@ -60,8 +60,8 @@ async def api_chat():
 
     try:
         message = request.json.get("message")
-        agent = await get_agent(user_id, thread_id)
-        response = await agent.achat(message)
+        chat_memory = await get_memory(user_id, thread_id)
+        response = await agent.run(user_msg=message, memory=chat_memory)
         return jsonify({"response": str(response)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
