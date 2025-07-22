@@ -186,7 +186,7 @@ tests-mypy = ["mypy (>=1.11.1) ; platform_python_implementation == \"CPython\" a
 
 [[package]]
 name = "auth0-ai"
-version = "1.0.0b2"
+version = "1.0.0b3"
 description = "This package provides base abstractions for authentication and authorization in AI applications."
 optional = false
 python-versions = "^3.11"
@@ -195,8 +195,8 @@ files = []
 develop = true
 
 [package.dependencies]
-auth0-python = "^4.9.0"
-openfga-sdk = "^0.9.4"
+auth0-python = "^4.10.0"
+openfga-sdk = "^0.9.5"
 
 [package.source]
 type = "directory"
@@ -204,14 +204,14 @@ url = "../auth0-ai"
 
 [[package]]
 name = "auth0-python"
-version = "4.9.0"
+version = "4.10.0"
 description = ""
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "auth0_python-4.9.0-py3-none-any.whl", hash = "sha256:6440c7f74dfd669d9f5cdfe9bb44c4c3b230ce98a82353f55a387e90241fbf5b"},
-    {file = "auth0_python-4.9.0.tar.gz", hash = "sha256:f9b31ea9c906d0a123b9cdc6ccd7bbbb8156123f44789b08571c45947fb21238"},
+    {file = "auth0_python-4.10.0-py3-none-any.whl", hash = "sha256:c005cebbbe66bbfaa593353be76d7c9d52dc41fcb9680f815067496d5f3a9968"},
+    {file = "auth0_python-4.10.0.tar.gz", hash = "sha256:fca0f29cd32618803b59a940041ee78c6304de9ab5a02cd7863f82951affdee6"},
 ]
 
 [package.dependencies]
