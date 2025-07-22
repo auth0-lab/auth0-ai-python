@@ -6,7 +6,7 @@ from flask import Flask, jsonify, redirect, render_template, request, session, u
 from auth0_ai_llamaindex.auth0_ai import set_ai_context
 from auth0_ai_llamaindex.federated_connections import FederatedConnectionInterrupt
 
-from ..agents.agent import get_agent
+from ..agents.agent import agent
 from ..agents.memory import get_memory
 from ..auth0.routes import login_bp
 
@@ -35,11 +35,14 @@ async def resume_chat():
     if "thread_id" not in session:
         return redirect(url_for("home"))
 
+    user_id = session["user"]["sub"]
+    thread_id = session["thread_id"]
+
     if "interrupt" in session:
         set_ai_context(session["thread_id"])
         interrupt = session["interrupt"]
-        agent = await get_agent(session["user"]["sub"], session["thread_id"])
-        await agent.achat(interrupt["last_message"])
+        memory = await get_memory(user_id, thread_id)
+        await agent.run(user_msg=interrupt["last_message"], memory=memory)
         session["interrupt"] = None
 
     return redirect(url_for("chat", thread_id=session["thread_id"], _external=True))
@@ -78,8 +81,8 @@ async def api_chat():
 
     try:
         message = request.json.get("message")
-        agent = await get_agent(user_id, thread_id)
-        response = await agent.achat(message)
+        memory = await get_memory(user_id, thread_id)
+        response = await agent.run(user_msg=message, memory=memory)
         return jsonify({"response": str(response)})
     except FederatedConnectionInterrupt as e:
         session["interrupt"] = {

@@ -1,7 +1,11 @@
 import asyncio
 import questionary
 from datetime import datetime
-from llama_index.agent.openai import OpenAIAgent
+from llama_index.llms.openai import OpenAI
+from llama_index.core.agent.workflow import FunctionAgent
+from llama_index.core.memory import Memory
+
+
 from .tools.buy import buy_tool
 from dotenv import load_dotenv
 
@@ -9,9 +13,6 @@ load_dotenv()
 
 USER_ID = "john"
 
-def main():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(async_main())
 
 system_prompt = f"""You are a specialized stock trading assistant designed to guide users through the process of buying stocks step by step.
 
@@ -35,24 +36,34 @@ Your available market consists of only 2 stocks. Here are the details of each:
 """
 
 tools = [buy_tool({"user_id": USER_ID})]
-agent = OpenAIAgent.from_tools(tools=tools, model="gpt-4o", system_prompt=system_prompt, verbose=True)
+llm = OpenAI(model="gpt-4o-mini")
+memory = Memory.from_defaults(session_id="my_session", token_limit=40000)
+agent = FunctionAgent(llm=llm, system_prompt=system_prompt,
+                      tools=tools, verbose=False)
+
 
 async def async_main():
     try:
         print("<Enter a command (type 'exit' to quit)>\n\n")
-        
+
         while True:
             message = await questionary.text(f"User (ID={USER_ID}) ·").ask_async()
-            
+
             if message.lower() == "exit":
                 print("Goodbye!")
                 break
-            
-            response = await agent.achat(message)
+
+            response = await agent.run(user_msg=message, memory=memory)
             print(f"Assistant · {response}\n")
-    
+
     except Exception as err:
         print(f"Agent error: {err}")
+
+
+def main():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(async_main())
+
 
 if __name__ == "__main__":
     main()

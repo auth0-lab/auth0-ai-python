@@ -152,14 +152,14 @@ tests-mypy = ["mypy (>=1.11.1) ; platform_python_implementation == \"CPython\" a
 
 [[package]]
 name = "auth0-python"
-version = "4.9.0"
+version = "4.10.0"
 description = ""
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "auth0_python-4.9.0-py3-none-any.whl", hash = "sha256:6440c7f74dfd669d9f5cdfe9bb44c4c3b230ce98a82353f55a387e90241fbf5b"},
-    {file = "auth0_python-4.9.0.tar.gz", hash = "sha256:f9b31ea9c906d0a123b9cdc6ccd7bbbb8156123f44789b08571c45947fb21238"},
+    {file = "auth0_python-4.10.0-py3-none-any.whl", hash = "sha256:c005cebbbe66bbfaa593353be76d7c9d52dc41fcb9680f815067496d5f3a9968"},
+    {file = "auth0_python-4.10.0.tar.gz", hash = "sha256:fca0f29cd32618803b59a940041ee78c6304de9ab5a02cd7863f82951affdee6"},
 ]
 
 [package.dependencies]
@@ -995,14 +995,14 @@ files = [
 
 [[package]]
 name = "openfga-sdk"
-version = "0.9.4"
+version = "0.9.5"
 description = "A high performance and flexible authorization/permission engine built for developers and inspired by Google Zanzibar."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "openfga_sdk-0.9.4-py3-none-any.whl", hash = "sha256:f2a46df39876f0d964bc861d4141d0c2ef04a26181bf14366a7fac19ba46dcad"},
-    {file = "openfga_sdk-0.9.4.tar.gz", hash = "sha256:e3eec930b14d6a520001e78426b776be529e0605ab1282a312e3e559001a25df"},
+    {file = "openfga_sdk-0.9.5-py3-none-any.whl", hash = "sha256:0a8e338a0c80b72e283edc6423e1869ee4884868fe41616b0e943c8aa74b0495"},
+    {file = "openfga_sdk-0.9.5.tar.gz", hash = "sha256:75636dac99fb107aee570f5b11689d7b9d77b219f364586651f23301be0329ed"},
 ]
 
 [package.dependencies]
@@ -1652,4 +1652,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "497ce3b4350bc7b9281e4696ef5e46e1dee5f48bac7b1520e9e8f188d79892f3"
+content-hash = "380dacb4cbe178be543941f64beeb17f7286734765ae2280e23b3acc4a6adc82"
