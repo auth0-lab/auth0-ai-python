@@ -1,4 +1,4 @@
-# Async User Confirmation with LangChain
+# Async User Confirmation with LlamaIndex
 
 ## Getting Started
 
