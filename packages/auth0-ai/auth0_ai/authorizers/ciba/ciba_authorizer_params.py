@@ -15,7 +15,7 @@ class CIBAAuthorizerParams(TypedDict, Generic[ToolInput]):
         authorization_details (Union[list[dict], Callable[..., list[dict]], Callable[..., Awaitable[list[dict]]]], optional):The authorization requirements list (e.g., [{ type: "custom_type", param: "example", ...}]), or a function that resolves it. More info: https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-initiated-backchannel-authentication-flow/user-authorization-with-ciba
         store (Store, optional): An store used to temporarly store the authorization response data while the user is completing the authorization in another device (default: InMemoryStore).
         audience (str, optional): The audience to request authorization for.
-        request_expiry (int, optional): The time in seconds for the authorization request to expire, pass a number between 1 and 300 (default: 300 seconds = 5 minutes).
+        requested_expiry (int, optional): The time in seconds for the authorization request to expire, pass a number between 1 and 3600 (default: 300 seconds = 5 minutes).
         on_authorization_request (string, optional): The behavior when the authorization request is made. Expected values:
             - "interrupt" (default): The tool execution is interrupted until the user completes the authorization.
             - "block": The tool execution is blocked until the user completes the authorization. This mode is only useful for development purposes and should not be used in production.
@@ -43,6 +43,6 @@ class CIBAAuthorizerParams(TypedDict, Generic[ToolInput]):
     ]]
     store: Optional[Store]
     audience: Optional[str]
-    request_expiry: Optional[int]
+    requested_expiry: Optional[int]
     on_authorization_request: Optional[Literal["block", "interrupt"]]
     credentials_context: Optional[AuthContext]
