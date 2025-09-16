@@ -14,8 +14,7 @@ start = "src.main:main"
 python = "^3.11"
 python-dotenv = "^1.1.1"
 questionary = "^2.1.0"
-llama-index = "^0.12.49"
-llama-index-agent-openai = "^0.4.12"
+llama-index = "^0.13.2"
 auth0-ai-llamaindex = { path = "../../../packages/auth0-ai-llamaindex", develop = true }
 
 [tool.poetry.group.dev.dependencies]

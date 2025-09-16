@@ -16,8 +16,7 @@ python-dotenv = "^1.1.1"
 flask = { extras = ["async"], version = "^3.1.1" }
 requests = "^2.32.4"
 hypercorn = "^0.17.3"
-llama-index = "^0.12.49"
-llama-index-agent-openai = "^0.4.12"
+llama-index = "^0.13.2"
 auth0-ai-llamaindex = { path = "../../../packages/auth0-ai-llamaindex", develop = true }
 auth0-server-python = "^1.0.0b4"
 

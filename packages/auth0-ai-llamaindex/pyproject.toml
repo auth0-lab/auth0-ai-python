@@ -8,7 +8,7 @@ authors = ["Auth0 <support@auth0.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = "^3.11"
 llama-index = "^0.13.2"
 openfga-sdk = "^0.9.5"
 # auth0-ai = "^1.0.0b3"
