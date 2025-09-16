@@ -8,7 +8,7 @@ load_dotenv()
 auth0_ai = Auth0AI()
 
 
-async def refresh_token():
+async def refresh_token(*args, **kwargs):
     store_options = {"request": request}
     auth_session = await auth0.get_session(store_options=store_options)
     return auth_session.get("refresh_token")
