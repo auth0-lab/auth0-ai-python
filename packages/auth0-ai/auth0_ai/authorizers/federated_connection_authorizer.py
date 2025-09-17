@@ -1,4 +1,3 @@
-import asyncio
 import contextvars
 import hashlib
 import inspect
@@ -15,6 +14,11 @@ from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
 from auth0_ai.interrupts.federated_connection_interrupt import FederatedConnectionError, FederatedConnectionInterrupt
 from auth0_ai.stores import Store, SubStore, InMemoryStore
 from auth0_ai.utils import omit
+
+# Subject / requested token type constants
+SUBJECT_TYPE_REFRESH_TOKEN = "urn:ietf:params:oauth:token-type:refresh_token"
+SUBJECT_TYPE_ACCESS_TOKEN = "urn:ietf:params:oauth:token-type:access_token"
+REQUESTED_TOKEN_TYPE_FEDERATED_CONNECTION_ACCESS_TOKEN = "http://auth0.com/oauth/token-type/federated-connection-access-token"
 
 class AsyncStorageValue(TypedDict):
     context: Any
@@ -65,16 +69,12 @@ class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
             Callable[ToolInput, Union[str | None, Awaitable[str | None]]],
             str | None,
         ]] = None,
-        subject_access_token: Optional[Union[
+        access_token: Optional[Union[
             AuthorizerToolParameter[ToolInput, str | None],
             Callable[ToolInput, Union[str | None, Awaitable[str | None]]],
             str | None,
         ]] = None,
-        access_token: Optional[Union[
-            AuthorizerToolParameter[ToolInput, TokenResponse | None],
-            Callable[ToolInput, Union[TokenResponse | None, Awaitable[TokenResponse | None]]],
-            TokenResponse | None
-        ]] = None,
+        login_hint: Optional[str] = None,
         store: Optional[Store] = None,
         credentials_context: Optional[AuthContext] = "thread"
     ):
@@ -87,31 +87,26 @@ class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
             refresh_token: Optional. The Auth0 refresh token to exchange for a federated connection access token. Can be:
                 - A string or None
                 - A callable that receives the tool input and returns the user refresh token (sync or async)
-            subject_access_token: Optional. The Auth0 *access token* (for the logged-in user) to exchange
-                for a federated connection access token via Token Vault. Can be:
+            access_token: Optional. The Auth0 user access token (subject token) to exchange instead of a refresh token. Can be:
                 - A string or None
                 - A callable that receives the tool input and returns the user access token (sync or async)
-            access_token: Optional. The *federated connection* access token if available in the tool context. Can be:
-                - A `TokenResponse`
-                - A callable that receives the tool input and returns a `TokenResponse` (sync or async)
-            store: Optional. An store used to temporarly store the authorization response data while the user is completing the authorization in another device (default: InMemoryStore).
+            login_hint: Optional string hint (e.g. subject/sub) to direct which linked account to use when multiple exist.
+            store: Optional. A store used to temporarily store the authorization response data while the user completes authorization on another device (default: InMemoryStore).
             credentials_context: Optional. Defines the scope of credential sharing. Can be:
                 - "thread" (default): Credentials are shared across all tools using the same authorizer within the current thread.
                 - "agent": Credentials are shared globally across all threads and tools in the agent.
                 - "tool": Credentials are shared across multiple calls to the same tool within the same thread.
                 - "tool-call": Credentials are valid only for a single invocation of the tool.
         """
-
         def wrap(val, result_type):
             if isinstance(val, AuthorizerToolParameter):
                 return val
             return AuthorizerToolParameter[ToolInput, result_type](val)
-
         self.scopes = scopes
         self.connection = connection
         self.refresh_token = wrap(refresh_token, str | None)
-        self.subject_access_token = wrap(subject_access_token, str | None)
-        self.access_token = wrap(access_token, TokenResponse | None)
+        self.access_token = wrap(access_token, str | None)
+        self.login_hint = login_hint
         self.store = store
         self.credentials_context = credentials_context
 
@@ -139,22 +134,27 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
 
         # TODO: consider moving this to Auth0AI classes
         sub_store = SubStore(params.store or InMemoryStore()).create_sub_store("AUTH0_AI_FEDERATED_CONNECTION")
-
         instance_id = self._get_instance_id()
-
+        
         self.credentials_store = SubStore[TokenResponse](sub_store, {
             "base_namespace": [instance_id, "credentials"],
             "get_ttl": lambda credential: credential["expires_in"] * 1000 if "expires_in" in credential else None
         })
 
-        provided = sum([
-            1 if params.refresh_token.value is not None else 0,
-            1 if params.subject_access_token.value is not None else 0,
-            1 if params.access_token.value is not None else 0,
-        ])
-        if provided != 1:
+        has_refresh = params.refresh_token.value is not None
+        has_access = params.access_token.value is not None
+
+        # Normalize empty strings to None before validation
+        if has_refresh and isinstance(params.refresh_token.value, str) and params.refresh_token.value.strip() == "":
+            params.refresh_token.value = None
+            has_refresh = False
+        if has_access and isinstance(params.access_token.value, str) and params.access_token.value.strip() == "":
+            params.access_token.value = None
+            has_access = False
+
+        if (has_refresh and has_access) or (not has_refresh and not has_access):
             raise ValueError(
-                "Exactly one of refresh_token, subject_access_token, or access_token must be provided to initialize the Authorizer."
+                "Exactly one of refresh_token or access_token must be provided to initialize the Authorizer."
             )
 
     def _handle_authorization_interrupts(self, err: Auth0Interrupt) -> None:
@@ -163,7 +163,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
     def _get_instance_id(self) -> str:
         props = {
             "auth0": omit(self.auth0, ["client_secret", "client_assertion_signing_key"]),
-            "params": omit(self.params, ["store", "refresh_token", "subject_access_token", "access_token"])
+            "params": omit(self.params, ["store", "refresh_token", "access_token", "login_hint"])
         }
         sh = json.dumps(props, sort_keys=True, separators=(",", ":"))
         return hashlib.md5(sh.encode("utf-8")).hexdigest()
@@ -186,38 +186,44 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
         _update_local_storage({"current_scopes": current_scopes})
 
         if missing_scopes:
+            granted_union = sorted(set(current_scopes) | set(scopes))
             raise FederatedConnectionInterrupt(
                 f"Authorization required to access the Federated Connection API: {connection}. Missing scopes: {', '.join(missing_scopes)}",
                 connection,
                 scopes,
-                current_scopes + scopes
+                granted_union
             )
 
     async def get_access_token_impl(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> TokenResponse | None:
         store = _get_local_storage()
-
         connection = store["connection"]
-        subject_token_type: str | None = None
-        subject_token: str | None = None
 
-        if self.params.refresh_token.value is not None:
+        refresh_supplied = self.params.refresh_token.value is not None
+        access_supplied = self.params.access_token.value is not None
+
+        subject_token_type: str
+        if refresh_supplied:
+            subject_token_type = SUBJECT_TYPE_REFRESH_TOKEN
             subject_token = await self.get_refresh_token(*args, **kwargs)
-            subject_token_type = "urn:ietf:params:oauth:token-type:refresh_token"
         else:
-            subject_token = await self.get_subject_access_token(*args, **kwargs)
-            subject_token_type = "urn:ietf:params:oauth:token-type:access_token"
+            subject_token_type = SUBJECT_TYPE_ACCESS_TOKEN
+            subject_token = await self.get_user_access_token(*args, **kwargs)
 
         if not subject_token:
             return None
 
+        # login_hint optionally applied to both refresh and access token exchange paths
+        login_hint = self.params.login_hint
         try:
-            response = self.get_token.access_token_for_connection(
+            request_kwargs = dict(
                 subject_token_type=subject_token_type,
                 subject_token=subject_token,
-                requested_token_type="http://auth0.com/oauth/token-type/federated-connection-access-token",
+                requested_token_type=REQUESTED_TOKEN_TYPE_FEDERATED_CONNECTION_ACCESS_TOKEN,
                 connection=connection,
             )
-
+            if login_hint:
+                request_kwargs["login_hint"] = login_hint
+            response = self.get_token.access_token_for_connection(**request_kwargs)
             return TokenResponse(
                 access_token=response["access_token"],
                 expires_in=response["expires_in"],
@@ -229,20 +235,17 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
         except Auth0Error as err:
             raise FederatedConnectionError(err.message) if 400 <= err.status_code <= 499 else err
 
-    async def get_access_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs) -> TokenResponse | None:
-        if self.params.refresh_token.value is not None or self.params.subject_access_token.value is not None:
-            token_response = await self.get_access_token_impl(*args, **kwargs)
-        else:
-            token_response = await self.params.access_token.resolve(*args, **kwargs)
-
-        self.validate_token(token_response)
-        return token_response
-
     async def get_refresh_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs):
-        return await self.params.refresh_token.resolve(*args, **kwargs)
+        token = await self.params.refresh_token.resolve(*args, **kwargs)
+        if token is not None and isinstance(token, str) and token.strip() == "":
+            return None
+        return token
 
-    async def get_subject_access_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs):
-        return await self.params.subject_access_token.resolve(*args, **kwargs)
+    async def get_user_access_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs):
+        token = await self.params.access_token.resolve(*args, **kwargs)
+        if token is not None and isinstance(token, str) and token.strip() == "":
+            return None
+        return token
 
     def protect(
         self,
