@@ -106,7 +106,7 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
         authorize_params = {
             "scope": _ensure_openid_scope(self.params.get("scopes")),
             "audience": self.params.get("audience"),
-            "request_expiry": self.params.get("request_expiry"),
+            "requested_expiry": self.params.get("requested_expiry"),
         }
 
         if isinstance(self.params.get("user_id"), str):

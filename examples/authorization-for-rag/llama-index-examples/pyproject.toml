@@ -12,7 +12,7 @@ start = "llama_index_rag.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-llama-index = "^0.12.49"
+llama-index = "^0.13.2"
 termcolor = "^2.5.0"
 python-dotenv = "^1.1.1"
 auth0-ai-llamaindex = { path = "../../../packages/auth0-ai-llamaindex", develop = true }
