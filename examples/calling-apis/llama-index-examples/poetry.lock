@@ -235,7 +235,7 @@ files = []
 develop = true
 
 [package.dependencies]
-auth0-python = "^4.12.0"
+auth0-python = "^4.13.0"
 openfga-sdk = "^0.9.5"
 
 [package.source]
@@ -263,14 +263,14 @@ url = "../../../packages/auth0-ai-llamaindex"
 
 [[package]]
 name = "auth0-python"
-version = "4.12.0"
+version = "4.13.0"
 description = ""
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "auth0_python-4.12.0-py3-none-any.whl", hash = "sha256:3a9c13e79ccb93ed26d000ab2cadbba1eb1cfb7724ff008bbdb694437d35ec04"},
-    {file = "auth0_python-4.12.0.tar.gz", hash = "sha256:eb8c91dc5b8b12695affbcb37d74420eab35c91246036c83ed786b7ab9d5f292"},
+    {file = "auth0_python-4.13.0-py3-none-any.whl", hash = "sha256:8e3266fcfc2e3cc4f477e01f964c0a6c9a3563653a2feb226355bc825cd4932c"},
+    {file = "auth0_python-4.13.0.tar.gz", hash = "sha256:72f58bd26b078e3b493e4d24928cc75fa41842aae35cef488ed6f8db0fb701fb"},
 ]
 
 [package.dependencies]

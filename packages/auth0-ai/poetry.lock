@@ -152,14 +152,14 @@ tests-mypy = ["mypy (>=1.11.1) ; platform_python_implementation == \"CPython\" a
 
 [[package]]
 name = "auth0-python"
-version = "4.12.0"
+version = "4.13.0"
 description = ""
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "auth0_python-4.12.0-py3-none-any.whl", hash = "sha256:3a9c13e79ccb93ed26d000ab2cadbba1eb1cfb7724ff008bbdb694437d35ec04"},
-    {file = "auth0_python-4.12.0.tar.gz", hash = "sha256:eb8c91dc5b8b12695affbcb37d74420eab35c91246036c83ed786b7ab9d5f292"},
+    {file = "auth0_python-4.13.0-py3-none-any.whl", hash = "sha256:8e3266fcfc2e3cc4f477e01f964c0a6c9a3563653a2feb226355bc825cd4932c"},
+    {file = "auth0_python-4.13.0.tar.gz", hash = "sha256:72f58bd26b078e3b493e4d24928cc75fa41842aae35cef488ed6f8db0fb701fb"},
 ]
 
 [package.dependencies]
@@ -1652,4 +1652,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "660da42cae04c2ec7865db61ed87bc418570dbc2fe7f84d2b94d8483a1769a86"
+content-hash = "de26ec22af008b60277b664c932d868d2bfd15351e92ee2fc4e5ae6fbfb42e9c"

@@ -154,6 +154,31 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
             else:
                 raise
 
+    def _extract_retry_after_header(self, error: Auth0Error) -> Optional[int]:
+        """
+        Extract the Retry-After header value from an Auth0Error.
+        
+        Args:
+            error: The Auth0Error object that may contain HTTP headers
+            
+        Returns:
+            The retry-after value in seconds as an integer, or None if not present
+        """
+
+        if not hasattr(error, 'headers') or not error.headers:
+            return None
+            
+        retry_after = error.headers.get('retry-after') or error.headers.get('Retry-After')
+        
+        if retry_after is None:
+            return None
+            
+        try:
+            return int(retry_after)
+        except (ValueError, TypeError):
+            # If the retry-after value is not a valid integer, return None
+            return None
+
     def _get_credentials_internal(self, auth_request: CIBAAuthorizationRequest) -> TokenResponse | None:
         try:
             # Calculate elapsed time in seconds
@@ -180,7 +205,8 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
                 raise AuthorizationPendingInterrupt(e.message, auth_request)
 
             if e.error_code == "slow_down":
-                raise AuthorizationPollingInterrupt(e.message, auth_request)
+                retry_after = self._extract_retry_after_header(e)
+                raise AuthorizationPollingInterrupt(e.message, auth_request, retry_after)
 
             if e.error_code == "invalid_grant":
                 raise InvalidGrantInterrupt(e.message, auth_request)
@@ -203,7 +229,7 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
             try:
                 credentials = self._get_credentials_internal(auth_request)
             except (AuthorizationPendingInterrupt, AuthorizationPollingInterrupt) as err:
-                await asyncio.sleep(err.request["interval"])
+                await asyncio.sleep(err.next_retry_interval())
             except Exception:
                 raise
 
