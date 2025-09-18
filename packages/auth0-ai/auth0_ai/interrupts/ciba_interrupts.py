@@ -76,13 +76,24 @@ class AuthorizationPendingInterrupt(CIBAInterrupt, WithRequestData):
         CIBAInterrupt.__init__(self, message, AuthorizationPendingInterrupt.code)
         WithRequestData.__init__(self, request)
 
+    def next_retry_interval(self) -> int:
+        """Return the interval in seconds to wait before the next retry attempt."""
+        return self.request["interval"]
+
 
 class AuthorizationPollingInterrupt(CIBAInterrupt, WithRequestData):
     code: str = "CIBA_AUTHORIZATION_POLLING_ERROR"
 
-    def __init__(self, message: str, request: CIBAAuthorizationRequest):
+    def __init__(self, message: str, request: CIBAAuthorizationRequest, retry_after: int = None):
         Auth0Interrupt.__init__(self, message, AuthorizationPollingInterrupt.code)
         WithRequestData.__init__(self, request)
+        self.retry_after = retry_after
+
+    def next_retry_interval(self) -> int:
+        """Return the interval in seconds to wait before the next retry attempt."""
+        # Use the retry_after value from the HTTP header if available,
+        # otherwise fall back to the original interval from the auth request
+        return self.retry_after if self.retry_after is not None else self.request["interval"]
 
 
 class InvalidGrantInterrupt(CIBAInterrupt, WithRequestData):
