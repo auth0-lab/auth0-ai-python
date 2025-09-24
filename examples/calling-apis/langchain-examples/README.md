@@ -12,7 +12,7 @@
     - **Application Type**: `Regular Web Application`
     - **Allowed Callback URLs**: `http://localhost:3000/auth/callback`
     - **Allowed Logout URLs**: `http://localhost:3000`
-    - **Advanced Settings -> Grant Types**: `Refresh Token` and `Token Exchange (Federated Connection)` (or `urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token`)
+    - **Advanced Settings -> Grant Types**: `Refresh Token` and `Token Vault` (or `urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token`)
   - Either **Google**, **Slack** or **Github** social connections enabled for the application:
     - **Google connection** set up instructions:
       - Create a [Google OAuth 2.0 Client](https://console.cloud.google.com/apis/credentials) configured with access to the `https://www.googleapis.com/auth/calendar.freebusy` scope (Google Calendar API).
@@ -27,7 +27,6 @@
     - **Github connection** set up instructions:
       - Register a new app in [GitHub Developer Settings: OAuth Apps](https://github.com/settings/developers#oauth-apps) and follow the [Auth0's Github social connection](https://marketplace.auth0.com/integrations/github-social-connection) `installation` instructions to set up the connection.
       - On Auth0 Dashboard, set up the client ID and secret from the previously created Github App.
-
 
 ### Setup
 
