@@ -2,7 +2,7 @@
 
 `auth0-ai` is an SDK for building secure AI-powered applications using [Auth0](https://www.auth0.ai/).
 
-This SDK provides base abstractions for authentication and authorization in AI applications including a set of tools for implementing [asynchronous user authentication](https://demo.auth0.ai/docs/async-user-confirmation) using the [Client Initiated Backchannel Authentication (CIBA)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html) protocol.
+This SDK provides base abstractions for authentication and authorization in AI applications including a set of tools for implementing [asynchronous authorization](https://auth0.com/ai/docs/intro/asynchronous-authorization) using the [Client Initiated Backchannel Authentication (CIBA)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html) protocol.
 
 ![Release](https://img.shields.io/pypi/v/auth0-ai) ![Downloads](https://img.shields.io/pypi/dw/auth0-ai) [![License](https://img.shields.io/:license-APACHE%202.0-blue.svg?style=flat)](https://opensource.org/license/apache-2-0)
 
