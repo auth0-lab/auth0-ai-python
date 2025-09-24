@@ -28,7 +28,7 @@ def list_channels_tool_function():
     except SlackApiError as e:
         if e.response['error'] == 'not_authed':
             raise TokenVaultError(
-                "Authorization required to access the Federated Connection API")
+                "Authorization required to access the Token Vault connection")
 
         raise ValueError(f"An error occurred: {e.response['error']}")
 

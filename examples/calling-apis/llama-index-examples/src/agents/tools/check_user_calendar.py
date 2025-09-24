@@ -17,7 +17,7 @@ def check_user_calendar_tool_function(
     credentials = get_credentials_from_token_vault()
     if not credentials:
         raise ValueError(
-            "Authorization required to access the Federated Connection API")
+            "Authorization required to access the Token Vault connection")
 
     url = "https://www.googleapis.com/calendar/v3/freeBusy"
     body = {
@@ -37,7 +37,7 @@ def check_user_calendar_tool_function(
     if response.status_code != 200:
         if response.status_code == 401:
             raise TokenVaultError(
-                "Authorization required to access the Federated Connection API")
+                "Authorization required to access the Token Vault connection")
         raise ValueError(
             f"Invalid response from Google Calendar API: {response.status_code} - {response.text}")
 

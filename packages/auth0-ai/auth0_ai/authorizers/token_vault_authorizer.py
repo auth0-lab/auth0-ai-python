@@ -175,7 +175,7 @@ class TokenVaultAuthorizerBase(Generic[ToolInput]):
 
         if token_response is None:
             raise TokenVaultInterrupt(
-                f"Authorization required to access the Federated Connection API: {connection}",
+                f"Authorization required to access the Token Vault connection: {connection}",
                 connection,
                 scopes,
                 scopes
@@ -188,7 +188,7 @@ class TokenVaultAuthorizerBase(Generic[ToolInput]):
         if missing_scopes:
             granted_union = sorted(set(current_scopes) | set(scopes))
             raise TokenVaultInterrupt(
-                f"Authorization required to access the Federated Connection API: {connection}. Missing scopes: {', '.join(missing_scopes)}",
+                f"Authorization required to access the Token Vault connection: {connection}. Missing scopes: {', '.join(missing_scopes)}",
                 connection,
                 scopes,
                 granted_union

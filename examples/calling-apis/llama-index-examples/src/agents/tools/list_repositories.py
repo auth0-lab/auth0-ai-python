@@ -10,7 +10,7 @@ def list_repositories_tool_function():
     access_token = get_access_token_for_connection()
     if not access_token:
         raise ValueError(
-            "Authorization required to access the Federated Connection API")
+            "Authorization required to access the Token Vault connection")
 
     # GitHub SDK
     try:
@@ -21,7 +21,7 @@ def list_repositories_tool_function():
         return repo_names
     except BadCredentialsException:
         raise TokenVaultError(
-            "Authorization required to access the Federated Connection API")
+            "Authorization required to access the Token Vault connection")
 
 
 list_github_repositories_tool = with_github_access(FunctionTool.from_defaults(

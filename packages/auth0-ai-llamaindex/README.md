@@ -148,7 +148,7 @@ return FunctionTool.from_defaults(
 
 ## Calling APIs On User's Behalf
 
-The `Auth0AI.with_token_vault` function exchanges user's refresh token for a Federated Connection API access token.
+The `Auth0AI.with_token_vault` function exchanges user's refresh token for a Token Vault access token with the third-party.
 
 Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/calling-apis/llama-index-examples).
 
