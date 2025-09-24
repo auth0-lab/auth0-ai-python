@@ -12,10 +12,10 @@ from auth0 import Auth0Error
 from auth0.authentication.back_channel_login import BackChannelLogin
 from auth0.authentication.get_token import GetToken
 from auth0_ai.credentials import TokenResponse
-from auth0_ai.authorizers.ciba.ciba_authorizer_params import CIBAAuthorizerParams
-from auth0_ai.authorizers.ciba.ciba_authorization_request import CIBAAuthorizationRequest
+from auth0_ai.authorizers.async_auth.async_authorizer_params import AsyncAuthorizerParams
+from auth0_ai.authorizers.async_auth.async_authorization_request import AsyncAuthorizationRequest
 from auth0_ai.authorizers.types import Auth0ClientParams, ToolInput
-from auth0_ai.interrupts.ciba_interrupts import AccessDeniedInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt, AuthorizationRequestExpiredInterrupt, InvalidGrantInterrupt, UserDoesNotHavePushNotificationsInterrupt
+from auth0_ai.interrupts.async_auth_interrupts import AccessDeniedInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt, AuthorizationRequestExpiredInterrupt, InvalidGrantInterrupt, UserDoesNotHavePushNotificationsInterrupt
 from auth0_ai.stores import SubStore, InMemoryStore
 from auth0_ai.authorizers.context import ns_from_context, ContextGetter
 from auth0_ai.utils import omit
@@ -23,7 +23,7 @@ from auth0_ai.utils import omit
 class AsyncStorageValue(TypedDict):
     context: Any
     credentials: Optional[TokenResponse]
-    # The namespace in the Store for the CIBA authorization response.
+    # The namespace in the Store for the Async Auth authorization response.
     auth_request_ns: Sequence[str];
 
 _local_storage: contextvars.ContextVar[Optional[AsyncStorageValue]] = contextvars.ContextVar("local_storage", default=None)
@@ -43,14 +43,14 @@ def _update_local_storage(data: AsyncStorageValue) -> None:
 @asynccontextmanager
 async def _run_with_local_storage(data: AsyncStorageValue):
     if _local_storage.get() is not None:
-        raise RuntimeError("Cannot nest tool calls that require CIBA authorization.")
+        raise RuntimeError("Cannot nest tool calls that require Async Authorization.")
     token = _local_storage.set(data)
     try:
         yield
     finally:
         _local_storage.reset(token)
 
-def get_ciba_credentials() -> TokenResponse | None:
+def get_async_authorization_credentials() -> TokenResponse | None:
     local_store = _get_local_storage()
     return local_store.get("credentials")
 
@@ -59,8 +59,8 @@ def _ensure_openid_scope(scopes: list[str]) -> str:
         scopes.insert(0, "openid")
     return " ".join(scopes)
 
-class CIBAAuthorizerBase(Generic[ToolInput]):
-    def __init__(self, params: CIBAAuthorizerParams[ToolInput], auth0: Auth0ClientParams = None):
+class AsyncAuthorizerBase(Generic[ToolInput]):
+    def __init__(self, params: AsyncAuthorizerParams[ToolInput], auth0: Auth0ClientParams = None):
         auth0 = {
             "domain": (auth0 or {}).get("domain", os.getenv("AUTH0_DOMAIN")),
             "client_id": (auth0 or {}).get("client_id", os.getenv("AUTH0_CLIENT_ID")),
@@ -81,13 +81,13 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
         self.params = params
 
         # TODO: consider moving this to Auth0AI classes
-        ciba_store = SubStore(params["store"] if "store" in params else InMemoryStore()).create_sub_store("AUTH0_AI_CIBA")
+        async_auth_store = SubStore(params["store"] if "store" in params else InMemoryStore()).create_sub_store("AUTH0_AI_CIBA")
 
-        self.auth_request_store = SubStore[CIBAAuthorizationRequest](ciba_store, {
+        self.auth_request_store = SubStore[AsyncAuthorizationRequest](async_auth_store, {
             "get_ttl": lambda auth_request: auth_request["expires_in"] * 1000 if "expires_in" in auth_request else None
         })
 
-        self.credentials_store = SubStore[TokenResponse](ciba_store, {
+        self.credentials_store = SubStore[TokenResponse](async_auth_store, {
             "get_ttl": lambda credential: credential["expires_in"] * 1000 if "expires_in" in credential else None
         })
 
@@ -137,12 +137,12 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
 
         return authorize_params
 
-    async def _start(self, authorize_params) -> CIBAAuthorizationRequest:
+    async def _start(self, authorize_params) -> AsyncAuthorizationRequest:
         requested_at = time.time()
 
         try:
             response = self.back_channel_login.back_channel_login(**authorize_params)
-            return CIBAAuthorizationRequest(
+            return AsyncAuthorizationRequest(
                 id=response["auth_req_id"],
                 requested_at=requested_at,
                 expires_in=response["expires_in"],
@@ -179,7 +179,7 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
             # If the retry-after value is not a valid integer, return None
             return None
 
-    def _get_credentials_internal(self, auth_request: CIBAAuthorizationRequest) -> TokenResponse | None:
+    def _get_credentials_internal(self, auth_request: AsyncAuthorizationRequest) -> TokenResponse | None:
         try:
             # Calculate elapsed time in seconds
             elapsed_seconds = datetime.now().timestamp() - auth_request["requested_at"]
@@ -219,10 +219,10 @@ class CIBAAuthorizerBase(Generic[ToolInput]):
 
             raise
 
-    def _get_credentials(self, auth_request: CIBAAuthorizationRequest) -> TokenResponse | None:
+    def _get_credentials(self, auth_request: AsyncAuthorizationRequest) -> TokenResponse | None:
         return self._get_credentials_internal(auth_request)
 
-    async def get_credentials_polling(self, auth_request: CIBAAuthorizationRequest) -> TokenResponse | None:
+    async def get_credentials_polling(self, auth_request: AsyncAuthorizationRequest) -> TokenResponse | None:
         credentials: TokenResponse | None = None
 
         while not credentials:

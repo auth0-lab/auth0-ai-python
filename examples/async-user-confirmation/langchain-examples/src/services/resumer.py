@@ -1,6 +1,6 @@
 import asyncio
 import os
-from auth0_ai_langchain.ciba import GraphResumer
+from auth0_ai_langchain.async_auth import GraphResumer
 from langgraph_sdk import get_client
 
 async def main():
@@ -14,13 +14,13 @@ async def main():
         .on_error(lambda err: print(f"Error in GraphResumer: {str(err)}"))
 
     resumer.start()
-    print("Started CIBA Graph Resumer.")
-    print("The purpose of this service is to monitor interrupted threads by Auth0AI CIBA Authorizer and resume them.")
+    print("Started Async Auth Graph Resumer.")
+    print("The purpose of this service is to monitor interrupted threads by Auth0AI Async Authorizer and resume them.")
 
     try:
         await asyncio.Event().wait()
     except KeyboardInterrupt:
-        print("Stopping CIBA Graph Resumer...")
+        print("Stopping Async Auth Graph Resumer...")
         resumer.stop()
 
 asyncio.run(main())

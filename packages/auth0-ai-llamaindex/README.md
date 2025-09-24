@@ -22,7 +22,7 @@ Define a tool with the proper authorizer specifying a function to resolve the us
 
 ```python
 from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
-from auth0_ai_llamaindex.ciba import get_ciba_credentials
+from auth0_ai_llamaindex.async_auth import get_async_authorization_credentials
 from llama_index.core.tools import FunctionTool
 
 # If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`
@@ -38,7 +38,7 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
 )
 
 def tool_function(ticker: str, qty: int) -> str:
-    credentials = get_ciba_credentials()
+    credentials = get_async_authorization_credentials()
     headers = {
         "Authorization": f"{credentials["token_type"]} {credentials["access_token"]}",
         # ...
@@ -59,6 +59,7 @@ set_ai_context("<thread-id>")
 ```
 
 ### CIBA with RAR (Rich Authorization Requests)
+
 `Auth0AI` supports RAR (Rich Authorization Requests) for CIBA. This allows you to provide additional authorization parameters to be displayed during the user confirmation request.
 
 When defining the tool authorizer, you can specify the `authorization_details` parameter to include detailed information about the authorization being requested:
@@ -85,6 +86,7 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
 To use RAR with CIBA, you need to [set up authorization details](https://auth0.com/docs/get-started/apis/configure-rich-authorization-requests) in your Auth0 tenant. This includes defining the authorization request parameters and their types. Additionally, the [Guardian SDK](https://auth0.com/docs/secure/multi-factor-authentication/auth0-guardian) is required to handle these authorization details in your authorizer app.
 
 For more information on setting up RAR with CIBA, refer to:
+
 - [Configure Rich Authorization Requests (RAR)](https://auth0.com/docs/get-started/apis/configure-rich-authorization-requests)
 - [User Authorization with CIBA](https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-initiated-backchannel-authentication-flow/user-authorization-with-ciba)
 

@@ -1,8 +1,8 @@
 import asyncio
 from threading import Event
 from typing import Callable, Optional, Dict, Any, List, TypedDict
-from auth0_ai.authorizers.ciba import CIBAAuthorizationRequest
-from auth0_ai.interrupts.ciba_interrupts import CIBAInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt
+from auth0_ai.authorizers.async_auth import AsyncAuthorizationRequest
+from auth0_ai.interrupts.async_auth_interrupts import AsyncAuthorizationInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt
 from auth0_ai_langchain.utils.interrupt import get_auth0_interrupts
 from langgraph_sdk.client import LangGraphClient
 from langgraph_sdk.schema import Thread, Interrupt
@@ -11,7 +11,7 @@ class WatchedThread(TypedDict):
     thread_id: str
     assistant_id: str
     interruption_id: str
-    auth_request: CIBAAuthorizationRequest
+    auth_request: AsyncAuthorizationRequest
     config: Dict[str, Any]
     last_run: float
 
@@ -64,7 +64,7 @@ class GraphResumer:
 
             for t in page:
                 interrupt = self._get_first_interrupt(t)
-                if interrupt and CIBAInterrupt.is_interrupt(interrupt["value"]) and CIBAInterrupt.has_request_data(interrupt["value"]):
+                if interrupt and AsyncAuthorizationInterrupt.is_interrupt(interrupt["value"]) and AsyncAuthorizationInterrupt.has_request_data(interrupt["value"]):
                     interrupted_threads.append(t)
 
             offset += len(page)

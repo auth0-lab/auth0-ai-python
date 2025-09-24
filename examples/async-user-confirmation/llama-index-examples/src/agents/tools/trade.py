@@ -3,13 +3,13 @@ from dotenv import load_dotenv
 import httpx
 from llama_index.core.tools import FunctionTool
 
-from auth0_ai_llamaindex.ciba import get_ciba_credentials
+from auth0_ai_llamaindex.async_auth import get_async_authorization_credentials
 from ...auth0.auth0_ai import with_async_user_confirmation
 load_dotenv()
 
 
 def trade_tool_function(ticker: str, qty: int) -> str:
-    credentials = get_ciba_credentials()
+    credentials = get_async_authorization_credentials()
 
     if not credentials:
         raise ValueError("Access token not found")

@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-class CIBAAuthorizationRequest(TypedDict):
+class AsyncAuthorizationRequest(TypedDict):
     """
     Attributes:
         id (str): The authorization request ID. Use this ID to check the status of the authorization request.

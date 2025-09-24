@@ -1,24 +1,24 @@
 from abc import ABC
 from typing import Any, Type, TypeVar, get_type_hints
 from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
-from auth0_ai.authorizers.ciba import CIBAAuthorizationRequest
+from auth0_ai.authorizers.async_auth import AsyncAuthorizationRequest
 
 class WithRequestData:
-    def __init__(self, request: CIBAAuthorizationRequest):
+    def __init__(self, request: AsyncAuthorizationRequest):
         self._request = request
 
     @property
-    def request(self) -> CIBAAuthorizationRequest:
+    def request(self) -> AsyncAuthorizationRequest:
         return self._request
 
-CIBAInterruptType = TypeVar("T", bound="CIBAInterrupt")
+AsyncAuthorizationInterruptType = TypeVar("T", bound="AsyncAuthorizationInterrupt")
 
-class CIBAInterrupt(Auth0Interrupt, ABC):
+class AsyncAuthorizationInterrupt(Auth0Interrupt, ABC):
     def __init__(self, message: str, code: str):
         super().__init__(message, code)
 
     @classmethod
-    def is_interrupt(cls: Type[CIBAInterruptType], interrupt: Any) -> bool:
+    def is_interrupt(cls: Type[AsyncAuthorizationInterruptType], interrupt: Any) -> bool:
         return (
             interrupt
             and Auth0Interrupt.is_interrupt(interrupt)
@@ -26,7 +26,7 @@ class CIBAInterrupt(Auth0Interrupt, ABC):
             and (
                 (hasattr(cls, "code") and getattr(cls, "code") == interrupt["code"])
                 or
-                (not hasattr(cls, "code") and interrupt["code"].startswith("CIBA_"))
+                (not hasattr(cls, "code") and interrupt["code"].startswith("ASYNC_AUTHORIZATION_"))
             )
         )
 
@@ -42,38 +42,38 @@ class CIBAInterrupt(Auth0Interrupt, ABC):
         if not isinstance(request, dict):
             return False
 
-        required_keys = set(get_type_hints(CIBAAuthorizationRequest).keys())
+        required_keys = set(get_type_hints(AsyncAuthorizationRequest).keys())
         return required_keys <= request.keys()
 
 
-class AccessDeniedInterrupt(CIBAInterrupt, WithRequestData):
-    code: str = "CIBA_ACCESS_DENIED"
+class AccessDeniedInterrupt(AsyncAuthorizationInterrupt, WithRequestData):
+    code: str = "ASYNC_AUTHORIZATION_ACCESS_DENIED"
 
-    def __init__(self, message: str, request: CIBAAuthorizationRequest):
-        CIBAInterrupt.__init__(self, message, AccessDeniedInterrupt.code)
+    def __init__(self, message: str, request: AsyncAuthorizationRequest):
+        AsyncAuthorizationInterrupt.__init__(self, message, AccessDeniedInterrupt.code)
         WithRequestData.__init__(self, request)
 
 
-class UserDoesNotHavePushNotificationsInterrupt(CIBAInterrupt):
-    code: str = "CIBA_USER_DOES_NOT_HAVE_PUSH_NOTIFICATIONS"
+class UserDoesNotHavePushNotificationsInterrupt(AsyncAuthorizationInterrupt):
+    code: str = "ASYNC_AUTHORIZATION_USER_DOES_NOT_HAVE_PUSH_NOTIFICATIONS"
 
     def __init__(self, message: str):
         super().__init__(message, UserDoesNotHavePushNotificationsInterrupt.code)
 
 
-class AuthorizationRequestExpiredInterrupt(CIBAInterrupt, WithRequestData):
-    code: str = "CIBA_AUTHORIZATION_REQUEST_EXPIRED"
+class AuthorizationRequestExpiredInterrupt(AsyncAuthorizationInterrupt, WithRequestData):
+    code: str = "ASYNC_AUTHORIZATION_REQUEST_EXPIRED"
 
-    def __init__(self, message: str, request: CIBAAuthorizationRequest):
-        CIBAInterrupt.__init__(self, message, AuthorizationRequestExpiredInterrupt.code)
+    def __init__(self, message: str, request: AsyncAuthorizationRequest):
+        AsyncAuthorizationInterrupt.__init__(self, message, AuthorizationRequestExpiredInterrupt.code)
         WithRequestData.__init__(self, request)
 
 
-class AuthorizationPendingInterrupt(CIBAInterrupt, WithRequestData):
-    code: str = "CIBA_AUTHORIZATION_PENDING"
+class AuthorizationPendingInterrupt(AsyncAuthorizationInterrupt, WithRequestData):
+    code: str = "ASYNC_AUTHORIZATION_PENDING"
 
-    def __init__(self, message: str, request: CIBAAuthorizationRequest):
-        CIBAInterrupt.__init__(self, message, AuthorizationPendingInterrupt.code)
+    def __init__(self, message: str, request: AsyncAuthorizationRequest):
+        AsyncAuthorizationInterrupt.__init__(self, message, AuthorizationPendingInterrupt.code)
         WithRequestData.__init__(self, request)
 
     def next_retry_interval(self) -> int:
@@ -81,10 +81,10 @@ class AuthorizationPendingInterrupt(CIBAInterrupt, WithRequestData):
         return self.request["interval"]
 
 
-class AuthorizationPollingInterrupt(CIBAInterrupt, WithRequestData):
-    code: str = "CIBA_AUTHORIZATION_POLLING_ERROR"
+class AuthorizationPollingInterrupt(AsyncAuthorizationInterrupt, WithRequestData):
+    code: str = "ASYNC_AUTHORIZATION_POLLING_ERROR"
 
-    def __init__(self, message: str, request: CIBAAuthorizationRequest, retry_after: int = None):
+    def __init__(self, message: str, request: AsyncAuthorizationRequest, retry_after: int = None):
         Auth0Interrupt.__init__(self, message, AuthorizationPollingInterrupt.code)
         WithRequestData.__init__(self, request)
         self.retry_after = retry_after
@@ -96,9 +96,9 @@ class AuthorizationPollingInterrupt(CIBAInterrupt, WithRequestData):
         return self.retry_after if self.retry_after is not None else self.request["interval"]
 
 
-class InvalidGrantInterrupt(CIBAInterrupt, WithRequestData):
-    code: str = "CIBA_INVALID_GRANT"
+class InvalidGrantInterrupt(AsyncAuthorizationInterrupt, WithRequestData):
+    code: str = "ASYNC_AUTHORIZATION_INVALID_GRANT"
 
-    def __init__(self, message: str, request: CIBAAuthorizationRequest):
+    def __init__(self, message: str, request: AsyncAuthorizationRequest):
         Auth0Interrupt.__init__(self, message, InvalidGrantInterrupt.code)
         WithRequestData.__init__(self, request)

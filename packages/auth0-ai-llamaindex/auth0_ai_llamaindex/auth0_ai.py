@@ -1,9 +1,9 @@
 from typing import Callable, Optional
 from llama_index.core.tools import FunctionTool
-from auth0_ai.authorizers.ciba import CIBAAuthorizerParams
+from auth0_ai.authorizers.async_auth import AsyncAuthorizerParams
 from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
-from auth0_ai_llamaindex.ciba.ciba_authorizer import CIBAAuthorizer
+from auth0_ai_llamaindex.async_auth.async_authorizer import AsyncAuthorizer
 from auth0_ai_llamaindex.federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
 from auth0_ai_llamaindex.context import set_ai_context
 
@@ -65,14 +65,14 @@ class Auth0AI:
             FederatedConnectionAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 
-    def with_async_user_confirmation(self, **params: CIBAAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
+    def with_async_user_confirmation(self, **params: AsyncAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
         """Protects a tool with the CIBA (Client-Initiated Backchannel Authentication) flow.
 
         Requires user confirmation via a second device (e.g., phone)
         before allowing the tool to execute.
 
         Args:
-            **params: Parameters defined in `CIBAAuthorizerParams`.
+            **params: Parameters defined in `AsyncAuthorizerParams`.
 
         Returns:
             Callable[[FunctionTool], FunctionTool]: A decorator to wrap a LlamaIndex tool.
@@ -81,7 +81,7 @@ class Auth0AI:
             ```python
             import os
             from auth0_ai_llamaindex.auth0_ai import Auth0AI
-            from auth0_ai_llamaindex.ciba import get_ciba_credentials
+            from auth0_ai_llamaindex.async_auth import get_async_authorization_credentials
             from llama_index.core.tools import FunctionTool
 
             auth0_ai = Auth0AI()
@@ -94,7 +94,7 @@ class Auth0AI:
             )
 
             def tool_function(ticker: str, qty: int) -> str:
-                credentials = get_ciba_credentials()
+                credentials = get_async_authorization_credentials()
                 headers = {
                     "Authorization": f"{credentials['token_type']} {credentials['access_token']}",
                     # ...
@@ -110,7 +110,7 @@ class Auth0AI:
             )
             ```
         """
-        authorizer = CIBAAuthorizer(CIBAAuthorizerParams(**params), self.auth0)
+        authorizer = AsyncAuthorizer(AsyncAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 
 

@@ -4,9 +4,9 @@ from auth0_ai.authorizers.types import ToolInput
 from auth0_ai.stores import Store
 
 
-class CIBAAuthorizerParams(TypedDict, Generic[ToolInput]):
+class AsyncAuthorizerParams(TypedDict, Generic[ToolInput]):
     """
-    Authorize Options to start CIBA flow.
+    Authorize Options to start Async Authorization flow.
 
     Attributes:
         scopes (list[str]): The scopes to request authorization for.
