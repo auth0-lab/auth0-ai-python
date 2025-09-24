@@ -22,7 +22,7 @@ Define a tool with the proper authorizer specifying a function to resolve the us
 
 ```python
 from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
-from auth0_ai_llamaindex.async_auth import get_async_authorization_credentials
+from auth0_ai_llamaindex.async_authorization import get_async_authorization_credentials
 from llama_index.core.tools import FunctionTool
 
 # If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`

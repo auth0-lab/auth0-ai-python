@@ -1,6 +1,6 @@
 import asyncio
 import os
-from auth0_ai_langchain.async_auth import GraphResumer
+from auth0_ai_langchain.async_authorization import GraphResumer
 from langgraph_sdk import get_client
 
 async def main():

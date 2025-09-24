@@ -1,6 +1,6 @@
 import os
 import httpx
-from auth0_ai_langchain.async_auth import get_async_authorization_credentials
+from auth0_ai_langchain.async_authorization import get_async_authorization_credentials
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
 

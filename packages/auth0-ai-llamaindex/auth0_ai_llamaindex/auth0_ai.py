@@ -1,9 +1,9 @@
 from typing import Callable, Optional
 from llama_index.core.tools import FunctionTool
-from auth0_ai.authorizers.async_auth import AsyncAuthorizerParams
+from auth0_ai.authorizers.async_authorization import AsyncAuthorizerParams
 from auth0_ai.authorizers.token_vault_authorizer import TokenVaultAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
-from auth0_ai_llamaindex.async_auth.async_authorizer import AsyncAuthorizer
+from auth0_ai_llamaindex.async_authorization.async_authorizer import AsyncAuthorizer
 from auth0_ai_llamaindex.token_vault.token_vault_authorizer import FederatedConnectionAuthorizer
 from auth0_ai_llamaindex.context import set_ai_context
 
@@ -81,7 +81,7 @@ class Auth0AI:
             ```python
             import os
             from auth0_ai_llamaindex.auth0_ai import Auth0AI
-            from auth0_ai_llamaindex.async_auth import get_async_authorization_credentials
+            from auth0_ai_llamaindex.async_authorization import get_async_authorization_credentials
             from llama_index.core.tools import FunctionTool
 
             auth0_ai = Auth0AI()

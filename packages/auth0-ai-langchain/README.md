@@ -22,7 +22,7 @@ Full Example of [Async User Confirmation](https://github.com/auth0-lab/auth0-ai-
 
 ```python
 from auth0_ai_langchain.auth0_ai import Auth0AI
-from auth0_ai_langchain.async_auth import get_async_authorization_credentials
+from auth0_ai_langchain.async_authorization import get_async_authorization_credentials
 from langchain_core.runnables import ensure_config
 from langchain_core.tools import StructuredTool
 
@@ -301,7 +301,7 @@ For the specific case of **CIBA (Client-Initiated Backchannel Authorization)** y
 
 ```python
 import os
-from auth0_ai_langchain.async_auth import GraphResumer
+from auth0_ai_langchain.async_authorization import GraphResumer
 from langgraph_sdk import get_client
 
 resumer = GraphResumer(

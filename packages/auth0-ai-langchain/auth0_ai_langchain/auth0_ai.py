@@ -1,9 +1,9 @@
 from typing import Callable, Optional
 from langchain_core.tools import BaseTool
-from auth0_ai.authorizers.async_auth import AsyncAuthorizerParams
+from auth0_ai.authorizers.async_authorization import AsyncAuthorizerParams
 from auth0_ai.authorizers.token_vault_authorizer import TokenVaultAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
-from auth0_ai_langchain.async_auth.async_authorizer import AsyncAuthorizer
+from auth0_ai_langchain.async_authorization.async_authorizer import AsyncAuthorizer
 from auth0_ai_langchain.token_vault.token_vault_authorizer import FederatedConnectionAuthorizer
 
 
@@ -37,7 +37,7 @@ class Auth0AI:
             ```python
             import os
             from auth0_ai_langchain.auth0_ai import Auth0AI
-            from auth0_ai_langchain.async_auth import get_async_authorization_credentials
+            from auth0_ai_langchain.async_authorization import get_async_authorization_credentials
             from langchain_core.runnables import ensure_config
             from langchain_core.tools import StructuredTool
 

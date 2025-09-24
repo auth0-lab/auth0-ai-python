@@ -1,5 +1,5 @@
 from abc import ABC
-from auth0_ai.authorizers.async_auth import AsyncAuthorizerBase
+from auth0_ai.authorizers.async_authorization import AsyncAuthorizerBase
 from auth0_ai_llamaindex.utils.tool_wrapper import tool_wrapper
 from llama_index.core.tools import FunctionTool
 

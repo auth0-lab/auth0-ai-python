@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, Type, TypeVar, get_type_hints
 from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
-from auth0_ai.authorizers.async_auth import AsyncAuthorizationRequest
+from auth0_ai.authorizers.async_authorization import AsyncAuthorizationRequest
 
 class WithRequestData:
     def __init__(self, request: AsyncAuthorizationRequest):

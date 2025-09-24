@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import httpx
 from llama_index.core.tools import FunctionTool
 
-from auth0_ai_llamaindex.async_auth import get_async_authorization_credentials
+from auth0_ai_llamaindex.async_authorization import get_async_authorization_credentials
 from ...auth0.auth0_ai import with_async_user_confirmation
 load_dotenv()
 

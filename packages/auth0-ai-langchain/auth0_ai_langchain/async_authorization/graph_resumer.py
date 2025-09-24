@@ -1,8 +1,8 @@
 import asyncio
 from threading import Event
 from typing import Callable, Optional, Dict, Any, List, TypedDict
-from auth0_ai.authorizers.async_auth import AsyncAuthorizationRequest
-from auth0_ai.interrupts.async_auth_interrupts import AsyncAuthorizationInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt
+from auth0_ai.authorizers.async_authorization import AsyncAuthorizationRequest
+from auth0_ai.interrupts.async_authorization_interrupts import AsyncAuthorizationInterrupt, AuthorizationPendingInterrupt, AuthorizationPollingInterrupt
 from auth0_ai_langchain.utils.interrupt import get_auth0_interrupts
 from langgraph_sdk.client import LangGraphClient
 from langgraph_sdk.schema import Thread, Interrupt
