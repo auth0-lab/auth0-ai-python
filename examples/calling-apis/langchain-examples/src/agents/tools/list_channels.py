@@ -2,7 +2,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from pydantic import BaseModel
 from langchain_core.tools import StructuredTool
-from auth0_ai_langchain.federated_connections import get_credentials_for_connection, FederatedConnectionError
+from auth0_ai_langchain.token_vault import get_credentials_from_token_vault, TokenVaultError
 from src.auth0.auth0_ai import with_slack_access
 
 
@@ -12,7 +12,7 @@ class EmptySchema(BaseModel):
 
 def list_channels_tool_function():
     # Get the access token from Auth0 AI
-    credentials = get_credentials_for_connection()
+    credentials = get_credentials_from_token_vault()
 
     # Slack SDK
     try:
@@ -27,7 +27,7 @@ def list_channels_tool_function():
         return channel_names
     except SlackApiError as e:
         if e.response['error'] == 'not_authed':
-            raise FederatedConnectionError(
+            raise TokenVaultError(
                 "Authorization required to access the Federated Connection API")
 
         raise ValueError(f"An error occurred: {e.response['error']}")

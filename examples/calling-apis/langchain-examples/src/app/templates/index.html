@@ -166,11 +166,11 @@
     <script type="module">
       /** Ensure that scripts are loaded prior execution where imported downstream */
       import { EnsureAPIAccess } from "@auth0/ai-components/templates/FederatedConnections/index.tsx";
-      import { FederatedConnectionInterrupt } from "@auth0/ai/interrupts";
+      import { TokenVaultInterrupt } from "@auth0/ai/interrupts";
       import UserButon from "@auth0-lab/ui-components/registry/components/user-button.tsx";
 
       window.EnsureAPIAccess = EnsureAPIAccess;
-      window.FederatedConnectionInterrupt = FederatedConnectionInterrupt;
+      window.TokenVaultInterrupt = TokenVaultInterrupt;
       window.UserButton = UserButon;
     </script>
 
@@ -356,7 +356,7 @@
               throw new Error(data.error || "Failed to fetch response");
             }
 
-            if (FederatedConnectionInterrupt.isInterrupt(data?.response?.value)) {
+            if (TokenVaultInterrupt.isInterrupt(data?.response?.value)) {
               return setInterrupt(data.response);
             }
 

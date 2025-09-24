@@ -1,9 +1,9 @@
 import copy
 from abc import ABC
-from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerBase, \
-    FederatedConnectionAuthorizerParams
+from auth0_ai.authorizers.token_vault_authorizer import TokenVaultAuthorizerBase, \
+    TokenVaultAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
-from auth0_ai.interrupts.federated_connection_interrupt import FederatedConnectionInterrupt
+from auth0_ai.interrupts.token_vault_interrupt import TokenVaultInterrupt
 from auth0_ai_langchain.utils.interrupt import to_graph_interrupt
 from auth0_ai_langchain.utils.tool_wrapper import tool_wrapper
 from langchain_core.tools import BaseTool
@@ -21,10 +21,10 @@ async def default_get_subject_access_token(*_, **__) -> str | None:
     return ensure_config().get("configurable", {}).get("_credentials", {}).get("access_token")
 
 
-class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
+class FederatedConnectionAuthorizer(TokenVaultAuthorizerBase, ABC):
     def __init__(
         self,
-        params: FederatedConnectionAuthorizerParams,
+        params: TokenVaultAuthorizerParams,
         auth0: Auth0ClientParams = None,
     ):
         missing_refresh = params.refresh_token.value is None
@@ -41,7 +41,7 @@ class FederatedConnectionAuthorizer(FederatedConnectionAuthorizerBase, ABC):
 
         super().__init__(params, auth0)
 
-    def _handle_authorization_interrupts(self, err: FederatedConnectionInterrupt) -> None:
+    def _handle_authorization_interrupts(self, err: TokenVaultInterrupt) -> None:
         raise to_graph_interrupt(err)
 
     def authorizer(self):

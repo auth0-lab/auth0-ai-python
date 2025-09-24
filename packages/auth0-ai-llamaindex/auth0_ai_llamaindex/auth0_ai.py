@@ -1,10 +1,10 @@
 from typing import Callable, Optional
 from llama_index.core.tools import FunctionTool
 from auth0_ai.authorizers.async_auth import AsyncAuthorizerParams
-from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams
+from auth0_ai.authorizers.token_vault_authorizer import TokenVaultAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
 from auth0_ai_llamaindex.async_auth.async_authorizer import AsyncAuthorizer
-from auth0_ai_llamaindex.federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
+from auth0_ai_llamaindex.token_vault.token_vault_authorizer import FederatedConnectionAuthorizer
 from auth0_ai_llamaindex.context import set_ai_context
 
 
@@ -22,13 +22,13 @@ class Auth0AI:
         """
         self.auth0 = auth0
 
-    def with_federated_connection(self, **params: FederatedConnectionAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
+    def with_token_vault(self, **params: TokenVaultAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
         """Enables a tool to obtain an access token from a federated identity provider (e.g., Google, Azure AD).
 
         The token can then be used within the tool to call third-party APIs on behalf of the user.
 
         Args:
-            **params: Parameters defined in `FederatedConnectionAuthorizerParams`.
+            **params: Parameters defined in `TokenVaultAuthorizerParams`.
 
         Returns:
             Callable[[FunctionTool], FunctionTool]: A decorator to wrap a LlamaIndex tool.
@@ -36,20 +36,20 @@ class Auth0AI:
         Example:
             ```python
             from auth0_ai_llamaindex.auth0_ai import Auth0AI
-            from auth0_ai_llamaindex.federated_connections import get_credentials_for_connection
+            from auth0_ai_llamaindex.token_vault import get_credentials_from_token_vault
             from llama_index.core.tools import FunctionTool
             from datetime import datetime
 
             auth0_ai = Auth0AI()
 
-            with_google_calendar_access = auth0_ai.with_federated_connection(
+            with_google_calendar_access = auth0_ai.with_token_vault(
                 connection="google-oauth2",
                 scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
                 refresh_token=lambda *_args, **_kwargs: session["user"]["refresh_token"],
             )
 
             def tool_function(date: datetime):
-                credentials = get_credentials_for_connection()
+                credentials = get_credentials_from_token_vault()
                 # Call Google API using credentials["access_token"]
 
             check_calendar_tool = with_google_calendar_access(
@@ -62,7 +62,7 @@ class Auth0AI:
             ```
         """
         authorizer = FederatedConnectionAuthorizer(
-            FederatedConnectionAuthorizerParams(**params), self.auth0)
+            TokenVaultAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 
     def with_async_user_confirmation(self, **params: AsyncAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:

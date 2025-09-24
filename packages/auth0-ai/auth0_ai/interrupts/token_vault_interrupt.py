@@ -1,7 +1,7 @@
 from typing import Final
 from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
 
-class FederatedConnectionInterrupt(Auth0Interrupt):
+class TokenVaultInterrupt(Auth0Interrupt):
     """
     Error thrown when a tool call requires an access token for an external service.
 
@@ -12,7 +12,7 @@ class FederatedConnectionInterrupt(Auth0Interrupt):
 
     def __init__(self, message: str, connection: str, scopes: list[str], required_scopes: list[str]):
         """
-        Initializes a FederatedConnectionInterrupt instance.
+        Initializes a TokenVaultInterrupt instance.
 
         Args:
             message (str): Error message describing the reason for the interrupt.
@@ -44,16 +44,16 @@ class FederatedConnectionInterrupt(Auth0Interrupt):
         )
 
 
-class FederatedConnectionError(Exception):
+class TokenVaultError(Exception):
     """
     Error thrown when a tool call requires an access token for an external service.
 
-    The authorizer will automatically convert this class of error to FederatedConnectionInterrupt.
+    The authorizer will automatically convert this class of error to TokenVaultInterrupt.
     """
 
     def __init__(self, message: str):
         """
-        Initializes a FederatedConnectionError instance.
+        Initializes a TokenVaultError instance.
 
         Args:
             message (str): Error message describing the reason for the error.

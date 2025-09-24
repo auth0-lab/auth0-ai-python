@@ -1,10 +1,10 @@
 from typing import Callable, Optional
 from langchain_core.tools import BaseTool
 from auth0_ai.authorizers.async_auth import AsyncAuthorizerParams
-from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams
+from auth0_ai.authorizers.token_vault_authorizer import TokenVaultAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
 from auth0_ai_langchain.async_auth.async_authorizer import AsyncAuthorizer
-from auth0_ai_langchain.federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
+from auth0_ai_langchain.token_vault.token_vault_authorizer import FederatedConnectionAuthorizer
 
 
 class Auth0AI:
@@ -70,13 +70,13 @@ class Auth0AI:
         authorizer = AsyncAuthorizer(AsyncAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 
-    def with_federated_connection(self, **params: FederatedConnectionAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
+    def with_token_vault(self, **params: TokenVaultAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
         """Enables a tool to obtain an access token from a federated identity provider (e.g., Google, Azure AD).
 
         The token can then be used within the tool to call third-party APIs on behalf of the user.
 
         Args:
-            **params: Parameters defined in `FederatedConnectionAuthorizerParams`.
+            **params: Parameters defined in `TokenVaultAuthorizerParams`.
 
         Returns:
             Callable[[BaseTool], BaseTool]: A decorator to wrap a LangChain tool.
@@ -84,19 +84,19 @@ class Auth0AI:
         Example:
             ```python
             from auth0_ai_langchain.auth0_ai import Auth0AI
-            from auth0_ai_langchain.federated_connections import get_credentials_for_connection
+            from auth0_ai_langchain.token_vault import get_credentials_from_token_vault
             from langchain_core.tools import StructuredTool
             from datetime import datetime
 
             auth0_ai = Auth0AI()
 
-            with_google_calendar_access = auth0_ai.with_federated_connection(
+            with_google_calendar_access = auth0_ai.with_token_vault(
                 connection="google-oauth2",
                 scopes=["https://www.googleapis.com/auth/calendar.freebusy"]
             )
 
             def tool_function(date: datetime):
-                credentials = get_credentials_for_connection()
+                credentials = get_credentials_from_token_vault()
                 # Call Google API using credentials["access_token"]
 
             check_calendar_tool = with_google_calendar_access(
@@ -109,5 +109,5 @@ class Auth0AI:
             ```
         """
         authorizer = FederatedConnectionAuthorizer(
-            FederatedConnectionAuthorizerParams(**params), self.auth0)
+            TokenVaultAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()

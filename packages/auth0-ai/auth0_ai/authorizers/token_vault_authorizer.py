@@ -11,7 +11,7 @@ from auth0_ai.authorizers.context import AuthContext, ContextGetter, ns_from_con
 from auth0_ai.authorizers.types import Auth0ClientParams, AuthorizerToolParameter, ToolInput
 from auth0_ai.credentials import TokenResponse
 from auth0_ai.interrupts.auth0_interrupt import Auth0Interrupt
-from auth0_ai.interrupts.federated_connection_interrupt import FederatedConnectionError, FederatedConnectionInterrupt
+from auth0_ai.interrupts.token_vault_interrupt import TokenVaultError, TokenVaultInterrupt
 from auth0_ai.stores import Store, SubStore, InMemoryStore
 from auth0_ai.utils import omit
 
@@ -32,7 +32,7 @@ _local_storage: contextvars.ContextVar[Optional[AsyncStorageValue]] = contextvar
 def _get_local_storage() -> AsyncStorageValue:
     store = _local_storage.get()
     if store is None:
-        raise RuntimeError("The tool must be wrapped with the with_federated_connection function.")
+        raise RuntimeError("The tool must be wrapped with the with_token_vault function.")
     return store
 
 def _update_local_storage(data: AsyncStorageValue) -> None:
@@ -51,7 +51,7 @@ async def _run_with_local_storage(data: AsyncStorageValue):
     finally:
         _local_storage.reset(token)
 
-def get_credentials_for_connection() -> TokenResponse | None:
+def get_credentials_from_token_vault() -> TokenResponse | None:
     store = _get_local_storage()
     return store.get("credentials")
 
@@ -59,7 +59,7 @@ def get_access_token_for_connection() -> str | None:
     store = _get_local_storage()
     return store.get("credentials", {}).get("access_token")
 
-class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
+class TokenVaultAuthorizerParams(Generic[ToolInput]):
     def __init__(
         self,
         scopes: list[str],
@@ -79,7 +79,7 @@ class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
         credentials_context: Optional[AuthContext] = "thread"
     ):
         """
-        Parameters for the federated connection authorizer.
+        Parameters for the Token Vault authorizer.
 
         Args:
             scopes: The scopes required in the access token of the federated connection provider.
@@ -110,10 +110,10 @@ class FederatedConnectionAuthorizerParams(Generic[ToolInput]):
         self.store = store
         self.credentials_context = credentials_context
 
-class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
+class TokenVaultAuthorizerBase(Generic[ToolInput]):
     def __init__(
         self,
-        params: FederatedConnectionAuthorizerParams[ToolInput],
+        params: TokenVaultAuthorizerParams[ToolInput],
         config: Auth0ClientParams = None,
     ):
         self.params = params
@@ -174,7 +174,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
         connection = store["connection"]
 
         if token_response is None:
-            raise FederatedConnectionInterrupt(
+            raise TokenVaultInterrupt(
                 f"Authorization required to access the Federated Connection API: {connection}",
                 connection,
                 scopes,
@@ -187,7 +187,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
 
         if missing_scopes:
             granted_union = sorted(set(current_scopes) | set(scopes))
-            raise FederatedConnectionInterrupt(
+            raise TokenVaultInterrupt(
                 f"Authorization required to access the Federated Connection API: {connection}. Missing scopes: {', '.join(missing_scopes)}",
                 connection,
                 scopes,
@@ -233,7 +233,7 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
                 refresh_token=response.get("refresh_token"),
             )
         except Auth0Error as err:
-            raise FederatedConnectionError(err.message) if 400 <= err.status_code <= 499 else err
+            raise TokenVaultError(err.message) if 400 <= err.status_code <= 499 else err
 
     async def get_refresh_token(self, *args: ToolInput.args, **kwargs: ToolInput.kwargs):
         token = await self.params.refresh_token.resolve(*args, **kwargs)
@@ -276,9 +276,9 @@ class FederatedConnectionAuthorizerBase(Generic[ToolInput]):
                         return await execute(*args, **kwargs)
                     else:
                         return execute(*args, **kwargs)
-                except FederatedConnectionError as err:
+                except TokenVaultError as err:
                     self.credentials_store.delete(credentials_ns, "credential")
-                    interrupt = FederatedConnectionInterrupt(
+                    interrupt = TokenVaultInterrupt(
                         str(err),
                         local_store["connection"],
                         local_store["scopes"],

@@ -151,7 +151,7 @@ buy_tool = StructuredTool(
 
 ## Calling APIs On User's Behalf
 
-The `Auth0AI.with_federated_connection` function exchanges user's refresh token taken, by default, from the runnable configuration (`config.configurable._credentials.refresh_token`) for a Federated Connection API token.
+The `Auth0AI.with_token_vault` function exchanges user's refresh token taken, by default, from the runnable configuration (`config.configurable._credentials.refresh_token`) for a Federated Connection API token.
 
 Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/calling-apis/langchain-examples).
 
@@ -159,13 +159,13 @@ Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/aut
 
 ```python
 from auth0_ai_langchain.auth0_ai import Auth0AI
-from auth0_ai_langchain.federated_connections import get_credentials_for_connection
+from auth0_ai_langchain.token_vault import get_credentials_from_token_vault
 from langchain_core.tools import StructuredTool
 
 # If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`
 auth0_ai = Auth0AI()
 
-with_google_calendar_access = auth0_ai.with_federated_connection(
+with_google_calendar_access = auth0_ai.with_token_vault(
     connection="google-oauth2",
     scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
     # Optional:
@@ -174,7 +174,7 @@ with_google_calendar_access = auth0_ai.with_federated_connection(
 )
 
 def tool_function(date: datetime):
-    credentials = get_credentials_for_connection()
+    credentials = get_credentials_from_token_vault()
     # Call Google API using credentials["access_token"]
 
 check_calendar_tool = with_google_calendar_access(

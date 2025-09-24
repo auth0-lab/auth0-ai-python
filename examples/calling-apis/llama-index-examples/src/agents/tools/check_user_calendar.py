@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Annotated
 from llama_index.core.tools import FunctionTool
 
-from auth0_ai_llamaindex.federated_connections import FederatedConnectionError, get_credentials_for_connection
+from auth0_ai_llamaindex.token_vault import TokenVaultError, get_credentials_from_token_vault
 from src.auth0.auth0_ai import with_calendar_free_busy_access
 
 
@@ -14,7 +14,7 @@ def add_hours(dt: datetime, hours: int) -> str:
 def check_user_calendar_tool_function(
     dateTime: Annotated[str, "Date and time in ISO 8601 format."]
 ):
-    credentials = get_credentials_for_connection()
+    credentials = get_credentials_from_token_vault()
     if not credentials:
         raise ValueError(
             "Authorization required to access the Federated Connection API")
@@ -36,7 +36,7 @@ def check_user_calendar_tool_function(
 
     if response.status_code != 200:
         if response.status_code == 401:
-            raise FederatedConnectionError(
+            raise TokenVaultError(
                 "Authorization required to access the Federated Connection API")
         raise ValueError(
             f"Invalid response from Google Calendar API: {response.status_code} - {response.text}")
