@@ -105,7 +105,8 @@ protect_tool = auth0_ai.with_async_authorization(
     audience=os.getenv("AUDIENCE"),
     scopes=["stock:trade"],
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
-    user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id")
+    user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id"),
+    requested_expiry=301,
 )
 
 state_graph = StateGraph(State)

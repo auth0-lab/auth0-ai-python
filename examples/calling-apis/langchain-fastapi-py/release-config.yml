@@ -1,0 +1,3 @@
+category: "call-others-apis-on-users-behalf"
+framework: "langchain-fastapi-py"
+included: true
