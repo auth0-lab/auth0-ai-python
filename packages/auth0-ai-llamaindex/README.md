@@ -12,11 +12,11 @@
 pip install auth0-ai-llamaindex
 ```
 
-## Async User Confirmation
+## Async Authorization
 
 `Auth0AI` uses CIBA (Client Initiated Backchannel Authentication) to handle user confirmation asynchronously. This is useful when you need to confirm a user action before proceeding with a tool execution.
 
-Full Example of [Async User Confirmation](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/async-user-confirmation/llama-index-examples).
+Full Example of [Async Authorization](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/async-authorization/llama-index-examples).
 
 Define a tool with the proper authorizer specifying a function to resolve the user id:
 

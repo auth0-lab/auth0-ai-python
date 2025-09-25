@@ -1,4 +1,4 @@
-# Async User Confirmation with LangChain
+# Async Authorization Confirmation with LangChain
 
 ## Getting Started
 
@@ -105,14 +105,14 @@ sequenceDiagram
     Agent->>User: "I've started a conditional trade"
     loop Every 10 mins
         Conditional Trade Agent->>Stocks API: Check P/E ratio
-        Stocks API-->>Conditional Trade Agent:  
+        Stocks API-->>Conditional Trade Agent:
         alt P/E < 15
             Conditional Trade Agent->>Auth0: Initiate CIBA request
             Auth0->>User's Phone: Send push notification
             Conditional Trade Agent->>+CIBA Agent: Monitor user response
             loop Every minute
                 CIBA Agent->>Auth0: Check user approval status
-                Auth0-->>CIBA Agent: 
+                Auth0-->>CIBA Agent:
                 alt User approves
                     User's Phone-->>Auth0: User approves
                     Auth0-->>CIBA Agent: User approves
@@ -122,7 +122,7 @@ sequenceDiagram
         end
     end
     Conditional Trade Agent->>Stocks API: Execute trade for 10 NVDA
-    Stocks API-->>Conditional Trade Agent: 
+    Stocks API-->>Conditional Trade Agent:
     Conditional Trade Agent->>User's Phone: Inform user
 ```
 

@@ -1,4 +1,4 @@
-# Async User Confirmation with LlamaIndex
+# Async Authorization with LlamaIndex
 
 ## Getting Started
 
