@@ -81,13 +81,13 @@ class AsyncAuthorizerBase(Generic[ToolInput]):
         self.params = params
 
         # TODO: consider moving this to Auth0AI classes
-        async_auth_store = SubStore(params["store"] if "store" in params else InMemoryStore()).create_sub_store("AUTH0_AI_CIBA")
+        async_authorization_store = SubStore(params["store"] if "store" in params else InMemoryStore()).create_sub_store("AUTH0_AI_ASYNC_AUTHORIZATION")
 
-        self.auth_request_store = SubStore[AsyncAuthorizationRequest](async_auth_store, {
+        self.auth_request_store = SubStore[AsyncAuthorizationRequest](async_authorization_store, {
             "get_ttl": lambda auth_request: auth_request["expires_in"] * 1000 if "expires_in" in auth_request else None
         })
 
-        self.credentials_store = SubStore[TokenResponse](async_auth_store, {
+        self.credentials_store = SubStore[TokenResponse](async_authorization_store, {
             "get_ttl": lambda credential: credential["expires_in"] * 1000 if "expires_in" in credential else None
         })
 
