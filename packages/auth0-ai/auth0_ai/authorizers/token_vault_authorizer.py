@@ -55,7 +55,7 @@ def get_credentials_from_token_vault() -> TokenResponse | None:
     store = _get_local_storage()
     return store.get("credentials")
 
-def get_access_token_for_connection() -> str | None:
+def get_access_token_from_token_vault() -> str | None:
     store = _get_local_storage()
     return store.get("credentials", {}).get("access_token")
 

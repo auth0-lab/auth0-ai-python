@@ -2,12 +2,12 @@ from github import Github
 from github.GithubException import BadCredentialsException
 from llama_index.core.tools import FunctionTool
 
-from auth0_ai_llamaindex.token_vault import TokenVaultError, get_access_token_for_connection
+from auth0_ai_llamaindex.token_vault import TokenVaultError, get_access_token_from_token_vault
 from src.auth0.auth0_ai import with_github_access
 
 
 def list_repositories_tool_function():
-    access_token = get_access_token_for_connection()
+    access_token = get_access_token_from_token_vault()
     if not access_token:
         raise ValueError(
             "Authorization required to access the Token Vault connection")
