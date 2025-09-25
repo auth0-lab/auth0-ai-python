@@ -58,9 +58,9 @@ trade_tool = with_async_authorization(
 set_ai_context("<thread-id>")
 ```
 
-### CIBA with RAR (Rich Authorization Requests)
+### Async Authorization with RAR (Rich Authorization Requests)
 
-`Auth0AI` supports RAR (Rich Authorization Requests) for CIBA. This allows you to provide additional authorization parameters to be displayed during the user confirmation request.
+`Auth0AI` supports RAR (Rich Authorization Requests) for Async Authorization. This allows you to provide additional authorization parameters to be displayed during the user confirmation request.
 
 When defining the tool authorizer, you can specify the `authorization_details` parameter to include detailed information about the authorization being requested:
 
