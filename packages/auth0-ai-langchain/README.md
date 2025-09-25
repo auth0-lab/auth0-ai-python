@@ -58,7 +58,7 @@ trade_tool = with_async_authorization(
 
 2. Handle interruptions properly. For example, if user is not enrolled to MFA, it will throw an interruption. See [Handling Interrupts](#handling-interrupts) section.
 
-### CIBA with RAR (Rich Authorization Requests)
+### Async Authorization with RAR (Rich Authorization Requests)
 
 `Auth0AI` supports RAR (Rich Authorization Requests) for CIBA. This allows you to provide additional authorization parameters to be displayed during the user confirmation request.
 
@@ -151,7 +151,7 @@ buy_tool = StructuredTool(
 
 ## Calling APIs On User's Behalf
 
-The `Auth0AI.with_token_vault` function exchanges user's refresh token taken, by default, from the runnable configuration (`config.configurable._credentials.refresh_token`) for a Token Vault access token with the third-party.
+The `Auth0AI.with_token_vault` function exchanges user's refresh token taken, by default, from the runnable configuration (`config.configurable._credentials.refresh_token`) for a Token Vault access token that is valid to call a third-party API.
 
 Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/calling-apis/langchain-examples).
 

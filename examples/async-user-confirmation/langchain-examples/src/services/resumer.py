@@ -14,13 +14,13 @@ async def main():
         .on_error(lambda err: print(f"Error in GraphResumer: {str(err)}"))
 
     resumer.start()
-    print("Started Async Auth Graph Resumer.")
+    print("Started Async Authorization Graph Resumer.")
     print("The purpose of this service is to monitor interrupted threads by Auth0AI Async Authorizer and resume them.")
 
     try:
         await asyncio.Event().wait()
     except KeyboardInterrupt:
-        print("Stopping Async Auth Graph Resumer...")
+        print("Stopping Async Authorization Graph Resumer...")
         resumer.stop()
 
 asyncio.run(main())
