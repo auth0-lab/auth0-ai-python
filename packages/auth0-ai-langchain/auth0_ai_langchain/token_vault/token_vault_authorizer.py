@@ -21,7 +21,7 @@ async def default_get_subject_access_token(*_, **__) -> str | None:
     return ensure_config().get("configurable", {}).get("_credentials", {}).get("access_token")
 
 
-class FederatedConnectionAuthorizer(TokenVaultAuthorizerBase, ABC):
+class TokenVaultAuthorizer(TokenVaultAuthorizerBase, ABC):
     def __init__(
         self,
         params: TokenVaultAuthorizerParams,

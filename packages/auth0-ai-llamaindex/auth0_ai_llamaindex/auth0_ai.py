@@ -4,7 +4,7 @@ from auth0_ai.authorizers.async_authorization import AsyncAuthorizerParams
 from auth0_ai.authorizers.token_vault_authorizer import TokenVaultAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
 from auth0_ai_llamaindex.async_authorization.async_authorizer import AsyncAuthorizer
-from auth0_ai_llamaindex.token_vault.token_vault_authorizer import FederatedConnectionAuthorizer
+from auth0_ai_llamaindex.token_vault.token_vault_authorizer import TokenVaultAuthorizer
 from auth0_ai_llamaindex.context import set_ai_context
 
 
@@ -23,7 +23,7 @@ class Auth0AI:
         self.auth0 = auth0
 
     def with_token_vault(self, **params: TokenVaultAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
-        """Enables a tool to obtain an access token from a federated identity provider (e.g., Google, Azure AD).
+        """Enables a tool to obtain an access token from a Token Vault identity provider (e.g., Google, Azure AD).
 
         The token can then be used within the tool to call third-party APIs on behalf of the user.
 
@@ -61,7 +61,7 @@ class Auth0AI:
             )
             ```
         """
-        authorizer = FederatedConnectionAuthorizer(
+        authorizer = TokenVaultAuthorizer(
             TokenVaultAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 

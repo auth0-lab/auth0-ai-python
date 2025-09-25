@@ -11,7 +11,7 @@ from auth0_ai_llamaindex.utils.tool_wrapper import tool_wrapper
 from llama_index.core.tools import FunctionTool
 
 
-class FederatedConnectionAuthorizer(TokenVaultAuthorizerBase, ABC):
+class TokenVaultAuthorizer(TokenVaultAuthorizerBase, ABC):
     def __init__(
         self,
         params: TokenVaultAuthorizerParams,

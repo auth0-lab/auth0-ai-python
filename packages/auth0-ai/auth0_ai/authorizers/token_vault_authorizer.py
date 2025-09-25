@@ -18,7 +18,7 @@ from auth0_ai.utils import omit
 # Subject / requested token type constants
 SUBJECT_TYPE_REFRESH_TOKEN = "urn:ietf:params:oauth:token-type:refresh_token"
 SUBJECT_TYPE_ACCESS_TOKEN = "urn:ietf:params:oauth:token-type:access_token"
-REQUESTED_TOKEN_TYPE_FEDERATED_CONNECTION_ACCESS_TOKEN = "http://auth0.com/oauth/token-type/federated-connection-access-token"
+REQUESTED_TOKEN_TYPE_TOKEN_VAULT_ACCESS_TOKEN = "http://auth0.com/oauth/token-type/federated-connection-access-token"
 
 class AsyncStorageValue(TypedDict):
     context: Any
@@ -44,7 +44,7 @@ def _update_local_storage(data: AsyncStorageValue) -> None:
 @asynccontextmanager
 async def _run_with_local_storage(data: AsyncStorageValue):
     if _local_storage.get() is not None:
-        raise RuntimeError("Cannot nest tool calls that require federated connection authorization.")
+        raise RuntimeError("Cannot nest tool calls that require Token Vault authorization.")
     token = _local_storage.set(data)
     try:
         yield
@@ -82,9 +82,9 @@ class TokenVaultAuthorizerParams(Generic[ToolInput]):
         Parameters for the Token Vault authorizer.
 
         Args:
-            scopes: The scopes required in the access token of the federated connection provider.
-            connection: The connection name of the federated connection provider.
-            refresh_token: Optional. The Auth0 refresh token to exchange for a federated connection access token. Can be:
+            scopes: The scopes required in the access token of the Token Vault provider.
+            connection: The connection name of the Token Vault provider.
+            refresh_token: Optional. The Auth0 refresh token to exchange for a Token Vault access token. Can be:
                 - A string or None
                 - A callable that receives the tool input and returns the user refresh token (sync or async)
             access_token: Optional. The Auth0 user access token (subject token) to exchange instead of a refresh token. Can be:
@@ -133,7 +133,7 @@ class TokenVaultAuthorizerBase(Generic[ToolInput]):
         self.get_token = GetToken(**self.auth0)
 
         # TODO: consider moving this to Auth0AI classes
-        sub_store = SubStore(params.store or InMemoryStore()).create_sub_store("AUTH0_AI_FEDERATED_CONNECTION")
+        sub_store = SubStore(params.store or InMemoryStore()).create_sub_store("AUTH0_AI_TOKEN_VAULT")
         instance_id = self._get_instance_id()
         
         self.credentials_store = SubStore[TokenResponse](sub_store, {
@@ -218,7 +218,7 @@ class TokenVaultAuthorizerBase(Generic[ToolInput]):
             request_kwargs = dict(
                 subject_token_type=subject_token_type,
                 subject_token=subject_token,
-                requested_token_type=REQUESTED_TOKEN_TYPE_FEDERATED_CONNECTION_ACCESS_TOKEN,
+                requested_token_type=REQUESTED_TOKEN_TYPE_TOKEN_VAULT_ACCESS_TOKEN,
                 connection=connection,
             )
             if login_hint:

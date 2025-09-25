@@ -8,7 +8,7 @@ class TokenVaultInterrupt(Auth0Interrupt):
     Throw this error if the service returns Unauthorized for the current access token.
     """
 
-    code: Final[str] = "FEDERATED_CONNECTION_ERROR"
+    code: Final[str] = "TOKEN_VAULT_ERROR"
 
     def __init__(self, message: str, connection: str, scopes: list[str], required_scopes: list[str]):
         """
