@@ -165,11 +165,11 @@
 
     <script type="module">
       /** Ensure that scripts are loaded prior execution where imported downstream */
-      import { EnsureAPIAccess } from "@auth0/ai-components/templates/FederatedConnections/index.tsx";
+      import { TokenVaultConsent } from "@auth0/ai-components/templates/TokenVault/index.tsx";
       import { TokenVaultInterrupt } from "@auth0/ai/interrupts";
       import UserButon from "@auth0-lab/ui-components/registry/components/user-button.tsx";
 
-      window.EnsureAPIAccess = EnsureAPIAccess;
+      window.TokenVaultConsent = TokenVaultConsent;
       window.TokenVaultInterrupt = TokenVaultInterrupt;
       window.UserButton = UserButon;
     </script>
@@ -258,7 +258,7 @@
 
         const { connection, required_scopes: requiredScopes } = interrupt.value;
         return (
-          <EnsureAPIAccess
+          <TokenVaultConsent
             mode="redirect"
             interrupt={({ connection, requiredScopes })}
             connectWidget={({ title: interrupt.value?.message, description: "Description..." })}
