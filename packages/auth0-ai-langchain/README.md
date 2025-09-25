@@ -29,7 +29,7 @@ from langchain_core.tools import StructuredTool
 # If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`
 auth0_ai = Auth0AI()
 
-with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+with_async_authorization = auth0_ai.with_async_authorization(
     scopes=["stock:trade"],
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
@@ -46,7 +46,7 @@ def tool_function(ticker: str, qty: int) -> str:
     }
     # Call API
 
-trade_tool = with_async_user_confirmation(
+trade_tool = with_async_authorization(
     StructuredTool(
         name="trade_tool",
         description="Use this function to trade a stock",
@@ -65,7 +65,7 @@ trade_tool = with_async_user_confirmation(
 When defining the tool authorizer, you can specify the `authorization_details` parameter to include detailed information about the authorization being requested:
 
 ```python
-with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+with_async_authorization = auth0_ai.with_async_authorization(
     scopes=["stock:trade"],
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",

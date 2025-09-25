@@ -31,7 +31,7 @@ _local_storage: contextvars.ContextVar[Optional[AsyncStorageValue]] = contextvar
 def _get_local_storage() -> AsyncStorageValue:
     store = _local_storage.get()
     if store is None:
-        raise RuntimeError("The tool must be wrapped with the with_async_user_confirmation function.")
+        raise RuntimeError("The tool must be wrapped with the with_async_authorization function.")
     return store
 
 def _update_local_storage(data: AsyncStorageValue) -> None:

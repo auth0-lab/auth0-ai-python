@@ -65,7 +65,7 @@ class Auth0AI:
             TokenVaultAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 
-    def with_async_user_confirmation(self, **params: AsyncAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
+    def with_async_authorization(self, **params: AsyncAuthorizerParams) -> Callable[[FunctionTool], FunctionTool]:
         """Protects a tool with the CIBA (Client-Initiated Backchannel Authentication) flow.
 
         Requires user confirmation via a second device (e.g., phone)
@@ -86,7 +86,7 @@ class Auth0AI:
 
             auth0_ai = Auth0AI()
 
-            with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+            with_async_authorization = auth0_ai.with_async_authorization(
                 scopes=["stock:trade"],
                 audience=os.getenv("AUDIENCE"),
                 binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
@@ -101,7 +101,7 @@ class Auth0AI:
                 }
                 # Call API
 
-            trade_tool = with_async_user_confirmation(
+            trade_tool = with_async_authorization(
                 FunctionTool.from_defaults(
                     name="trade_tool",
                     description="Use this function to trade a stock",

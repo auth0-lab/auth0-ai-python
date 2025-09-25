@@ -101,7 +101,7 @@ def check_trade_status(state: State):
     return END
 
 auth0_ai = Auth0AI()
-protect_tool = auth0_ai.with_async_user_confirmation(
+protect_tool = auth0_ai.with_async_authorization(
     audience=os.getenv("AUDIENCE"),
     scopes=["stock:trade"],
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",

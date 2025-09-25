@@ -4,7 +4,7 @@ import httpx
 from llama_index.core.tools import FunctionTool
 
 from auth0_ai_llamaindex.async_authorization import get_async_authorization_credentials
-from ...auth0.auth0_ai import with_async_user_confirmation
+from ...auth0.auth0_ai import with_async_authorization
 load_dotenv()
 
 
@@ -32,7 +32,7 @@ def trade_tool_function(ticker: str, qty: int) -> str:
         return f"HTTP request failed: {str(e)}"
 
 
-trade_tool = with_async_user_confirmation(FunctionTool.from_defaults(
+trade_tool = with_async_authorization(FunctionTool.from_defaults(
     name="trade_tool",
     description="Use this function to trade a stock",
     fn=trade_tool_function,

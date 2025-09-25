@@ -14,7 +14,7 @@ async def user_id(**_kwargs):
     user = await auth0.get_user(store_options=store_options)
     return user.get("sub")
 
-with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+with_async_authorization = auth0_ai.with_async_authorization(
     scopes=["stock:trade"],
     audience=os.getenv("AUDIENCE"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
