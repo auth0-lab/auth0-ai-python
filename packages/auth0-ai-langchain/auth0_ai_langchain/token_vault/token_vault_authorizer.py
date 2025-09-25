@@ -13,14 +13,6 @@ from langchain_core.runnables import ensure_config
 async def default_get_refresh_token(*_, **__) -> str | None:
     return ensure_config().get("configurable", {}).get("_credentials", {}).get("refresh_token")
 
-async def default_get_subject_access_token(*_, **__) -> str | None:
-    """
-    Returns the Auth0 *user* access token (from the LC graph config) to be used
-    as the subject token in Token Vault exchange.
-    """
-    return ensure_config().get("configurable", {}).get("_credentials", {}).get("access_token")
-
-
 class TokenVaultAuthorizer(TokenVaultAuthorizerBase, ABC):
     def __init__(
         self,
@@ -28,16 +20,11 @@ class TokenVaultAuthorizer(TokenVaultAuthorizerBase, ABC):
         auth0: Auth0ClientParams = None,
     ):
         missing_refresh = params.refresh_token.value is None
-        missing_subject_at = getattr(params, "subject_access_token",
-                                     None) is None or params.subject_access_token.value is None
+        missing_access_token = params.access_token.value is None
 
-        if missing_refresh and missing_subject_at:
+        if missing_refresh and missing_access_token and callable(default_get_refresh_token):
             params = copy.copy(params)
-            params.subject_access_token.value = default_get_subject_access_token
-        elif not missing_refresh and callable(default_get_refresh_token):
-            if params.refresh_token.value is None:
-                params = copy.copy(params)
-                params.refresh_token.value = default_get_refresh_token
+            params.refresh_token.value = default_get_refresh_token
 
         super().__init__(params, auth0)
 

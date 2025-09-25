@@ -199,7 +199,6 @@ class TokenVaultAuthorizerBase(Generic[ToolInput]):
         connection = store["connection"]
 
         refresh_supplied = self.params.refresh_token.value is not None
-        access_supplied = self.params.access_token.value is not None
 
         subject_token_type: str
         if refresh_supplied:
@@ -267,9 +266,10 @@ class TokenVaultAuthorizerBase(Generic[ToolInput]):
                     credentials = await self.credentials_store.get(credentials_ns, "credential")
 
                     if not credentials:
-                        credentials = await self.get_access_token(*args, **kwargs)
+                        credentials = await self.get_access_token_impl(*args, **kwargs)
+                        self.validate_token(credentials)
                         await self.credentials_store.put(credentials_ns, "credential", credentials)
-
+                    
                     _update_local_storage({"credentials": credentials})
 
                     if inspect.iscoroutinefunction(execute):
