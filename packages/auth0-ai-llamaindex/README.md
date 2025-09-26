@@ -31,6 +31,7 @@ auth0_ai = Auth0AI()
 with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scopes=["stock:trade"],
     audience=os.getenv("AUDIENCE"),
+    requested_expiry=os.getenv("REQUESTED_EXPIRY"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
     user_id=lambda *_, **__: session["user"]["userinfo"]["sub"],
     # Optional:
@@ -67,6 +68,7 @@ When defining the tool authorizer, you can specify the `authorization_details` p
 with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
     scopes=["stock:trade"],
     audience=os.getenv("AUDIENCE"),
+    requested_expiry=os.getenv("REQUESTED_EXPIRY"),
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
     authorization_details=lambda ticker, qty: [
         {

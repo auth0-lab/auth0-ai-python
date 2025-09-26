@@ -103,6 +103,7 @@ def check_trade_status(state: State):
 auth0_ai = Auth0AI()
 protect_tool = auth0_ai.with_async_user_confirmation(
     audience=os.getenv("AUDIENCE"),
+    requested_expiry=os.getenv("REQUESTED_EXPIRY"),
     scopes=["stock:trade"],
     binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
     user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id")
