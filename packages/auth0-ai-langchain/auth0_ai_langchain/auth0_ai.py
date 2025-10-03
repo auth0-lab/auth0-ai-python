@@ -46,6 +46,7 @@ class Auth0AI:
             with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
                 scopes=["stock:trade"],
                 audience=os.getenv("AUDIENCE"),
+                requested_expiry=os.getenv("REQUESTED_EXPIRY"),
                 binding_message=lambda ticker, qty: f"Authorize the purchase of {qty} {ticker}",
                 user_id=lambda *_, **__: ensure_config().get("configurable", {}).get("user_id")
             )

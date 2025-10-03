@@ -26,6 +26,7 @@ AUTH0_CLIENT_SECRET="<auth0-client-secret>"
 # API
 API_URL=http://localhost:8081/
 AUDIENCE=sample-api
+REQUESTED_EXPIRY=300
 
 # OpenAI
 OPENAI_API_KEY="<openai-api-key>"
