@@ -17,8 +17,8 @@ class Store(ABC, Generic[T]):
     A key-value store interface.
 
     Auth0AI uses this store in different stages:
-        - To store the authorization request when an AI agent is interrupted (CIBA).
-        - To store user credentials associated with threads to avoid re-authentication (CIBA, Federated Connection).
+        - To store the authorization request when an AI agent is interrupted (Async Authorization).
+        - To store user credentials associated with threads to avoid re-authentication (Async Authorization, Token Vault).
     """
 
     @abstractmethod

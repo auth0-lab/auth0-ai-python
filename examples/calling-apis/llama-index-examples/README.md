@@ -11,7 +11,7 @@
     - **Application Type**: `Regular Web Application`
     - **Allowed Callback URLs**: `http://localhost:3000/auth/callback`
     - **Allowed Logout URLs**: `http://localhost:3000`
-    - **Advanced Settings -> Grant Types**: `Refresh Token` and `Token Exchange (Federated Connection)` (or `urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token`)
+    - **Advanced Settings -> Grant Types**: `Refresh Token` and `Token Vault` (or `urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token`)
   - Either **Google**, **Slack** or **Github** social connections enabled for the application:
     - **Google connection** set up instructions:
       - Create a [Google OAuth 2.0 Client](https://console.cloud.google.com/apis/credentials) configured with access to the `https://www.googleapis.com/auth/calendar.freebusy` scope (Google Calendar API).

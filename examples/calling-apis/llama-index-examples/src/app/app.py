@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
 from auth0_ai_llamaindex.auth0_ai import set_ai_context
-from auth0_ai_llamaindex.federated_connections import FederatedConnectionInterrupt
+from auth0_ai_llamaindex.token_vault import TokenVaultInterrupt
 
 from ..agents.agent import agent
 from ..agents.memory import get_memory
@@ -84,7 +84,7 @@ async def api_chat():
         memory = await get_memory(user_id, thread_id)
         response = await agent.run(user_msg=message, memory=memory)
         return jsonify({"response": str(response)})
-    except FederatedConnectionInterrupt as e:
+    except TokenVaultInterrupt as e:
         session["interrupt"] = {
             "value": e.to_json(),
             "last_message": message

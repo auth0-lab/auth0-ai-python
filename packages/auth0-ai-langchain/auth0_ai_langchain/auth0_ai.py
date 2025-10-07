@@ -1,10 +1,10 @@
 from typing import Callable, Optional
 from langchain_core.tools import BaseTool
-from auth0_ai.authorizers.ciba import CIBAAuthorizerParams
-from auth0_ai.authorizers.federated_connection_authorizer import FederatedConnectionAuthorizerParams
+from auth0_ai.authorizers.async_authorization import AsyncAuthorizerParams
+from auth0_ai.authorizers.token_vault_authorizer import TokenVaultAuthorizerParams
 from auth0_ai.authorizers.types import Auth0ClientParams
-from auth0_ai_langchain.ciba.ciba_authorizer import CIBAAuthorizer
-from auth0_ai_langchain.federated_connections.federated_connection_authorizer import FederatedConnectionAuthorizer
+from auth0_ai_langchain.async_authorization.async_authorizer import AsyncAuthorizer
+from auth0_ai_langchain.token_vault.token_vault_authorizer import TokenVaultAuthorizer
 
 
 class Auth0AI:
@@ -21,14 +21,14 @@ class Auth0AI:
         """
         self.auth0 = auth0
 
-    def with_async_user_confirmation(self, **params: CIBAAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
+    def with_async_authorization(self, **params: AsyncAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
         """Protects a tool with the CIBA (Client-Initiated Backchannel Authentication) flow.
 
         Requires user confirmation via a second device (e.g., phone)
         before allowing the tool to execute.
 
         Args:
-            **params: Parameters defined in `CIBAAuthorizerParams`.
+            **params: Parameters defined in `AsyncAuthorizerParams`.
 
         Returns:
             Callable[[BaseTool], BaseTool]: A decorator to wrap a LangChain tool.
@@ -37,13 +37,13 @@ class Auth0AI:
             ```python
             import os
             from auth0_ai_langchain.auth0_ai import Auth0AI
-            from auth0_ai_langchain.ciba import get_ciba_credentials
+            from auth0_ai_langchain.async_authorization import get_async_authorization_credentials
             from langchain_core.runnables import ensure_config
             from langchain_core.tools import StructuredTool
 
             auth0_ai = Auth0AI()
 
-            with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+            with_async_authorization = auth0_ai.with_async_authorization(
                 scopes=["stock:trade"],
                 audience=os.getenv("AUDIENCE"),
                 requested_expiry=os.getenv("REQUESTED_EXPIRY"),
@@ -52,14 +52,14 @@ class Auth0AI:
             )
 
             def tool_function(ticker: str, qty: int) -> str:
-                credentials = get_ciba_credentials()
+                credentials = get_async_authorization_credentials()
                 headers = {
                     "Authorization": f"{credentials['token_type']} {credentials['access_token']}",
                     # ...
                 }
                 # Call API
 
-            trade_tool = with_async_user_confirmation(
+            trade_tool = with_async_authorization(
                 StructuredTool(
                     name="trade_tool",
                     description="Use this function to trade a stock",
@@ -68,16 +68,16 @@ class Auth0AI:
             )
             ```
         """
-        authorizer = CIBAAuthorizer(CIBAAuthorizerParams(**params), self.auth0)
+        authorizer = AsyncAuthorizer(AsyncAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
 
-    def with_federated_connection(self, **params: FederatedConnectionAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
-        """Enables a tool to obtain an access token from a federated identity provider (e.g., Google, Azure AD).
+    def with_token_vault(self, **params: TokenVaultAuthorizerParams) -> Callable[[BaseTool], BaseTool]:
+        """Enables a tool to obtain an access token from a Token Vault identity provider (e.g., Google, Azure AD).
 
         The token can then be used within the tool to call third-party APIs on behalf of the user.
 
         Args:
-            **params: Parameters defined in `FederatedConnectionAuthorizerParams`.
+            **params: Parameters defined in `TokenVaultAuthorizerParams`.
 
         Returns:
             Callable[[BaseTool], BaseTool]: A decorator to wrap a LangChain tool.
@@ -85,19 +85,19 @@ class Auth0AI:
         Example:
             ```python
             from auth0_ai_langchain.auth0_ai import Auth0AI
-            from auth0_ai_langchain.federated_connections import get_credentials_for_connection
+            from auth0_ai_langchain.token_vault import get_credentials_from_token_vault
             from langchain_core.tools import StructuredTool
             from datetime import datetime
 
             auth0_ai = Auth0AI()
 
-            with_google_calendar_access = auth0_ai.with_federated_connection(
+            with_google_calendar_access = auth0_ai.with_token_vault(
                 connection="google-oauth2",
                 scopes=["https://www.googleapis.com/auth/calendar.freebusy"]
             )
 
             def tool_function(date: datetime):
-                credentials = get_credentials_for_connection()
+                credentials = get_credentials_from_token_vault()
                 # Call Google API using credentials["access_token"]
 
             check_calendar_tool = with_google_calendar_access(
@@ -109,6 +109,6 @@ class Auth0AI:
             )
             ```
         """
-        authorizer = FederatedConnectionAuthorizer(
-            FederatedConnectionAuthorizerParams(**params), self.auth0)
+        authorizer = TokenVaultAuthorizer(
+            TokenVaultAuthorizerParams(**params), self.auth0)
         return authorizer.authorizer()
