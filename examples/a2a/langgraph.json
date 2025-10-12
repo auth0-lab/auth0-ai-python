@@ -1,0 +1,8 @@
+{
+  "python_version": "3.11",
+  "graphs": {
+    "hr_agent": "./hr_agent/agent.py:graph"
+  },
+  "env": ".env",
+  "dependencies": ["./hr_agent"]
+}
