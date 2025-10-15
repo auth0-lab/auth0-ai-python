@@ -12,23 +12,23 @@
 pip install auth0-ai-llamaindex
 ```
 
-## Async User Confirmation
+## Async Authorization
 
 `Auth0AI` uses CIBA (Client Initiated Backchannel Authentication) to handle user confirmation asynchronously. This is useful when you need to confirm a user action before proceeding with a tool execution.
 
-Full Example of [Async User Confirmation](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/async-user-confirmation/llama-index-examples).
+Full Example of [Async Authorization](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/async-authorization/llama-index-examples).
 
 Define a tool with the proper authorizer specifying a function to resolve the user id:
 
 ```python
 from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
-from auth0_ai_llamaindex.ciba import get_ciba_credentials
+from auth0_ai_llamaindex.async_authorization import get_async_authorization_credentials
 from llama_index.core.tools import FunctionTool
 
 # If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`
 auth0_ai = Auth0AI()
 
-with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+with_async_authorization = auth0_ai.with_async_authorization(
     scopes=["stock:trade"],
     audience=os.getenv("AUDIENCE"),
     requested_expiry=os.getenv("REQUESTED_EXPIRY"),
@@ -39,14 +39,14 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
 )
 
 def tool_function(ticker: str, qty: int) -> str:
-    credentials = get_ciba_credentials()
+    credentials = get_async_authorization_credentials()
     headers = {
         "Authorization": f"{credentials["token_type"]} {credentials["access_token"]}",
         # ...
     }
     # Call API
 
-trade_tool = with_async_user_confirmation(
+trade_tool = with_async_authorization(
     FunctionTool.from_defaults(
         name="trade_tool",
         description="Use this function to trade a stock",
@@ -59,13 +59,14 @@ trade_tool = with_async_user_confirmation(
 set_ai_context("<thread-id>")
 ```
 
-### CIBA with RAR (Rich Authorization Requests)
-`Auth0AI` supports RAR (Rich Authorization Requests) for CIBA. This allows you to provide additional authorization parameters to be displayed during the user confirmation request.
+### Async Authorization with RAR (Rich Authorization Requests)
+
+`Auth0AI` supports RAR (Rich Authorization Requests) for Async Authorization. This allows you to provide additional authorization parameters to be displayed during the user confirmation request.
 
 When defining the tool authorizer, you can specify the `authorization_details` parameter to include detailed information about the authorization being requested:
 
 ```python
-with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
+with_async_authorization = auth0_ai.with_async_authorization(
     scopes=["stock:trade"],
     audience=os.getenv("AUDIENCE"),
     requested_expiry=os.getenv("REQUESTED_EXPIRY"),
@@ -87,6 +88,7 @@ with_async_user_confirmation = auth0_ai.with_async_user_confirmation(
 To use RAR with CIBA, you need to [set up authorization details](https://auth0.com/docs/get-started/apis/configure-rich-authorization-requests) in your Auth0 tenant. This includes defining the authorization request parameters and their types. Additionally, the [Guardian SDK](https://auth0.com/docs/secure/multi-factor-authentication/auth0-guardian) is required to handle these authorization details in your authorizer app.
 
 For more information on setting up RAR with CIBA, refer to:
+
 - [Configure Rich Authorization Requests (RAR)](https://auth0.com/docs/get-started/apis/configure-rich-authorization-requests)
 - [User Authorization with CIBA](https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-initiated-backchannel-authentication-flow/user-authorization-with-ciba)
 
@@ -148,7 +150,7 @@ return FunctionTool.from_defaults(
 
 ## Calling APIs On User's Behalf
 
-The `Auth0AI.with_federated_connection` function exchanges user's refresh token for a Federated Connection API access token.
+The `Auth0AI.with_token_vault` function exchanges user's refresh token for a Token Vault access token with the third-party.
 
 Full Example of [Calling APIs On User's Behalf](https://github.com/auth0-lab/auth0-ai-python/tree/main/examples/calling-apis/llama-index-examples).
 
@@ -156,13 +158,13 @@ Define a tool with the proper authorizer specifying a function to resolve the us
 
 ```python
 from auth0_ai_llamaindex.auth0_ai import Auth0AI, set_ai_context
-from auth0_ai_llamaindex.federated_connections import get_credentials_for_connection
+from auth0_ai_llamaindex.token_vault import get_credentials_from_token_vault
 from llama_index.core.tools import FunctionTool
 
 # If not provided, Auth0 settings will be read from env variables: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, and `AUTH0_CLIENT_SECRET`
 auth0_ai = Auth0AI()
 
-with_google_calendar_access = auth0_ai.with_federated_connection(
+with_google_calendar_access = auth0_ai.with_token_vault(
     connection="google-oauth2",
     scopes=["https://www.googleapis.com/auth/calendar.freebusy"],
     refresh_token=lambda *_args, **_kwargs: session["user"]["refresh_token"],
@@ -171,7 +173,7 @@ with_google_calendar_access = auth0_ai.with_federated_connection(
 )
 
 def tool_function(date: datetime):
-    credentials = get_credentials_for_connection()
+    credentials = get_credentials_from_token_vault()
     # Call Google API using credentials["access_token"]
 
 check_calendar_tool = with_google_calendar_access(

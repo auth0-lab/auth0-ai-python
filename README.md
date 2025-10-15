@@ -9,7 +9,7 @@ Developers are using LLMs to build generative AI applications that deliver power
 - **Authenticate users**: Easily implement login experiences tailored for AI agents and assistants.
 - **Call APIs on users' behalf**: Use secure standards to call APIs from tools, integrating your app with other products.
 - **Authorization for RAG**: Generate more relevant responses while ensuring that the agent incorporates only information the user has access to.
-- **Async user confirmation**: Enable agents to operate autonomously in the background while requiring human approval when necessary.
+- **Async Authorization**: Enable agents to operate autonomously in the background while requiring human approval when necessary.
 
 ## Packages
 
@@ -24,7 +24,7 @@ Developers are using LLMs to build generative AI applications that deliver power
 - [Authorization for RAG](/examples/authorization-for-rag/README.md): Examples of implementing secure document retrieval with strict access control using Okta FGA.
 - [Authorization for Tools](/examples/authorization-for-tools/README.md): Examples of implementing secure tool calling with strict access control using Okta FGA.
 - [Calling APIs](/examples/calling-apis/README.md): Examples of using secure standards to call third-party APIs from tools with Auth0.
-- [Async User Confirmation](/examples/async-user-confirmation/README.md): Examples of handling asynchronous user confirmation workflows.
+- [Async Authorization](/examples/async-authorization/README.md): Examples of handling asynchronous user confirmation workflows.
 
 ## Recommendations for VSCode Users
 
